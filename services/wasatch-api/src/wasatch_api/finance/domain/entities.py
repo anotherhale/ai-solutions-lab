@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 
@@ -38,3 +38,20 @@ class InvoiceLine:
     created_at: datetime
     updated_at: datetime
     work_order_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class Payment:
+    """Persisted payment reference row. Read-only; no posting command."""
+
+    id: str
+    invoice_id: str
+    amount: Money
+    method: str
+    status: str
+    received_on: date
+    created_at: datetime
+    updated_at: datetime
+    reference: str | None = None
+    received_by_employee_id: str | None = None
+    notes: str | None = None

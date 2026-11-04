@@ -68,19 +68,8 @@ def _document_finance(client: TestClient) -> dict[str, dict]:
     return recorded
 
 
-def _payment_tables(db_session: Session) -> list[str]:
-    rows = db_session.execute(
-        text(
-            """
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema = 'public'
-              AND table_name = 'payments'
-            ORDER BY table_name
-            """
-        )
-    ).all()
-    return [row[0] for row in rows]
+def _payment_count(db_session: Session) -> int:
+    return int(db_session.execute(text("SELECT count(*) FROM payments")).scalar() or 0)
 
 
 def test_approver_accepts_needs_review_without_posting(
@@ -99,7 +88,7 @@ def test_approver_accepts_needs_review_without_posting(
     finance_bytes = _finance_bytes()
     finance_rows = _finance_rows()
     documents = _document_finance(client)
-    assert _payment_tables(db_session) == []
+    payment_count = _payment_count(db_session)
     assert documents["doc_0003"]["invoice_id"] is None
     assert documents["doc_0003"]["status"] == "extracted"
 
@@ -136,7 +125,7 @@ def test_approver_accepts_needs_review_without_posting(
     assert _document_finance(client) == documents
     assert _finance_bytes() == finance_bytes
     assert _finance_rows() == finance_rows
-    assert _payment_tables(db_session) == []
+    assert _payment_count(db_session) == payment_count
 
     audits = client.get("/api/v1/audit-events", params={"page_size": 100})
     assert audits.status_code == 200

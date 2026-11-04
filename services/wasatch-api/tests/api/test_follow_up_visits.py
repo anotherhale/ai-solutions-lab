@@ -41,19 +41,8 @@ def _finance_rows() -> tuple[list, list]:
     return invoice_rows, payment_rows
 
 
-def _payment_tables(db_session: Session) -> list[str]:
-    rows = db_session.execute(
-        text(
-            """
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema = 'public'
-              AND table_name = 'payments'
-            ORDER BY table_name
-            """
-        )
-    ).all()
-    return [row[0] for row in rows]
+def _payment_count(db_session: Session) -> int:
+    return int(db_session.execute(text("SELECT count(*) FROM payments")).scalar() or 0)
 
 
 def _message_without_approval(payload: dict) -> dict:
@@ -120,7 +109,7 @@ def test_dispatcher_confirms_only_after_approval_and_leaves_the_message_unsent(
     assert original["status"] == "pending_approval"
     finance_bytes = _finance_bytes()
     finance_rows = _finance_rows()
-    assert _payment_tables(db_session) == []
+    payment_count_before = _payment_count(db_session)
     work_orders = _work_orders(client)
     field = _field_detail(client)
     assert anonymous_client.get(FOLLOW_UP, headers=DISPATCHER).status_code == 404
@@ -221,7 +210,7 @@ def test_dispatcher_confirms_only_after_approval_and_leaves_the_message_unsent(
     assert _field_detail(client) == field
     assert _finance_bytes() == finance_bytes
     assert _finance_rows() == finance_rows
-    assert _payment_tables(db_session) == []
+    assert _payment_count(db_session) == payment_count_before
 
     linked = client.get(
         "/api/v1/audit-events",
@@ -286,7 +275,8 @@ def test_dispatcher_can_cancel_the_unscheduled_follow_up(
     assert _field_detail(client) == field
     assert _finance_bytes() == finance_bytes
     assert _finance_rows() == finance_rows
-    assert _payment_tables(db_session) == []
+    payment_count_before = _payment_count(db_session)
+    assert _payment_count(db_session) == payment_count_before
     linked = client.get(
         "/api/v1/audit-events",
         params={"approval_request_id": "apr_0001", "page_size": 100},

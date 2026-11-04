@@ -30,6 +30,7 @@ from wasatch_api.shared.database.models import (
     InvoiceLineORM,
     InvoiceORM,
     MessageORM,
+    PaymentORM,
     RoleORM,
     ServiceLocationORM,
     SupportTicketORM,
@@ -424,6 +425,31 @@ def seed_valid_fixtures(
             },
         )
         tally("invoice_line", action)
+
+    for record in _load_records(fixtures_dir, "payments.json"):
+        amount = record["amount"]
+        received_by = record.get("received_by_employee_id")
+        action = _upsert(
+            session,
+            PaymentORM,
+            record["id"],
+            {
+                "invoice_id": _require(invoice_ids, record["invoice_id"], "invoice"),
+                "amount": Decimal(amount["amount"]),
+                "amount_currency": amount["currency"],
+                "method": record["method"],
+                "status": record["status"],
+                "received_on": parse_date(record["received_on"]),
+                "reference": record.get("reference"),
+                "received_by_employee_id": employee_ids.get(received_by)
+                if received_by
+                else None,
+                "notes": record.get("notes"),
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("payment", action)
 
     for record in _load_records(fixtures_dir, "work_order_tasks.json"):
         assigned = record.get("assigned_employee_id")
