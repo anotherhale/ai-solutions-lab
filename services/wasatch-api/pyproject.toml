@@ -26,6 +26,9 @@ dependencies = [
     "opentelemetry-sdk==1.45.2",
     "opentelemetry-exporter-otlp-proto-http==1.45.2",
     "opentelemetry-instrumentation-fastapi==0.66b2",
+    # Starlette TestClient still references anyio.abc.BlockingPortal until a
+    # released Starlette includes the from_thread alias. Pin below anyio 4.15.
+    "anyio>=4.8.0,<4.15",
 ]
 
 [project.optional-dependencies]

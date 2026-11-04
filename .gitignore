@@ -43,6 +43,9 @@ dist-ssr/
 .next/
 .nuxt/
 .cache/
+test-results/
+playwright-report/
+blob-report/
 
 # Docker
 *.log
