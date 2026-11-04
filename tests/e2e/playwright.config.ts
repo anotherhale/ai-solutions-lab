@@ -8,7 +8,8 @@ export default defineConfig({
   testDir: "./specs",
   fullyParallel: false,
   workers: 1,
-  retries: process.env.CI ? 1 : 0,
+  // Retries reuse one seeded database; approve/accept specs mutate fixture rows.
+  retries: 0,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
   use: {
     ...devices["Desktop Chrome"],
