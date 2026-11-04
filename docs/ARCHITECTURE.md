@@ -1,12 +1,12 @@
 # Architecture
 
-This document describes the system architecture for AI Solutions Lab. A FastAPI slice and local PostgreSQL environment now exist. The host can draft a suggested reply through a model port. React, Redis, n8n, and Azure are still future work.
+This document describes the system architecture for AI Solutions Lab. A FastAPI slice and local PostgreSQL environment now exist. The host can draft a suggested reply through a model port. `apps/wasatch-review` records approve or reject for that reply and does not send it. Redis, n8n, and Azure are still future work.
 
 ## Initial System Architecture
 
 The deployable system is a modular monolith. The implemented slice today is FastAPI plus PostgreSQL:
 
-- A React + TypeScript presentation layer (**future**)
+- A React + TypeScript review screen (**implemented** in `apps/wasatch-review`; approve or reject only, no delivery)
 - A Python + FastAPI application host (**implemented**)
 - PostgreSQL with pgvector for relational data and later embeddings (**local Compose**)
 - Redis for cache and short-lived coordination (**not in this slice**)
@@ -18,10 +18,8 @@ The deployable system is a modular monolith. The implemented slice today is Fast
 
 ```mermaid
 flowchart LR
-    User[User] --> Web["React TypeScript UI (future)"]
-    User --> Human["Human Approval Queue (future)"]
-    Web --> API[FastAPI Modular Monolith]
-    Human --> API
+    User[User] --> Review["Wasatch review screen"]
+    Review --> API[FastAPI Modular Monolith]
     User --> API
 
     subgraph Monolith["Application Host"]
@@ -39,7 +37,7 @@ flowchart LR
     AIPorts -.-> OpenAI["OpenAI Adapter (configuration)"]
 ```
 
-Customer-service reads, governance reads, ticket retrieval, and suggested-reply drafts are in the host. Document processing, workflow automation, knowledge search beyond the synthetic procedure corpus, sales, and BI remain planned. The default model port is an in-process fake. The OpenAI adapter runs only when configuration selects it and a non-placeholder key is present. The host does not store embedding columns and does not deliver customer messages.
+Customer-service reads, governance reads, ticket retrieval, and suggested-reply drafts are in the host. The review screen calls that API and does not deliver the message. Document processing, workflow automation, knowledge search beyond the synthetic procedure corpus, sales, and BI remain planned. The default model port is an in-process fake. The OpenAI adapter runs only when configuration selects it and a non-placeholder key is present. The host does not store embedding columns and does not deliver customer messages.
 
 ## Architectural Principles
 
@@ -68,7 +66,7 @@ Shared kernels, if any, belong in `libs/` only after duplication becomes real. F
 
 ### Monorepo tooling
 
-Nx is **not** installed. The repository has no applications or shared build graph that would benefit from it. Revisit Nx when multiple apps and libraries need coordinated builds, generators, or task caching. Record that decision in an ADR if the choice changes.
+Nx is **not** installed. `apps/wasatch-review` is one Vite application and does not share a build graph with the API. Revisit Nx when multiple apps and libraries need coordinated builds, generators, or task caching. Record that decision in an ADR if the choice changes.
 
 Specialized services in Java, Scala, or Rust are allowed only with a written justification. They are not part of the initial host.
 

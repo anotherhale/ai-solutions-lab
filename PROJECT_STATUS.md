@@ -18,7 +18,7 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 `main` is the production branch. Work integrates on `develop`. Merges to `main` are out of scope for laboratory agents.
 
-That relationship was true at `881cfc0`. `develop` later received the Ruff pin (`ec6465f`), the `develop` CI trigger (`ecd3015`), ADR 0001 acceptance (`c18ad80`), this planning set (`6cb587a`), CS-1 (`047702e`, pull request [#7](https://github.com/anotherhale/ai-solutions-lab/pull/7)), CS-2 (`7760106`, pull request [#8](https://github.com/anotherhale/ai-solutions-lab/pull/8)), CS-3 (`5b2ffc4`, pull request [#9](https://github.com/anotherhale/ai-solutions-lab/pull/9)), the laboratory-actor production boundary (`ac26535`, pull request [#10](https://github.com/anotherhale/ai-solutions-lab/pull/10)), the CI database gate (`d1178e8`, pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11)), CS-5 retrieval (`a03fea9`, pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12)), and CS-4 approval decisions (`0785ab9`, pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13)).
+That relationship was true at `881cfc0`. `develop` later received the Ruff pin (`ec6465f`), the `develop` CI trigger (`ecd3015`), ADR 0001 acceptance (`c18ad80`), this planning set (`6cb587a`), CS-1 (`047702e`, pull request [#7](https://github.com/anotherhale/ai-solutions-lab/pull/7)), CS-2 (`7760106`, pull request [#8](https://github.com/anotherhale/ai-solutions-lab/pull/8)), CS-3 (`5b2ffc4`, pull request [#9](https://github.com/anotherhale/ai-solutions-lab/pull/9)), the laboratory-actor production boundary (`ac26535`, pull request [#10](https://github.com/anotherhale/ai-solutions-lab/pull/10)), the CI database gate (`d1178e8`, pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11)), CS-5 retrieval (`a03fea9`, pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12)), CS-4 approval decisions (`0785ab9`, pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13)), and CS-6 suggested replies (`781bcc0`, pull request [#14](https://github.com/anotherhale/ai-solutions-lab/pull/14)).
 
 ## Remote branches observed
 
@@ -84,7 +84,8 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | CI database gate | Done. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) merged as `d1178e8`. CI sets `WASATCH_REQUIRE_DATABASE=1`. `scripts/check_wasatch_api_pytest.py` fails the job when the Wasatch API database tests were skipped. A local run without PostgreSQL can still skip. |
 | CS-4 approve or reject a customer message | Done. Pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13) merged as `0785ab9`. An approver can approve or reject pending `apr_0001` (`send_customer_message` for `msg_0016`). The command appends `decision_history`, sets `reviewer_employee_id` and `decided_at`, and inserts an audit event. The message body stays unchanged and the message is not marked `sent`. `emp_0004` is denied. No email, SMS, or other delivery. |
 | CS-5 retrieval over synthetic history and procedures | Done. Pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12) merged as `a03fea9`. `GET /api/v1/support-tickets/{ticket_id}/retrieval` returns that customer's persisted history and matching synthetic procedure pages. The route does not call a model and does not add an embedding column. |
-| CS-6 draft a suggested reply | This change. `POST /api/v1/support-tickets/{ticket_id}/draft-replies` creates an unsent reply for an existing ticket, grounded in that retrieval. For synthetic `tkt_0015` the reply cites `msg_0015` and `proc_0001`. Text that would commit Wasatch is `pending_approval` with `requires_approval` and a new `send_customer_message` request. Other text stays `draft` with no approval. Rejecting the approval leaves the message unsent. The default provider is the in-process fake. `AI_PROVIDER=openai` uses the OpenAI adapter only when `OPENAI_API_KEY` is not a placeholder. Tests and CI do not send a provider credential and do not call the network. |
+| CS-6 draft a suggested reply | Done. Pull request [#14](https://github.com/anotherhale/ai-solutions-lab/pull/14) merged as `781bcc0`. `POST /api/v1/support-tickets/{ticket_id}/draft-replies` creates an unsent reply for an existing ticket, grounded in that retrieval. For synthetic `tkt_0015` the reply cites `msg_0015` and `proc_0001`. Text that would commit Wasatch is `pending_approval` with `requires_approval` and a new `send_customer_message` request. Other text stays `draft` with no approval. Rejecting the approval leaves the message unsent. The default provider is the in-process fake. `AI_PROVIDER=openai` uses the OpenAI adapter only when `OPENAI_API_KEY` is not a placeholder. Tests and CI do not send a provider credential and do not call the network. |
+| CS-7 review surface | This change. `apps/wasatch-review` is the first React and TypeScript application. No Nx. A reviewer opens one synthetic inquiry, reads the suggested reply, and approves or rejects it through the local API with `X-Laboratory-Actor`. `emp_0001` is an approver. `emp_0004` is not. Anonymous access is unauthorized. The screen has no send control and does not call a delivery system. |
 
 Seeded governance counts: 10 approval requests, 11 decision-history rows, and 50 audit events. `msg_0016` (`pending_approval`, `requires_approval` true) references `apr_0001`. Audit rows are insert-only: revision `0003` installs a trigger that rejects `UPDATE` and `DELETE`. The customer-message decision inserts one new audit row and does not update or delete audit events. A second seed skips existing audit rows.
 
@@ -92,7 +93,7 @@ Seeded governance counts: 10 approval requests, 11 decision-history rows, and 50
 
 These items are absent. Later documents must not describe them as running:
 
-- React or any other user interface (`apps/` is a placeholder)
+- Any user interface besides the customer-service review screen (`apps/wasatch-review`). That screen opens one synthetic inquiry and records approve or reject. It does not send email, SMS, or any other customer message.
 - A model call in tests or CI. Chat and embedding ports exist. The OpenAI adapter is installed and stays behind `AI_PROVIDER`. The default provider is a fake and does not call the network. No provider credential is committed.
 - Embedding columns (the `vector` extension is enabled; no vector column exists). The embedding port is not used to fill one.
 - Outbound message delivery. The approval decision and the suggested-reply draft are the writes. Neither delivers email, SMS, or another channel, and neither marks the message `sent`.
@@ -267,3 +268,36 @@ From the repository root, same session:
 | `services/wasatch-api/.venv/bin/ruff check .` | All checks passed | 0 |
 | `python3 scripts/validate_repo.py` | `Repository conventions validated.` | 0 |
 | `python3 scripts/validate_wasatch_domain.py` | `Wasatch domain fixtures validated.` | 0 |
+
+## Verification for CS-7
+
+Run from `apps/wasatch-review` with Node.js 22.23.4. These checks do not use PostgreSQL, a provider key, or `OPENAI_API_KEY`. `.github/workflows/validate.yml`, `scripts/check_wasatch_api_pytest.py`, and `services/wasatch-api/tests/conftest.py` were not edited. The review-screen checks are not part of GitHub Actions.
+
+| Command | Result | Exit |
+|---|---|---|
+| `npm test` | Vitest 5.1.0. 9 passed across 2 files | 0 |
+| `npm run typecheck` | `tsc --noEmit` | 0 |
+| `npm run build` | Vite production build succeeded | 0 |
+
+From the repository root, same session:
+
+| Command | Result | Exit |
+|---|---|---|
+| `services/wasatch-api/.venv/bin/ruff format --check .` | 168 files already formatted | 0 |
+| `services/wasatch-api/.venv/bin/ruff check .` | All checks passed | 0 |
+| `python3 scripts/validate_repo.py` | `Repository conventions validated.` | 0 |
+| `python3 scripts/validate_wasatch_domain.py` | `Wasatch domain fixtures validated.` | 0 |
+
+The workstation virtualenv was missing the `openai` package already declared by the API. After `pip install -e 'services/wasatch-api[dev]'`, `WASATCH_REQUIRE_DATABASE=1 pytest` from `services/wasatch-api` exited 0. Collection lists 142 tests. The progress output showed no failures. The warning is the existing Starlette deprecation. The run did not call OpenAI and did not observe GitHub Actions. The first attempt, before that install, failed one unit test because `openai` was not importable.
+
+Browser check against the local API on port 8000, with the Vite dev server proxying `/api` from http://127.0.0.1:5173. Wasatch data is synthetic. The page never showed a send control.
+
+| Path | What the browser showed |
+|---|---|
+| Empty suggestion | Jordan Hale (`emp_0001`) opened `tkt_0015`. The inbound rooftop message was visible. The suggestion panel said no suggested reply was waiting. Approve and reject were absent. |
+| Unauthorized actor | Anonymous, with no `X-Laboratory-Actor` header, opened `tkt_0007`. The API returned 401. The banner said `Unauthorized. a laboratory actor is required`. The inquiry did not load. |
+| Non-approver | Elena Voss (`emp_0004`) opened `tkt_0007` and clicked Approve reply. The banner said this actor cannot approve or reject the suggested reply, and the API message was `writes are denied`. The reply stayed pending. |
+| Approve | Jordan Hale approved `apr_0001` with the note `Overtime approved for Thursday.` The banner said `Approved. The message was not sent.` `msg_0016` stayed `pending_approval`. The approval was `approved`, reviewer `emp_0001`, and `executed_at` was null. |
+| Reject | After seed restored `apr_0001` to pending, Jordan Hale rejected it with the note `Customer did not approve overtime.` The banner said `Rejected. The message was not sent.` `msg_0016` stayed `pending_approval`. The approval was `rejected`, and `executed_at` was null. |
+
+A later seed put `apr_0001` back to pending and cleared its decision history. Audit storage is insert-only, so the two decision rows (`aud_0051` approved, `aud_0052` rejected) remain in the local `wasatch` database. GitHub Actions was not observed.

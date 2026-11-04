@@ -119,7 +119,9 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 
 ### CS-6 — Draft a suggested reply
 
-- Status: this pull request
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/14
+- Merge: `781bcc0`
 - Depends on: CS-3, CS-4, CS-5, and ADR 0004
 - Define chat and embedding ports. Domain packages do not import a provider SDK.
 - OpenAI is the first adapter and stays behind configuration. Tests use a fake port. Repository validation and CI stay free of an API key.
@@ -129,9 +131,9 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 
 ### CS-7 — Review surface
 
-- Status: blocked on CS-6
+- Status: this pull request
 - Depends on: CS-4 and CS-6
-- First React and TypeScript application under `apps/`. No Nx.
+- First React and TypeScript application under `apps/wasatch-review`. No Nx.
 - A customer-service reviewer can open one inbound inquiry, read the suggested reply, and approve or reject it.
 - The screen shows synthetic data and does not offer a send control.
 - Acceptance: the roadmap exit for Phase 2 is demonstrable against the local API. Browser verification covers the approve and reject paths, an empty suggestion state, and an unauthorized actor.

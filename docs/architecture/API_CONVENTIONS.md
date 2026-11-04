@@ -111,7 +111,7 @@ A message that references an approval includes that approval request on the mess
 }
 ```
 
-CORS is off unless `CORS_ORIGINS` is set. When it is set, allowed methods include `POST` for the decision command, and allowed headers include `X-Laboratory-Actor`.
+CORS is off unless `CORS_ORIGINS` is set. When it is set, allowed methods include `POST` for the decision command, and allowed headers include `X-Laboratory-Actor`. The review screen in `apps/wasatch-review` reads one ticket and posts the decision. Its dev server proxies `/api` to this process, so that local path does not need `CORS_ORIGINS`. The screen does not send the message.
 
 ## Example requests
 

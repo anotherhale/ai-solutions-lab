@@ -2,4 +2,4 @@
 
 Placeholder for browser and workflow tests that follow a Wasatch Business Systems user journey.
 
-No end-to-end tests are implemented yet because no user-facing application exists.
+The customer-service review screen lives in `apps/wasatch-review`. Its unit checks run there and do not need a database or a provider key. This directory still has no automated browser suite. GitHub Actions does not run the review-screen checks.
