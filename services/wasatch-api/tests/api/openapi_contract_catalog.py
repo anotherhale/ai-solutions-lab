@@ -30,6 +30,8 @@ SLICE_PATH_METHODS: dict[str, frozenset[str]] = {
     "/api/v1/follow-up-visits/{follow_up_id}": frozenset({"get"}),
     "/api/v1/audit-events": frozenset({"get"}),
     "/api/v1/audit-events/{audit_event_id}": frozenset({"get"}),
+    "/api/v1/invoices": frozenset({"get"}),
+    "/api/v1/invoices/{invoice_id}": frozenset({"get"}),
     "/api/v1/documents": frozenset({"get"}),
     "/api/v1/documents/{document_id}": frozenset({"get"}),
     "/api/v1/document-versions": frozenset({"get"}),

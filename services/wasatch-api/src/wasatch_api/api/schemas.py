@@ -29,6 +29,7 @@ from wasatch_api.documents.domain.entities import (
     DocumentExtraction,
     DocumentVersion,
 )
+from wasatch_api.finance.domain.entities import Invoice
 from wasatch_api.governance.domain.entities import (
     ApprovalDecision,
     ApprovalRequest,
@@ -919,6 +920,30 @@ class DocumentDetailOut(BaseModel):
                 DocumentExtractionOut.from_domain(item) for item in document.extractions
             ],
         )
+
+
+class InvoiceListItemOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    customer_id: str
+    status: str
+    created_at: str
+    updated_at: str
+
+    @classmethod
+    def from_domain(cls, invoice: Invoice) -> InvoiceListItemOut:
+        return cls(
+            id=invoice.id,
+            customer_id=invoice.customer_id,
+            status=invoice.status,
+            created_at=dump_datetime(invoice.created_at),
+            updated_at=dump_datetime(invoice.updated_at),
+        )
+
+
+class InvoiceDetailOut(InvoiceListItemOut):
+    """Detail matches list fields until money columns are persisted."""
 
 
 class PageOut[T](BaseModel):

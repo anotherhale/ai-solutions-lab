@@ -41,6 +41,9 @@ MESSAGE_STATUSES = frozenset(
 APPROVAL_STATUSES = frozenset(
     {"pending", "approved", "rejected", "executed", "cancelled"}
 )
+INVOICE_STATUSES = frozenset(
+    {"draft", "issued", "partially_paid", "paid", "overdue", "voided"}
+)
 APPROVAL_ACTION_TYPES = frozenset(
     {
         "send_customer_message",
@@ -138,6 +141,14 @@ def validate_approval_status(status: str | None) -> str | None:
         return None
     if status not in APPROVAL_STATUSES:
         raise InvalidParameterError(f"unsupported approval status: {status}")
+    return status
+
+
+def validate_invoice_status(status: str | None) -> str | None:
+    if status is None:
+        return None
+    if status not in INVOICE_STATUSES:
+        raise InvalidParameterError(f"unsupported invoice status: {status}")
     return status
 
 
