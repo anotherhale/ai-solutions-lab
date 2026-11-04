@@ -53,48 +53,86 @@ after insert; event content remains append-only.
 | Variable | Purpose |
 |---|---|
 | `WASATCH_DATABASE_URL` | PostgreSQL URL (same instance as Wasatch) |
+| `DEVELOPMENT_OPS_RUN_ID` | Correlate all events in one agent/coordinator run |
+| `DEVELOPMENT_OPS_TASK_ID` | Active backlog/task identifier |
+| `DEVELOPMENT_OPS_GITHUB_REPOSITORY` | `owner/repo` for PR links |
+| `DEVELOPMENT_OPS_AGENT_NAME` | Agent or coordinator label |
 | `DEVELOPMENT_OPS_SLACK_BOT_TOKEN` | Optional bot token for `chat.postMessage` automation |
 | `DEVELOPMENT_OPS_SLACK_CHANNEL_ID` | Default `C0CFJDH7PTJ` |
 | `DEVELOPMENT_OPS_REPORT_TZ` | Report timezone (default `America/Denver`) |
 
-Cursor Cloud Agents with the authorized Slack MCP should:
+## CLI (Phase 2)
 
-1. Persist via `ActivityRecorder` (or SQL) first.
-2. Post to `#ai-development` with MCP.
-3. Call `ActivityRecorder.confirm_slack_delivery` with `channel_id` and `message_ts`.
+Install: `python3 -m pip install -e libs/development_ops`
 
-Do not mark `delivered` without a confirmed timestamp.
+```bash
+export DEVELOPMENT_OPS_RUN_ID="$(uuidgen)"
+export WASATCH_DATABASE_URL=postgresql+psycopg://wasatch:replace-me@localhost:5432/wasatch
+
+development-ops-record record \
+  --event-type implementation.milestone \
+  --title "CLI available" \
+  --metadata '{"phase":2}' \
+  --idempotency-key "${DEVELOPMENT_OPS_RUN_ID}:cli"
+
+# Exit codes: 0 ok, 1 persistence failed, 2 Slack failed (row retained)
+```
+
+Confirm Slack after Cursor MCP post (Phase 3):
+
+```bash
+development-ops-record confirm-slack \
+  --event-id "<uuid from record JSON>" \
+  --channel-id C0CFJDH7PTJ \
+  --message-ts "<ts from chat.postMessage or MCP>"
+```
+
+Coordinator shorthand:
+
+```bash
+scripts/coordinator_activity.sh run-start "My run"
+scripts/coordinator_activity.sh tests-passed "pytest green"
+scripts/coordinator_activity.sh pr-opened "Phase 2 PR" --github-pull-number 34
+```
 
 ## Library
 
 Package: `libs/development_ops` (`development-ops` on `pip install -e`).
 
 ```python
-from sqlalchemy.orm import Session
-from development_ops.recorder import ActivityRecorder
-from development_ops.instrumentation import RunContext
+from development_ops.coordinator import CoordinatorWorkflow, coordinator_run
 
-recorder = ActivityRecorder(session, notify_slack=False)
-ctx = RunContext(recorder, agent_name="cursor-cloud", github_repository="org/repo")
-ctx.run_started()
-ctx.milestone("Schema migration added")
-ctx.tests_completed()
+with coordinator_run() as ctx:
+    flow = CoordinatorWorkflow(ctx)
+    flow.start()
+    flow.select_task("DEV-activity-2", "Agent instrumentation")
+    flow.implementation("CLI and coordinator hooks")
+    flow.tests_passed(metadata={"pytest": "passed"})
 ```
 
-## Reporting
+## Reporting (Phase 4)
 
 ```bash
 python3 scripts/activity_report.py --date 2026-11-04
 python3 scripts/activity_report.py --week-start 2026-11-03
-python3 scripts/activity_report.py --run-id <uuid> --event-type progress.report
+python3 scripts/activity_report.py --run-id <uuid>
+python3 scripts/activity_report.py --run-id <uuid> --event-type test.completed
 ```
+
+Run reports list milestones in time order, GitHub PR links, and Slack delivery
+status per event.
+
+### Sample run report
+
+See [samples/run-correlation-sample.md](samples/run-correlation-sample.md).
 
 ## Recovery
 
 | Situation | Action |
 |---|---|
-| Slack down | Events remain in PostgreSQL; retry delivery or post manually, then `confirm_slack_delivery` |
-| Duplicate MCP post | Use idempotency keys; set delivery status `duplicate` when replaying confirmation |
+| Slack down | Events remain in PostgreSQL; retry delivery or post manually, then `confirm-slack` |
+| Duplicate MCP post | Use idempotency keys; pass `--duplicate` to `confirm-slack` when replaying |
+| `development-ops-record` exit 1 | Persistence failed — check DB URL/migrations; report blocker in Slack |
 | Migration pending | From `services/wasatch-api`, run `alembic upgrade head` |
 | No telemetry | Treat as unknown; investigate run logs and GitHub Actions |
 

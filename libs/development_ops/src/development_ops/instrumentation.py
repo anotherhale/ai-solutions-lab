@@ -81,7 +81,27 @@ class RunContext:
 
     def task_selected(self, task_id: str, title: str) -> RecordResult:
         self.task_id = task_id
-        return self._record(EventType.TASK_SELECTED, EventSeverity.INFO, title)
+        return self._record(
+            EventType.TASK_SELECTED,
+            EventSeverity.INFO,
+            title,
+            idempotency_key=f"{self.run_id}:task.selected:{task_id}",
+        )
+
+    def task_delegated(
+        self,
+        task_id: str,
+        title: str,
+        *,
+        metadata: dict[str, Any] | None = None,
+    ) -> RecordResult:
+        self.task_id = task_id
+        return self._record(
+            EventType.TASK_DELEGATED,
+            EventSeverity.INFO,
+            title,
+            metadata=metadata,
+        )
 
     def milestone(
         self,
@@ -98,11 +118,54 @@ class RunContext:
             metadata=metadata,
         )
 
-    def tests_completed(self, title: str = "Tests completed") -> RecordResult:
+    def tests_started(self, title: str = "Tests started") -> RecordResult:
+        return self._record(
+            EventType.TEST_STARTED,
+            EventSeverity.INFO,
+            title,
+        )
+
+    def tests_completed(
+        self,
+        title: str = "Tests completed",
+        *,
+        metadata: dict[str, Any] | None = None,
+    ) -> RecordResult:
         return self._record(
             EventType.TEST_COMPLETED,
             EventSeverity.INFO,
             title,
+            metadata=metadata,
+        )
+
+    def tests_failed(self, title: str, *, summary: str) -> RecordResult:
+        return self._record(
+            EventType.TEST_FAILED,
+            EventSeverity.ERROR,
+            title,
+            summary=summary,
+        )
+
+    def review_started(self, title: str = "Review started") -> RecordResult:
+        return self._record(
+            EventType.REVIEW_STARTED,
+            EventSeverity.INFO,
+            title,
+        )
+
+    def review_completed(
+        self,
+        title: str,
+        *,
+        summary: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> RecordResult:
+        return self._record(
+            EventType.REVIEW_COMPLETED,
+            EventSeverity.NOTICE,
+            title,
+            summary=summary,
+            metadata=metadata,
         )
 
     def pr_opened(
@@ -122,6 +185,40 @@ class RunContext:
             EventSeverity.NOTICE,
             title,
             github=github,
+            idempotency_key=f"{self.run_id}:pr.opened:{pull_number}",
+        )
+
+    def pr_updated(self, pull_number: int, title: str) -> RecordResult:
+        github = GitHubReference(
+            repository=self.github_repository,
+            pull_number=pull_number,
+        )
+        return self._record(
+            EventType.PR_UPDATED,
+            EventSeverity.INFO,
+            title,
+            github=github,
+        )
+
+    def pr_merged(self, pull_number: int, title: str) -> RecordResult:
+        github = GitHubReference(
+            repository=self.github_repository,
+            pull_number=pull_number,
+        )
+        return self._record(
+            EventType.PR_MERGED,
+            EventSeverity.NOTICE,
+            title,
+            github=github,
+            idempotency_key=f"{self.run_id}:pr.merged:{pull_number}",
+        )
+
+    def blocker(self, title: str, *, summary: str) -> RecordResult:
+        return self._record(
+            EventType.BLOCKER_REPORTED,
+            EventSeverity.WARNING,
+            title,
+            summary=summary,
         )
 
     def progress(

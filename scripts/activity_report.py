@@ -23,6 +23,7 @@ from development_ops.reporting import (  # noqa: E402
     daily_summary,
     fetch_events,
     render_daily_summary,
+    run_summary,
     weekly_summary,
 )
 from development_ops.taxonomy import EventSeverity, EventType  # noqa: E402
@@ -52,7 +53,10 @@ def main(argv: list[str] | None = None) -> int:
         "--week-start",
         help="Weekly report starting YYYY-MM-DD (inclusive, local timezone)",
     )
-    parser.add_argument("--run-id", help="Filter by agent run UUID")
+    parser.add_argument(
+        "--run-id",
+        help="Run UUID: emit a correlated run report (or filter with other flags)",
+    )
     parser.add_argument("--task-id", help="Filter by task id")
     parser.add_argument("--event-type", choices=[item.value for item in EventType])
     parser.add_argument("--severity", choices=[item.value for item in EventSeverity])
@@ -73,6 +77,22 @@ def main(argv: list[str] | None = None) -> int:
         if args.week_start:
             week_start = _parse_day(args.week_start, tz)
             print(weekly_summary(session, week_start, timezone=tz))
+            return 0
+        if (
+            args.run_id
+            and not args.task_id
+            and not args.event_type
+            and not args.severity
+            and not args.since
+            and not args.until
+        ):
+            print(
+                run_summary(
+                    session,
+                    uuid.UUID(args.run_id),
+                    timezone=tz,
+                )
+            )
             return 0
 
         query = ActivityEventQuery(

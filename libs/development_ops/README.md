@@ -8,6 +8,7 @@ See [docs/operations/DEVELOPMENT_ACTIVITY_LOG.md](../../docs/operations/DEVELOPM
 for taxonomy, configuration, Slack routing, and recovery.
 
 ```bash
-python -m pip install -e "libs/development_ops[dev]"
+python3 -m pip install -e "libs/development_ops[dev]"
+development-ops-record record --help
 pytest libs/development_ops/tests
 ```
