@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-11-03
+- Updated: 2026-11-04
 
 ## Context
 
@@ -15,7 +16,7 @@ Use PostgreSQL as the system of record and pgvector in the same database instanc
 
 Redis remains the intended cache and short-lived coordination store. It is not the source of truth for business records.
 
-Local PostgreSQL with pgvector is provisioned by Docker Compose. The first migration enables the `vector` extension. Embedding columns are still deferred.
+Local PostgreSQL with pgvector is provisioned by Docker Compose. The first migration enables the `vector` extension. Revision `0006` adds the first embedding column, `procedure_page_embeddings.embedding`. It is `vector(8)`, the width returned by the laboratory embedding port. That default is the deterministic fake adapter. Domain code does not choose a different width. The column stores synthetic procedure page text only. Document version bytes are not in the repository and are not embedded. Unaccepted, `needs_review`, low-confidence, and financial extractions are not written into this index. The fake vectors are not a trusted semantic model. There is no second vector database.
 
 ## Alternatives Considered
 
@@ -26,6 +27,7 @@ Local PostgreSQL with pgvector is provisioned by Docker Compose. The first migra
 ## Consequences
 
 - Local Compose and later Azure Database for PostgreSQL can share one mental model.
-- Schema migrations and embedding storage must be designed together.
-- Operational simplicity is favored over specialized vector features.
-- The first relational slice and local Compose environment now exist.
+- Schema migrations and embedding storage share this database. The first embedding column is `procedure_page_embeddings.embedding`.
+- Operational simplicity is favored over specialized vector features. Redis and n8n are not part of this column.
+- The first relational slice and local Compose environment exist.
+- Phase 4 workflow automation is not started. Accepting a document extraction still does not post a payment or change an invoice.

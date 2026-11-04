@@ -5,16 +5,21 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from wasatch_api.ai.application.ports import EmbeddingPort
 from wasatch_api.customer_service.domain.retrieval import (
     INTERACTION,
     MESSAGE,
     SUPPORT_TICKET,
     WORK_ORDER,
     HistoryPassage,
+    ProcedurePage,
     RetrievalResult,
 )
 from wasatch_api.customer_service.infrastructure.procedure_corpus import (
     ProcedureCorpus,
+)
+from wasatch_api.customer_service.infrastructure.procedure_embeddings import (
+    ProcedureEmbeddingRepository,
 )
 from wasatch_api.shared.database.models import (
     InteractionORM,
@@ -25,16 +30,24 @@ from wasatch_api.shared.database.models import (
 
 
 class RelationalTextRetrieval:
-    """First retrieval adapter.
+    """Retrieval adapter.
 
     History is a relational read of one customer's tickets, messages,
-    interactions, and work orders. Procedure pages are matched in process
-    from the synthetic file corpus. No vector column and no network model.
+    interactions, and work orders. Procedure pages are matched from the
+    synthetic file corpus. When those pages have stored vectors, the match
+    is ordered by that column. The history query stays.
     """
 
-    def __init__(self, session: Session, procedures: ProcedureCorpus) -> None:
+    def __init__(
+        self,
+        session: Session,
+        procedures: ProcedureCorpus,
+        embeddings: EmbeddingPort | None = None,
+    ) -> None:
         self.session = session
         self.procedures = procedures
+        self.embeddings = embeddings
+        self._vectors = ProcedureEmbeddingRepository(session)
 
     def retrieve_for_ticket(self, ticket_id: str) -> RetrievalResult | None:
         ticket = self.session.scalar(
@@ -54,12 +67,35 @@ class RelationalTextRetrieval:
             *_interaction_passages(self._interactions(customer_key)),
             *_work_order_passages(self._work_orders(customer_key)),
         )
+        inquiry = _inquiry_text(ticket)
         return RetrievalResult(
             support_ticket_id=ticket.business_id,
             customer_id=ticket.customer.business_id,
             history=history,
-            procedures=self.procedures.matching_pages(_inquiry_text(ticket)),
+            procedures=self._order_with_stored_vectors(
+                self.procedures.matching_pages(inquiry),
+                inquiry,
+            ),
         )
+
+    def _order_with_stored_vectors(
+        self, pages: tuple[ProcedurePage, ...], inquiry: str
+    ) -> tuple[ProcedurePage, ...]:
+        if not pages or self.embeddings is None:
+            return pages
+        stored = self._vectors.stored_among(tuple(page.id for page in pages))
+        if not stored:
+            return pages
+        embedded = self.embeddings.embed((inquiry,))
+        if len(embedded) != 1:
+            return pages
+        ordered = self._vectors.order_by_similarity(stored, embedded[0].vector)
+        by_id = {page.id: page for page in pages}
+        ranked = [
+            by_id[procedure_id] for procedure_id in ordered if procedure_id in by_id
+        ]
+        seen = {page.id for page in ranked}
+        return tuple(ranked + [page for page in pages if page.id not in seen])
 
     def _tickets(self, customer_key) -> list[SupportTicketORM]:
         return list(

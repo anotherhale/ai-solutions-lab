@@ -40,8 +40,9 @@ def create_app() -> FastAPI:
             "message. The extraction decision does not post a payment or "
             "change an invoice. Other writes are denied. "
             "The model provider defaults to a fake that does not call the "
-            "network. Production configuration refuses to start. React is "
-            "not part of this service."
+            "network. Procedure-page embeddings, when filled, use that same "
+            "fake port and are not a trusted model. Production configuration "
+            "refuses to start. React is not part of this service."
         ),
         version=__version__,
     )

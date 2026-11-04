@@ -25,7 +25,7 @@ The laboratory stays portable: business rules live in the application, and vendo
 |---|---|---|---|
 | Modular monolith, hexagonal, explicit modules | ADR 0001, `AGENTS.md` | Proposed in the ADR. The first host is already implemented. | One FastAPI process. Customer and work-order packages are the pattern for later modules. |
 | Python 3.12 and FastAPI | ADR 0002 | Accepted | `services/wasatch-api` is the host. `apps/wasatch-review` is the React and TypeScript review screen. |
-| PostgreSQL and pgvector | ADR 0003 | Accepted | System of record and future embeddings share one database. The extension is installed. Embedding columns are still deferred. |
+| PostgreSQL and pgvector | ADR 0003 | Accepted | System of record and embeddings share one database. Revision `0006` stores procedure-page vectors in `procedure_page_embeddings.embedding` (`vector(8)`, the fake port's width). No second vector database. |
 | OpenAI behind a port | ADR 0004 | Proposed | No SDK until a use case needs it. Domain code never imports the SDK. CI must not need an API key. |
 | Docker Compose for local dependencies | ADR 0005 | Accepted | `compose.yaml` is the local topology. Redis and n8n stay out until a feature consumes them. |
 | Human approval for consequential operations | `docs/SECURITY.md`, domain model | In force | Draft and recommend are allowed. Sending customer commitments, changing money, and changing field work require an approval record. |
@@ -81,7 +81,7 @@ Roadmap exit: a dispatcher or customer-service agent can review an inbound inqui
 - Inquiries, messages, interactions, approvals, and audit events already have JSON Schemas and valid fixtures. Persistence reuses those files.
 - Suggested replies are created by the draft use case on an existing ticket. It does not rewrite historical fixture messages.
 - One pending outbound example is already in the fixtures: `msg_0016` on `tkt_0007`, status `pending_approval`, approval `apr_0001`. Decision tests should use that row.
-- Customer history text exists on tickets, messages, interactions, and work orders. A small synthetic procedure corpus lives under `data/documents/procedures/` and is labeled synthetic. It does not replace `data/fixtures/valid/`. Document version `storage_path` values such as `synthetic/documents/doc_0001/v1.bin` are still not files in the repository. Retrieval reads persisted history with a relational query and matches procedure pages by text search. No embedding column is stored.
+- Customer history text exists on tickets, messages, interactions, and work orders. A small synthetic procedure corpus lives under `data/documents/procedures/` and is labeled synthetic. It does not replace `data/fixtures/valid/`. Document version `storage_path` values such as `synthetic/documents/doc_0001/v1.bin` are still not files in the repository. Retrieval reads persisted history with a relational query and matches procedure pages from that corpus. Revision `0006` stores embeddings of the procedure text. Those vectors come from the fake port and are not a trusted model.
 - The slice stops at approve or reject. Delivery to the customer is a later consequential action and needs its own approval execution step, which is not part of this exit.
 - OpenAI is reached only through a port. Tests use a fake. No key is committed.
 
@@ -93,7 +93,7 @@ Tasks and dependencies are specified in [../../ENGINEERING_BACKLOG.md](../../ENG
 2. **CS-2.** Read approvals and audit events. Audit rows stay insert-only.
 3. **CS-3.** Persist roles so `is_approver` is real, and require an authenticated synthetic employee before any write. Done in `5b2ffc4`. The header adapter is local synthetic development only and is not a production authenticator.
 4. **CS-4.** Human approve or reject of `send_customer_message`, with an audit event, without marking the message sent. Done in `0785ab9`.
-5. **CS-5.** Retrieval port over persisted history plus a new synthetic procedure corpus. Done in `a03fea9`. The embedding port now exists. No vector column is filled.
+5. **CS-5.** Retrieval port over persisted history plus a new synthetic procedure corpus. Done in `a03fea9`. Procedure-page embeddings are revision `0006` (EMB-1). Customer history stays relational.
 6. **CS-6.** Draft a suggested reply through the AI port and open an approval request when the text would commit the company. Done in `781bcc0`.
 7. **CS-7.** React review surface under `apps/` for that approve and reject flow. Done in `13826ed`.
 
@@ -122,9 +122,9 @@ Structured logs use `APP_LOG_LEVEL`. Each access record has the actor, action, s
 
 ## Phase 3 — intelligent document processing
 
-**State: human review is this change. Embeddings are not started.** Depends on Phase 2.2. CS-7 is on `develop` (`13826ed`). Fixture persistence is on `develop` (`78877e6`, pull request [#16](https://github.com/anotherhale/ai-solutions-lab/pull/16)).
+**State: procedure-page embeddings are stored. Workflow automation is not started.** Depends on Phase 2.2. CS-7 is on `develop` (`13826ed`). Fixture persistence is on `develop` (`78877e6`, pull request [#16](https://github.com/anotherhale/ai-solutions-lab/pull/16)). Human review of extractions is on `develop` (`6e92af9`, pull request [#17](https://github.com/anotherhale/ai-solutions-lab/pull/17)).
 
-Schemas and fixtures for documents, versions, and extractions already exist (30 documents, 31 versions, 18 extractions). Alembic `0005` persists those fixtures. Read routes serve them. `POST /api/v1/document-extractions/{extraction_id}/decisions` lets an approver accept or reject an extraction that is awaiting review. Confidence below 0.8, a missing score, `needs_review`, an invoice or money field, or a document linked to an invoice stays untrusted until that decision. A read, a seed, and a background job do not accept those rows. The decision records status, reviewer, `reviewed_at`, optional `review_notes`, and an audit event. It does not post a payment, change an invoice total, or mark an invoice posted. There are no bytes to ingest. `storage_path` stays a string. There is no vector column and no model call. Embeddings, when added, use pgvector in the same PostgreSQL instance. That work has not started. Model output stays untrusted until a person accepts it.
+Schemas and fixtures for documents, versions, and extractions already exist (30 documents, 31 versions, 18 extractions). Alembic `0005` persists those fixtures. Read routes serve them. `POST /api/v1/document-extractions/{extraction_id}/decisions` lets an approver accept or reject an extraction that is awaiting review. Confidence below 0.8, a missing score, `needs_review`, an invoice or money field, or a document linked to an invoice stays untrusted until that decision. A read, a seed, and a background job do not accept those rows. The decision records status, reviewer, `reviewed_at`, optional `review_notes`, and an audit event. It does not post a payment, change an invoice total, or mark an invoice posted. There are no bytes to ingest. `storage_path` stays a string. Alembic `0006` adds `procedure_page_embeddings.embedding` (`vector(8)`). An application service fills it by calling `EmbeddingPort`. The laboratory default is the fake port: 8-dimensional and deterministic. It is not a trusted semantic model. Only synthetic procedure page text is embedded. Document version bytes are not embedded. Unaccepted, `needs_review`, low-confidence, and financial extractions are not written into that index. Accepting an extraction does not post a payment, change an invoice, or insert the extraction into the index. `AI_PROVIDER` stays `fake`. Phase 4 workflows are not started.
 
 ## Phase 4 — workflow automation
 

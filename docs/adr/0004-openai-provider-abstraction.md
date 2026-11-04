@@ -30,4 +30,4 @@ The OpenAI SDK is not added until a module needs it. Repository validation must 
 - Use cases stay portable across providers.
 - Tests can fake ports without standing up a network client.
 - Prompt and model changes become configuration and adapter work.
-- Accepted when the chat and embedding ports and the OpenAI adapter were implemented. `AI_PROVIDER=fake` is the default and does not call the network. `AI_PROVIDER=openai` constructs the adapter only when `OPENAI_API_KEY` is not a placeholder. Tests use the fake port. No vector column is written by this adapter.
+- Accepted when the chat and embedding ports and the OpenAI adapter were implemented. `AI_PROVIDER=fake` is the default and does not call the network. `AI_PROVIDER=openai` constructs the adapter only when `OPENAI_API_KEY` is not a placeholder. Tests use the fake port. This adapter does not write a vector column. Procedure-page vectors are stored by the embedding index through `EmbeddingPort`.

@@ -1,3 +1,4 @@
+from wasatch_api.customer_service.domain.embeddings import ProcedurePageEmbedding
 from wasatch_api.customer_service.domain.entities import (
     Interaction,
     Message,
@@ -14,6 +15,7 @@ __all__ = [
     "Interaction",
     "Message",
     "ProcedurePage",
+    "ProcedurePageEmbedding",
     "RetrievalResult",
     "SupportTicket",
 ]
