@@ -96,6 +96,15 @@ After this planning set:
 2. The first application change is CS-1 from the backlog. Phase 2.1.1 is already implemented.
 3. Later phases follow [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
 
+## Development activity log
+
+Record meaningful milestones (task selection, implementation progress, tests, review,
+pull request activity, failures, completion) in PostgreSQL `development_ops` via
+`libs/development_ops`. Notify humans in Slack `#ai-development` only after the event
+is persisted; confirm delivery with the returned message timestamp. Do not log
+chain-of-thought or every tool invocation. See
+[../operations/DEVELOPMENT_ACTIVITY_LOG.md](../operations/DEVELOPMENT_ACTIVITY_LOG.md).
+
 ## Honest completion
 
 A task is complete when the change is on a branch, the documents that the change affects agree with the code, and the checks that could be run were run and reported with commands and results. Incomplete items stay listed. A written plan is not a running service. An Accepted ADR is not a cloud environment.

@@ -173,8 +173,11 @@ def test_documents_revision_upgrades_and_downgrades(seeded_engine: Engine) -> No
     assert versions == 31
     assert extractions == 18
     assert current == "dv_0031"
-    assert _version(seeded_engine) == "0008"
+    assert _version(seeded_engine) == "0009"
     table_names = set(inspect(seeded_engine).get_table_names())
     assert "follow_up_visits" in table_names
     assert "invoices" in table_names
     assert _vector_columns(seeded_engine) == []
+    assert "activity_events" in inspect(seeded_engine).get_table_names(
+        schema="development_ops"
+    )
