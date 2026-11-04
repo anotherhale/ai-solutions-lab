@@ -44,4 +44,4 @@ npm run typecheck
 npm run build
 ```
 
-GitHub Actions does not run them. `.github/workflows/validate.yml` has no Node job, and this change does not add one. The Wasatch API database gate is unchanged.
+GitHub Actions runs them in the **Wasatch review frontend** job (`npm test`, `npm run typecheck`, `npm run build`). Browser workflows live in `tests/e2e/`.
