@@ -95,6 +95,12 @@ Do not install Nx unless the monorepo complexity clearly outweighs the tool's co
 6. Report incomplete work, skipped verification, and residual risk honestly.
 7. Prefer changing documentation and ADRs over silently revising a prior decision.
 
+## Local Wasatch slice
+
+Docker Compose Postgres and the read-only API are the runnable slice. Compose defaults match the application defaults (`wasatch` / `replace-me` on localhost), so a root `.env` is optional. Leave `WASATCH_FIXTURES_DIR` unset. A blank value is loaded as the current directory and seed will not find `data/fixtures/valid`.
+
+From `services/wasatch-api`, `pytest` uses that Postgres and creates the `wasatch_test` database. On a Cloud Agent workstation the start command launches Docker, Postgres, migrations, seed, and the API on port 8000. That workstation is not an Azure deployment.
+
 ## Definition of Honest Completion
 
 A task is complete only when the requested change is in the repository, relevant documents are consistent, and verification that could be run was run. If something remains unfinished, list it explicitly.
