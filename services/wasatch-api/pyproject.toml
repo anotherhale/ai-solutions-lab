@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "wasatch-api"
 version = "0.1.0"
-description = "Read-only Wasatch Business Systems laboratory API."
+description = "Wasatch Business Systems laboratory API for synthetic records."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

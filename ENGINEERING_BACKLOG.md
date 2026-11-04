@@ -89,13 +89,13 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 - Persist `roles` from `roles.json` and attach `employees.role_id` with a foreign key. `is_approver` comes from that role. Persist `teams` in the same change only if the employee foreign key is straightforward; team membership is not required to approve a message.
 - Add a local authentication adapter for synthetic employees. Default deny on writes. Reads of customer and employee data require an authenticated laboratory actor.
 - Keep the adapter inside the monolith. No Azure identity provider, no purchased identity service, and no production credentials.
-- The `X-Laboratory-Actor` adapter is limited to local synthetic development (`APP_ENV` of `local`, `development`, or `test`). `APP_ENV=production` and `APP_ENV=prod` fail startup. There is no password system and no identity provider. A production authenticator would be a later `EmployeeAuthenticator` adapter, not this header. ADR 0006 records that boundary.
+- The `X-Laboratory-Actor` adapter is limited to local synthetic development (`APP_ENV` of `local`, `development`, or `test`). `APP_ENV=production` and `APP_ENV=prod` fail startup. There is no password system and no identity provider. A production authenticator would be a later `EmployeeAuthenticator` adapter, not this header. ADR 0006 records that boundary. Pull request [#10](https://github.com/anotherhale/ai-solutions-lab/pull/10) merged as `ac26535`.
 - Tests cover anonymous access, an unauthorized role (`emp_0004`), and a privileged role (`emp_0001`).
 - Acceptance: every later write in this slice knows which synthetic employee is acting, and non-approver roles cannot decide approvals.
 
 ### CS-4 — Approve or reject a customer message
 
-- Status: not started
+- Status: this pull request
 - Depends on: CS-3 (done, `5b2ffc4`)
 - Application service for the human decision on `send_customer_message`: approve or reject a pending request.
 - The service appends `decision_history`, sets reviewer and `decided_at`, and inserts an audit event.
@@ -155,7 +155,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | No structured logs | Closed by CS-3. `APP_LOG_LEVEL` configures JSON logs of actor, action, subject, and outcome. Message bodies and secrets are omitted. |
 | Thin HTTP contract tests | Status enums only. Each new route extends contract alignment. |
 | Downgrade is untested | Revision `0001` defines `downgrade`. New revisions include an upgrade test and a downgrade test when the downgrade is safe on the synthetic database. |
-| Pytest skip when PostgreSQL is absent | `tests/conftest.py`. CI is protected by its service container. A later test change can fail closed when `WASATCH_DATABASE_URL` is set and the server is down. |
+| Pytest skip when PostgreSQL is absent | `tests/conftest.py` still skips a local run when PostgreSQL is down. CI fails that skip. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` rejects a run that did not execute the database tests. |
 | String foreign key for invoices | `employees.role_id` and `employees.team_id` reference `roles` and `teams` as of CS-3. `work_orders.invoice_id` remains a string. |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
 | Starlette `TestClient` deprecation warning | pytest warning, 1 occurrence |

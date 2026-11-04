@@ -21,7 +21,8 @@ def authorize_approval_decision(actor: LaboratoryActor) -> None:
     """Permit a decision only when the actor's role is an approver.
 
     This check does not append decision history, set a reviewer, or change a
-    message. There is no HTTP route for it in this slice.
+    message. The customer-message decision command calls it through
+    ``LaboratoryAccessService.authorize_approval`` before it writes.
     """
 
     if actor.status != "active":

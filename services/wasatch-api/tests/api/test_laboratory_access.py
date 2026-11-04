@@ -60,7 +60,7 @@ def test_authenticated_laboratory_actor_can_read_a_ticket(
 
 
 def test_non_approver_can_read_but_cannot_record_a_decision(
-    anonymous_client: TestClient,
+    anonymous_client: TestClient, decision_transaction: None
 ) -> None:
     headers = {LABORATORY_ACTOR_HEADER: "emp_0004"}
     ticket = anonymous_client.get("/api/v1/support-tickets/tkt_0007", headers=headers)
@@ -72,27 +72,42 @@ def test_non_approver_can_read_but_cannot_record_a_decision(
     )
     assert denied.status_code == 403
     assert denied.json()["error"]["code"] == "forbidden"
+    assert denied.json()["error"]["message"] == "writes are denied"
     current = anonymous_client.get(
         "/api/v1/approval-requests/apr_0001", headers=headers
     )
     assert current.status_code == 200
     assert current.json()["status"] == "pending"
+    assert current.json()["decision_history"] == []
+    message = anonymous_client.get("/api/v1/messages/msg_0016", headers=headers)
+    assert message.status_code == 200
+    assert message.json()["status"] == "pending_approval"
+    assert message.json()["body"]
     spec = anonymous_client.get("/openapi.json").json()
-    http_methods = {"get", "post", "put", "patch", "delete", "head", "options", "trace"}
-    assert not any("decision" in path for path in spec["paths"])
-    assert all(
-        http_methods & set(operations) <= {"get", "head"}
-        for operations in spec["paths"].values()
-    )
+    decision_path = "/api/v1/approval-requests/{approval_id}/decisions"
+    assert set(spec["paths"][decision_path]) == {"post"}
+    http_methods = {
+        "get",
+        "post",
+        "put",
+        "patch",
+        "delete",
+        "head",
+        "options",
+        "trace",
+    }
+    for path, operations in spec["paths"].items():
+        allowed = {"post"} if path == decision_path else {"get", "head"}
+        assert http_methods & set(operations) <= allowed
 
 
 def test_authenticated_write_is_denied_for_an_approver(client: TestClient) -> None:
-    response = client.post(
-        "/api/v1/approval-requests/apr_0001/decisions",
-        json={"decision": "approved", "notes": "ship it"},
-    )
+    response = client.post("/api/v1/customers", json={"name": "not a customer write"})
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "forbidden"
+    assert response.json()["error"]["message"] == "writes are denied"
+    audit = client.delete("/api/v1/audit-events/aud_0045")
+    assert audit.status_code == 403
     current = client.get("/api/v1/approval-requests/apr_0001")
     assert current.status_code == 200
     assert current.json()["status"] == "pending"

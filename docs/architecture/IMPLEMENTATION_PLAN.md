@@ -72,7 +72,7 @@ Mapped scope is the customer kernel plus the field slice required by those endpo
 
 ## Phase 2.2 — customer-service vertical slice
 
-**State: in progress.** CS-1 (`047702e`), CS-2 (`7760106`), and CS-3 (`5b2ffc4`) are on `develop`. The laboratory actor header is a local synthetic development simulation, and a production configuration fails startup. The approval decision command is still CS-4.
+**State: in progress.** CS-1 (`047702e`), CS-2 (`7760106`), and CS-3 (`5b2ffc4`) are on `develop`. The laboratory actor header is a local synthetic development simulation (`ac26535`), and a production configuration fails startup. CI fails when the Wasatch API database tests are skipped (`d1178e8`). CS-4 records the human approve or reject for a pending customer message and does not send it.
 
 Roadmap exit: a dispatcher or customer-service agent can review an inbound inquiry, inspect a suggested reply, and approve or reject it, using synthetic data.
 
@@ -92,7 +92,7 @@ Tasks and dependencies are specified in [../../ENGINEERING_BACKLOG.md](../../ENG
 1. **CS-1.** Read tickets, messages, and interactions. Link work orders to tickets with a foreign key.
 2. **CS-2.** Read approvals and audit events. Audit rows stay insert-only.
 3. **CS-3.** Persist roles so `is_approver` is real, and require an authenticated synthetic employee before any write. Done in `5b2ffc4`. The header adapter is local synthetic development only and is not a production authenticator.
-4. **CS-4.** Human approve or reject of `send_customer_message`, with an audit event, without marking the message sent.
+4. **CS-4.** Human approve or reject of `send_customer_message`, with an audit event, without marking the message sent. This change.
 5. **CS-5.** Retrieval port over persisted history plus a new synthetic procedure corpus. Vector storage stays in PostgreSQL and waits for an embedding port.
 6. **CS-6.** Draft a suggested reply through the AI port and open an approval request when the text would commit the company.
 7. **CS-7.** React review surface under `apps/` for that approve and reject flow.

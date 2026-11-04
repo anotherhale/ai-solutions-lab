@@ -99,7 +99,7 @@ def test_unauthorized_role_can_read_and_cannot_write_or_approve() -> None:
         service.authorize_approval(DISPATCHER)
 
 
-def test_privileged_role_can_read_and_pass_the_role_check_but_cannot_write() -> None:
+def test_privileged_role_can_decide_a_customer_message_and_nothing_else() -> None:
     service = _service({"emp_0001": MANAGER})
     read = service.decide_request(
         "emp_0001", "GET", "/api/v1/approval-requests/apr_0001"
@@ -107,8 +107,18 @@ def test_privileged_role_can_read_and_pass_the_role_check_but_cannot_write() -> 
     assert read.outcome == "allowed"
     assert read.actor == MANAGER
     assert read.actor.is_approver is True
-    write = service.decide_request("emp_0001", "POST", DECISION)
-    assert write.outcome == "forbidden"
+    decision = service.decide_request("emp_0001", "POST", DECISION)
+    assert decision.outcome == "allowed"
+    assert decision.actor == MANAGER
+    assert decision.subject == "apr_0001"
+    other = service.decide_request("emp_0001", "POST", "/api/v1/customers")
+    assert other.outcome == "forbidden"
+    replaced = service.decide_request("emp_0001", "PUT", DECISION)
+    assert replaced.outcome == "forbidden"
+    deleted = service.decide_request(
+        "emp_0001", "DELETE", "/api/v1/audit-events/aud_0001"
+    )
+    assert deleted.outcome == "forbidden"
     assert service.authorize_approval(MANAGER) is None
 
 

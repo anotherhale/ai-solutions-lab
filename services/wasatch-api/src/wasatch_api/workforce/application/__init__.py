@@ -4,6 +4,7 @@ from wasatch_api.workforce.application.access import (
     WRITE_DENIED_MESSAGE,
     AccessDecision,
     LaboratoryAccessService,
+    customer_message_decision_command,
     decide_http_access,
     require_authenticated_reader,
 )
@@ -14,6 +15,7 @@ __all__ = [
     "AccessDecision",
     "EmployeeAuthenticator",
     "LaboratoryAccessService",
+    "customer_message_decision_command",
     "decide_http_access",
     "require_authenticated_reader",
 ]
