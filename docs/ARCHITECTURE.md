@@ -12,7 +12,7 @@ The deployable system is a modular monolith. The implemented slice today is Fast
 - Redis for cache and short-lived coordination (**not in this slice**)
 - n8n for workflow automation at the edges (**future**)
 - OpenAI as the first AI provider, reached only through an application port (**adapter implemented; default provider is a fake and does not call the network**)
-- OpenTelemetry for traces, metrics, and logs (**future**)
+- OpenTelemetry traces on the Wasatch API host (**spans export only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set**; Compose has no collector; metrics and log export are not wired)
 - Docker Compose for local PostgreSQL and the API container
 - Azure and Terraform for later cloud environments (**not deployed**)
 
@@ -104,7 +104,7 @@ All laboratory records are synthetic. Production-like schemas should still assum
 
 ## Security Model
 
-- Secrets stay in environment variables locally and in a managed secret store on Azure.
+- Local secrets stay in an uncommitted `.env`. Managed secrets apply only after a cloud deployment exists. That deployment does not exist. See [operations/secrets.md](operations/secrets.md).
 - `/api/v1` reads require an active synthetic employee. `X-Laboratory-Actor` is a local development simulation (`APP_ENV` of `local`, `development`, or `test`). Production configuration fails startup. A production authenticator is not implemented. See [SECURITY.md](SECURITY.md) and [ADR 0006](adr/0006-laboratory-actor-development-only.md).
 - Consequential actions persist an audit event: actor, action, subject, rationale, and approval state.
 - Prompt injection, document injection, and unsafe tool calls are expected failure modes. See [SECURITY.md](SECURITY.md).

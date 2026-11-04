@@ -13,8 +13,14 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.orm import Session, sessionmaker
 
-from wasatch_api.config import get_settings
-from wasatch_api.main import create_app
+# The suite must not export spans. main.create_app runs at import, so clear
+# the endpoint before that import. A blank or absent endpoint does not open
+# a collector socket.
+os.environ.pop("OTEL_EXPORTER_OTLP_ENDPOINT", None)
+os.environ.pop("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", None)
+
+from wasatch_api.config import get_settings  # noqa: E402
+from wasatch_api.main import create_app  # noqa: E402
 from wasatch_api.shared.database.session import reset_engine
 from wasatch_api.shared.seed import seed_valid_fixtures
 from wasatch_api.workforce.infrastructure.local_authenticator import (

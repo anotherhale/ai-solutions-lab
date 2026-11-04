@@ -30,4 +30,4 @@ Local PostgreSQL with pgvector is provisioned by Docker Compose. The first migra
 - Schema migrations and embedding storage share this database. The first embedding column is `procedure_page_embeddings.embedding`.
 - Operational simplicity is favored over specialized vector features. Redis and n8n are not part of this column.
 - The first relational slice and local Compose environment exist.
-- WF-1 stores one follow-up visit in this database. Accepting a document extraction still does not post a payment or change an invoice. Confirming or canceling the visit does not either. Phase 5 is not started.
+- WF-1 stores one follow-up visit in this database. Accepting a document extraction still does not post a payment or change an invoice. Confirming or canceling the visit does not either. OPS-1 traces the API host and does not add a cloud database.

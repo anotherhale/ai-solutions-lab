@@ -10,6 +10,7 @@ No production environment has been deployed. The absence of running services doe
 - `.env` is for local development only and is ignored by Git.
 - `.env.example` may contain placeholder names and empty or obviously fake values.
 - Cloud deployments, when they exist, must use a managed secret store rather than files in the repository or container images.
+- Local secrets stay in an uncommitted `.env`. GitHub Actions stays credential-free. Managed secrets apply only after a cloud deployment exists. That deployment does not exist. See [operations/secrets.md](operations/secrets.md) and [operations/backup.md](operations/backup.md).
 - Rotate any credential that is accidentally written to logs, tickets, or chat.
 
 ## Environment and Configuration
@@ -86,5 +87,5 @@ Automation may draft, classify, route, and recommend. It may not silently comple
 
 - GitHub Actions workflows must not require cloud credentials or API keys for foundation validation.
 - Dependencies are added only with a stated purpose and are reviewed for maintenance and license risk.
-- Observability must avoid recording secrets or raw regulated content.
+- Observability must avoid recording secrets or raw regulated content. The API exports spans only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set. Request headers, including `X-Laboratory-Actor`, are not copied onto spans.
 - Security reviews are required when a change expands data access, tool use, or network egress.
