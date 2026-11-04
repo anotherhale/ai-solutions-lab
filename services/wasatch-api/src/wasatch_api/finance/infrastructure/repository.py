@@ -5,9 +5,12 @@ from __future__ import annotations
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, selectinload
 
-from wasatch_api.finance.domain.entities import Invoice
-from wasatch_api.finance.infrastructure.mapping import invoice_from_orm
-from wasatch_api.shared.database.models import CustomerORM, InvoiceORM
+from wasatch_api.finance.domain.entities import Invoice, InvoiceLine
+from wasatch_api.finance.infrastructure.mapping import (
+    invoice_from_orm,
+    invoice_line_from_orm,
+)
+from wasatch_api.shared.database.models import CustomerORM, InvoiceLineORM, InvoiceORM
 from wasatch_api.shared.pagination import PageRequest
 
 
@@ -65,4 +68,54 @@ class InvoiceRepository:
             count_stmt,
             page,
             invoice_from_orm,
+        )
+
+    def get_line_by_business_id(self, business_id: str) -> InvoiceLine | None:
+        stmt = (
+            select(InvoiceLineORM)
+            .options(
+                selectinload(InvoiceLineORM.invoice),
+                selectinload(InvoiceLineORM.work_order),
+            )
+            .where(InvoiceLineORM.business_id == business_id)
+        )
+        row = self.session.scalar(stmt)
+        if row is None:
+            return None
+        return invoice_line_from_orm(row)
+
+    def list_lines_for_invoice(
+        self,
+        invoice_business_id: str,
+        page: PageRequest,
+        *,
+        line_type: str | None = None,
+    ) -> tuple[list[InvoiceLine], int] | None:
+        invoice_row = self.session.scalar(
+            select(InvoiceORM).where(InvoiceORM.business_id == invoice_business_id)
+        )
+        if invoice_row is None:
+            return None
+        stmt: Select[tuple[InvoiceLineORM]] = (
+            select(InvoiceLineORM)
+            .options(
+                selectinload(InvoiceLineORM.invoice),
+                selectinload(InvoiceLineORM.work_order),
+            )
+            .where(InvoiceLineORM.invoice_id == invoice_row.id)
+        )
+        count_stmt = (
+            select(func.count())
+            .select_from(InvoiceLineORM)
+            .where(InvoiceLineORM.invoice_id == invoice_row.id)
+        )
+        if line_type:
+            stmt = stmt.where(InvoiceLineORM.line_type == line_type)
+            count_stmt = count_stmt.where(InvoiceLineORM.line_type == line_type)
+        return _page(
+            self.session,
+            stmt.order_by(InvoiceLineORM.business_id),
+            count_stmt,
+            page,
+            invoice_line_from_orm,
         )
