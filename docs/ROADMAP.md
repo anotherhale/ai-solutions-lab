@@ -19,7 +19,7 @@ The simulated subject remains **Wasatch Business Systems**. All business data is
 
 **Target window:** Days 16-35
 
-- Introduce the first FastAPI module and React surface for customer-service scenarios.
+- Introduce the first FastAPI module and React surface for customer-service scenarios. A read-only FastAPI and PostgreSQL slice now exists; React and the assistant are still ahead.
 - Implement retrieval over synthetic policies, service notes, and customer history.
 - Draft suggested replies with escalation to a human.
 - Keep outbound customer messages behind an approval queue.
@@ -74,4 +74,4 @@ The simulated subject remains **Wasatch Business Systems**. All business data is
 
 This roadmap implements the objectives and scope in [PROJECT_CHARTER.md](PROJECT_CHARTER.md). Technology choices remain those in [ARCHITECTURE.md](ARCHITECTURE.md) unless an ADR changes them.
 
-Phase 1 is the only work in progress. Later phases must not be marked complete in README or charter documents until the corresponding software exists.
+Phase 1 documentation and domain contracts are in place. Phase 2 has started with a read-only FastAPI and PostgreSQL slice. AI assistants and the React UI are not started.

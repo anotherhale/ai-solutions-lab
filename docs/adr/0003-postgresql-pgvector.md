@@ -1,6 +1,6 @@
 # ADR 0003: PostgreSQL and pgvector
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-03
 
 ## Context
@@ -15,7 +15,7 @@ Use PostgreSQL as the system of record and pgvector in the same database instanc
 
 Redis remains the intended cache and short-lived coordination store. It is not the source of truth for business records.
 
-No database server is provisioned in this phase.
+Local PostgreSQL with pgvector is provisioned by Docker Compose. The first migration enables the `vector` extension. Embedding columns are still deferred.
 
 ## Alternatives Considered
 
@@ -28,4 +28,4 @@ No database server is provisioned in this phase.
 - Local Compose and later Azure Database for PostgreSQL can share one mental model.
 - Schema migrations and embedding storage must be designed together.
 - Operational simplicity is favored over specialized vector features.
-- This decision remains Proposed until a schema and local PostgreSQL environment exist.
+- The first relational slice and local Compose environment now exist.

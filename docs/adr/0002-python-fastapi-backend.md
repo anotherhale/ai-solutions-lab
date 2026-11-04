@@ -1,6 +1,6 @@
 # ADR 0002: Python and FastAPI Backend
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-03
 
 ## Context
@@ -15,7 +15,7 @@ Use Python 3.12+ and FastAPI as the default backend for the modular monolith and
 
 Java, Scala, or Rust may be introduced later for specialized services when an ADR explains why Python is insufficient.
 
-FastAPI is not installed in this foundation phase. The decision is about the intended stack, not a current dependency.
+The first host is `services/wasatch-api`. FastAPI is an application dependency of that package, not of repository-level validation tooling.
 
 ## Alternatives Considered
 
@@ -29,4 +29,4 @@ FastAPI is not installed in this foundation phase. The decision is about the int
 - Contributors can share typing, testing, and packaging conventions through `pyproject.toml`.
 - AI provider SDKs and data libraries are readily available.
 - The repository must avoid pulling FastAPI and related frameworks into the foundation until application code needs them.
-- This decision remains Proposed until a FastAPI application exists and is validated in CI.
+- A read-only FastAPI service now exists and is exercised in CI.

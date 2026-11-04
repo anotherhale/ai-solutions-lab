@@ -4,7 +4,7 @@ Engineering laboratory for practical AI solutions that small and midsize busines
 
 This repository began as a showcase for AI cloud solutions. It is now the home for a reusable implementation platform, a simulated Utah HVAC business, and a public consulting portfolio.
 
-No application services or cloud environments have been deployed yet. The current work is the engineering foundation.
+A read-only FastAPI service and local PostgreSQL environment now exist for synthetic Wasatch data. React, AI assistants, and Azure have not been implemented.
 
 ## Business Objectives
 
@@ -79,15 +79,16 @@ ai-solutions-lab/
 ├── LICENSE
 ├── docs/                     Project charter, architecture, security, ADRs
 ├── apps/                     Future user-facing applications
-├── services/                 Future backend modules and integration services
+├── services/wasatch-api/     Read-only FastAPI host
 ├── libs/                     Future shared libraries
-├── infrastructure/           Docker and Terraform, added when needed
-├── data/                     Synthetic seed data, fixtures, and documents
+├── infrastructure/           Docker notes and future Terraform
+├── compose.yaml              Local PostgreSQL (pgvector) and API
+├── data/                     Schemas, synthetic fixtures, and documents
 ├── scripts/                  Repository maintenance and validation
-└── tests/                    Integration and end-to-end tests
+└── tests/                    Reserved for later cross-service tests
 ```
 
-`apps/`, `services/`, and `libs/` are reserved. They do not contain application scaffolding yet.
+`apps/` and `libs/` remain reserved. Application tests live under `services/wasatch-api/tests/`.
 
 ## Local Development Prerequisites
 
@@ -95,8 +96,8 @@ The following tools will be required once application work starts. They are not 
 
 - Git
 - Python 3.12 or later
+- Docker and Docker Compose
 - Node.js 22 LTS (for future frontend work)
-- Docker and Docker Compose (for future local services)
 - A GitHub account for pull requests
 
 Optional local environment values belong in `.env`. Copy `.env.example` and replace placeholders only. Never commit `.env` or real credentials.
@@ -111,6 +112,21 @@ python3 scripts/validate_repo.py
 python3 scripts/validate_wasatch_domain.py
 ```
 
+### First application
+
+See [services/wasatch-api/README.md](services/wasatch-api/README.md) and [docs/architecture/API_CONVENTIONS.md](docs/architecture/API_CONVENTIONS.md).
+
+```bash
+docker compose up -d postgres   # or: docker-compose up -d postgres
+python3.12 -m venv services/wasatch-api/.venv
+. services/wasatch-api/.venv/bin/activate
+pip install -e 'services/wasatch-api[dev]'
+cd services/wasatch-api
+alembic upgrade head
+wasatch-api seed
+uvicorn wasatch_api.main:app --reload
+```
+
 ## Development Status
 
 | Area | Status |
@@ -119,9 +135,9 @@ python3 scripts/validate_wasatch_domain.py
 | Engineering standards | In progress |
 | Repository tooling | In progress |
 | Synthetic domain model and fixtures | Defined |
-| Simulated business APIs | Not started |
+| Read-only Wasatch API | Implemented |
 | AI application services | Not started |
-| Local Docker environment | Not started |
+| Local Docker environment | PostgreSQL with pgvector |
 | Azure deployment | Not started |
 
 The 90-day plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering workflow is in [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md). Security principles are in [docs/SECURITY.md](docs/SECURITY.md).

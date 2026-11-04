@@ -1,8 +1,8 @@
 # Data Contracts
 
-Machine-readable contracts for the Wasatch Business Systems laboratory domain. These files are API-first artifacts: future FastAPI modules and React clients should consume the same shapes rather than inventing parallel models.
+Machine-readable contracts for the Wasatch Business Systems laboratory domain. These files are API-first artifacts. FastAPI now exposes a subset of the same shapes; React clients should consume them rather than inventing parallel models.
 
-No database or HTTP API is implemented yet. JSON Schema is the current contract, not a PostgreSQL schema dump.
+JSON Schema remains the canonical external contract. PostgreSQL and FastAPI now implement a subset of those entities; they do not replace the schemas.
 
 **All fixture data is synthetic.**
 
@@ -86,7 +86,7 @@ Each fixture file is an object, not a bare array:
 - Shared money, address, datetime, and date definitions live in `common.schema.json`.
 - Contracts do not mention SQL types, ORM classes, or FastAPI models.
 
-The repository validator implements the Draft 2020-12 **subset used by these files** (`type`, `properties`, `required`, `additionalProperties`, `enum`, `const`, `pattern`, `format`, `minimum`, `maximum`, `minItems`, `uniqueItems`, `$ref`, `$defs`). A full meta-schema engine is not a current dependency.
+The repository validator implements the Draft 2020-12 **subset used by these files** (`type`, `properties`, `required`, `additionalProperties`, `enum`, `const`, `pattern`, `format`, `minimum`, `maximum`, `minItems`, `uniqueItems`, `$ref`, `$defs`). It is not a complete Draft 2020-12 engine. `jsonschema` is an optional `wasatch-api` test extra for later HTTP contract checks; it does not replace this fixture gate.
 
 ## Schema versioning and compatibility
 

@@ -56,19 +56,31 @@ Pull requests should describe:
 
 - Add or update tests when behavior changes.
 - Prefer unit tests for domain and application rules.
-- Use `tests/integration/` for adapter and API contracts once those exist.
+- Use `services/wasatch-api/tests/` for unit, integration, and API tests of the first host.
 - Use `tests/e2e/` for user-visible flows once a frontend exists.
 - Use synthetic Wasatch Business Systems data only.
 - Do not fabricate test results. If a suite cannot be run, say so.
 
-Current foundation work has no application test suite. Repository and domain-fixture validation are the required checks until application code exists.
+Repository, fixture, and application tests are required for this slice.
 
 ```bash
 ruff format --check .
 ruff check .
 python3 scripts/validate_repo.py
 python3 scripts/validate_wasatch_domain.py
+cd services/wasatch-api && pytest
 ```
+
+## First application (local)
+
+1. Copy `.env.example` to `.env` and keep the Compose placeholders, or set your own.
+2. Start PostgreSQL: `docker compose up -d postgres`.
+3. Create `services/wasatch-api/.venv` with Python 3.12 and `pip install -e 'services/wasatch-api[dev]'`.
+4. From `services/wasatch-api`, run `alembic upgrade head` then `wasatch-api seed`.
+5. Start the API with `uvicorn wasatch_api.main:app --reload` or `scripts/wasatch_dev.sh`.
+6. Open http://localhost:8000/docs.
+
+Do not run `docker compose down -v` as part of normal shutdown; that destroys the named volume.
 
 ## Definition of Done
 

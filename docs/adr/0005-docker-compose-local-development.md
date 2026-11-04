@@ -1,6 +1,6 @@
 # ADR 0005: Docker Compose Local Development
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-03
 
 ## Context
@@ -13,7 +13,7 @@ Kubernetes would provide isolation, but it would also introduce cluster concepts
 
 Use Docker and Docker Compose as the local development environment for supporting services.
 
-Application processes may run on the host during early module work. Compose files will be added when the first service actually needs a dependency.
+`compose.yaml` lives at the repository root so `docker compose up` is the inner-loop command. Application processes may still run on the host against the Compose PostgreSQL service.
 
 Terraform and Azure remain the intended path for later cloud environments. They are not part of the local inner loop.
 
@@ -27,5 +27,4 @@ Terraform and Azure remain the intended path for later cloud environments. They 
 
 - Local setup stays reproducible and close to the later dependency set.
 - CI for this phase can stay credential-free because Compose is not required to validate documentation and linting.
-- Compose configuration must not appear until it has a consumer.
-- This decision remains Proposed until a Compose environment is added and used by a service.
+- Redis and n8n are still omitted; they have no consumer in this slice.

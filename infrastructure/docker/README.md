@@ -1,5 +1,11 @@
 # Docker
 
-Docker Compose files for local PostgreSQL, Redis, and later n8n will live here.
+Local Compose is defined at the repository root as `compose.yaml` so `docker compose up` works from a clone.
 
-No Compose file is provided in the foundation phase because no application yet consumes those services.
+This directory remains the place for additional container notes. Redis and n8n are not started yet.
+
+```bash
+docker compose up -d postgres            # or docker-compose
+docker compose down                      # keeps the wasatch_pg_data volume
+docker compose down -v                   # destroys local data; not part of normal shutdown
+```

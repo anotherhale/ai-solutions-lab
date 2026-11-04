@@ -1,5 +1,7 @@
 # Seed Data
 
-Placeholder for synthetic Wasatch Business Systems seed records.
+Operational seed loading is implemented by `wasatch-api seed`.
 
-No seed files have been generated. All future files in this directory must be labeled synthetic.
+That command imports `data/fixtures/valid/` into PostgreSQL. It does not copy files into this directory, and it never loads `data/fixtures/quality-issues/`.
+
+See [../../services/wasatch-api/README.md](../../services/wasatch-api/README.md).

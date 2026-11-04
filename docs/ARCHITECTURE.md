@@ -1,66 +1,45 @@
 # Architecture
 
-This document describes the **target** architecture for AI Solutions Lab. It is not a description of a running system. No application services, databases, or cloud environments have been implemented.
+This document describes the system architecture for AI Solutions Lab. A read-only FastAPI slice and local PostgreSQL environment now exist. React, AI providers, Redis, n8n, and Azure are still future work.
 
 ## Initial System Architecture
 
-The first deployable system will be a modular monolith:
+The deployable system is a modular monolith. The implemented slice today is FastAPI plus PostgreSQL:
 
-- A React + TypeScript presentation layer
-- A Python + FastAPI application host
-- PostgreSQL with pgvector for relational data and embeddings
-- Redis for cache and short-lived coordination
-- n8n for workflow automation at the edges
-- OpenAI as the first AI provider, reached only through an application port
-- OpenTelemetry for traces, metrics, and logs
-- Docker Compose for local dependencies
-- Azure and Terraform for later cloud environments
+- A React + TypeScript presentation layer (**future**)
+- A Python + FastAPI application host (**implemented**, read-only)
+- PostgreSQL with pgvector for relational data and later embeddings (**local Compose**)
+- Redis for cache and short-lived coordination (**not in this slice**)
+- n8n for workflow automation at the edges (**future**)
+- OpenAI as the first AI provider, reached only through an application port (**future**)
+- OpenTelemetry for traces, metrics, and logs (**future**)
+- Docker Compose for local PostgreSQL and the API container
+- Azure and Terraform for later cloud environments (**not deployed**)
 
 ```mermaid
 flowchart LR
-    User[User] --> Web[React TypeScript UI]
-    User --> Human[Human Approval Queue]
+    User[User] --> Web["React TypeScript UI (future)"]
+    User --> Human["Human Approval Queue (future)"]
     Web --> API[FastAPI Modular Monolith]
     Human --> API
+    User --> API
 
     subgraph Monolith["Application Host"]
-        CS[Customer Service]
-        Docs[Document Processing]
-        Flow[Workflow Automation]
-        Knowledge[Knowledge Management]
-        Sales[Sales Qualification]
-        BI[Business Intelligence]
+        Queries[Customer and Work Order Queries]
         Domain[Wasatch Domain Model]
-        Ports[AI and Integration Ports]
-        CS --> Domain
-        Docs --> Domain
-        Flow --> Domain
-        Knowledge --> Domain
-        Sales --> Domain
-        BI --> Domain
-        CS --> Ports
-        Docs --> Ports
-        Flow --> Ports
-        Knowledge --> Ports
-        Sales --> Ports
-        BI --> Ports
+        Persist[Persistence Adapters]
+        AIPorts["AI Ports (future)"]
+        Queries --> Domain
+        Queries --> Persist
+        Persist --> Domain
     end
 
-    API --> CS
-    API --> Docs
-    API --> Flow
-    API --> Knowledge
-    API --> Sales
-    API --> BI
-
-    Ports --> PG[(PostgreSQL + pgvector)]
-    Ports --> Redis[(Redis)]
-    Ports --> OpenAI[OpenAI Adapter]
-    Ports --> N8N[n8n Adapter]
-    Ports --> Files[Document Store Adapter]
+    API --> Queries
+    Persist --> PG[(PostgreSQL / pgvector)]
+    AIPorts -.-> OpenAI["OpenAI Adapter (future)"]
 ```
 
-The named modules are planned boundaries, not existing packages.
+Customer-service, document, workflow, knowledge, sales, and BI modules remain planned packages. The current host exposes health, customer, service-location, and work-order read APIs only.
 
 ## Architectural Principles
 
@@ -85,7 +64,7 @@ The named modules are planned boundaries, not existing packages.
 | Sales and lead qualification | Lead scoring, suggested follow-up, quote assistance |
 | Business intelligence | Operational reporting and narrative summaries |
 
-Shared kernels, if any, belong in `libs/` only after duplication becomes real. Frontend applications belong in `apps/`. Backend modules belong in `services/` or inside a single application package once implementation starts. Until then those directories remain reserved.
+Shared kernels, if any, belong in `libs/` only after duplication becomes real. Frontend applications belong in `apps/`. The first backend host is `services/wasatch-api`.
 
 ### Monorepo tooling
 
@@ -136,8 +115,8 @@ All laboratory records are synthetic. Production-like schemas should still assum
 
 | Environment | Strategy | Status |
 |---|---|---|
-| Local | Docker Compose for PostgreSQL, Redis, and later n8n; app processes on the host or in Compose | Not implemented |
-| Continuous integration | GitHub Actions for formatting, linting, and repository conventions | Workflow added; no cloud credentials required |
+| Local | Docker Compose for PostgreSQL with pgvector; FastAPI on the host or in Compose | Implemented for the read-only slice |
+| Continuous integration | GitHub Actions for formatting, linting, fixture validation, and API tests | No cloud credentials required |
 | Cloud | Microsoft Azure, provisioned with Terraform | Not deployed |
 
 Do not introduce Kubernetes or additional runtime clusters unless an ADR records a requirement that the modular monolith cannot meet.
@@ -146,6 +125,8 @@ Do not introduce Kubernetes or additional runtime clusters unless an ADR records
 
 - [PROJECT_CHARTER.md](PROJECT_CHARTER.md)
 - [architecture/DATA_CONTRACTS.md](architecture/DATA_CONTRACTS.md)
+- [architecture/DATABASE_MAPPING.md](architecture/DATABASE_MAPPING.md)
+- [architecture/API_CONVENTIONS.md](architecture/API_CONVENTIONS.md)
 - [business/WASATCH_DOMAIN_MODEL.md](business/WASATCH_DOMAIN_MODEL.md)
 - [ROADMAP.md](ROADMAP.md)
 - [adr/README.md](adr/README.md)

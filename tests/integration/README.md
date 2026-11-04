@@ -1,5 +1,5 @@
 # Integration Tests
 
-Placeholder for tests that exercise adapters and module contracts against local infrastructure.
+Placeholder for later cross-service tests.
 
-No integration tests are implemented yet because no application services exist.
+Wasatch API database and seed tests currently live in `services/wasatch-api/tests/integration/`.
