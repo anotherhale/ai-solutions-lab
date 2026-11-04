@@ -32,6 +32,35 @@ class RecordResult:
     slack_error: str | None = None
 
 
+def _result_from_persisted_event(
+    event: ActivityEvent,
+    *,
+    created: bool,
+) -> RecordResult:
+    status = event.slack.delivery_status
+    delivered = status in (
+        SlackDeliveryStatus.DELIVERED,
+        SlackDeliveryStatus.DUPLICATE,
+    )
+    attempted = status in (
+        SlackDeliveryStatus.DELIVERED,
+        SlackDeliveryStatus.DUPLICATE,
+        SlackDeliveryStatus.FAILED,
+    )
+    slack_error = (
+        event.slack.delivery_error
+        if status == SlackDeliveryStatus.FAILED
+        else None
+    )
+    return RecordResult(
+        event=event,
+        created=created,
+        slack_attempted=attempted,
+        slack_delivered=delivered,
+        slack_error=slack_error,
+    )
+
+
 def slack_notifier_from_env() -> SlackNotifier | None:
     token = os.environ.get("DEVELOPMENT_OPS_SLACK_BOT_TOKEN", "").strip()
     if not token:
@@ -77,6 +106,9 @@ class ActivityRecorder:
 
         event, created = self._repo.append(payload)
         self._session.commit()
+
+        if not created:
+            return _result_from_persisted_event(event, created=False)
 
         if not attempt_slack or self._notifier is None:
             if attempt_slack and self._notifier is None:

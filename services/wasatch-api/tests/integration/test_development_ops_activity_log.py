@@ -90,6 +90,44 @@ def test_append_and_query_events(engine: Engine) -> None:
         session.close()
 
 
+def test_idempotent_replay_does_not_redeliver_slack(engine: Engine) -> None:
+    session = sessionmaker(bind=engine, autoflush=False)()
+    run_id = uuid.uuid4()
+    deliver_calls = 0
+
+    class CountingNotifier(CursorSlackConfirmationNotifier):
+        def deliver(self, event):  # type: ignore[no-untyped-def]
+            nonlocal deliver_calls
+            deliver_calls += 1
+            return super().deliver(event)
+
+    try:
+        recorder = ActivityRecorder(
+            session,
+            notifier=CountingNotifier(
+                channel_id="C0CFJDH7PTJ",
+                message_ts="1234.5678",
+            ),
+            notify_slack=True,
+        )
+        payload = ActivityEventCreate(
+            run_id=run_id,
+            event_type=EventType.PROGRESS_REPORT,
+            severity=EventSeverity.INFO,
+            title="Idempotent slack",
+            idempotency_key=f"test:{run_id}:idempotent-slack",
+        )
+        first = recorder.record(payload)
+        second = recorder.record(payload)
+        assert first.created is True
+        assert second.created is False
+        assert first.event.id == second.event.id
+        assert deliver_calls == 1
+        assert second.slack_delivered is True
+    finally:
+        session.close()
+
+
 def test_slack_failure_does_not_drop_event(engine: Engine) -> None:
     session = sessionmaker(bind=engine, autoflush=False)()
     run_id = uuid.uuid4()
