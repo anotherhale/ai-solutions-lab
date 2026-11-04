@@ -107,7 +107,7 @@ All laboratory records are synthetic. Production-like schemas should still assum
 ## Security Model
 
 - Secrets stay in environment variables locally and in a managed secret store on Azure.
-- Authentication and least-privilege authorization will be required before any module exposes customer or employee data.
+- `/api/v1` reads require an active synthetic employee. `X-Laboratory-Actor` is a local development simulation (`APP_ENV` of `local`, `development`, or `test`). Production configuration fails startup. A production authenticator is not implemented. See [SECURITY.md](SECURITY.md) and [ADR 0006](adr/0006-laboratory-actor-development-only.md).
 - Consequential actions persist an audit event: actor, action, subject, rationale, and approval state.
 - Prompt injection, document injection, and unsafe tool calls are expected failure modes. See [SECURITY.md](SECURITY.md).
 
@@ -135,3 +135,4 @@ Do not introduce Kubernetes or additional runtime clusters unless an ADR records
 - [adr/0003-postgresql-pgvector.md](adr/0003-postgresql-pgvector.md)
 - [adr/0004-openai-provider-abstraction.md](adr/0004-openai-provider-abstraction.md)
 - [adr/0005-docker-compose-local-development.md](adr/0005-docker-compose-local-development.md)
+- [adr/0006-laboratory-actor-development-only.md](adr/0006-laboratory-actor-development-only.md)

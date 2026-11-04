@@ -16,10 +16,9 @@ from wasatch_api.customers.infrastructure.repository import CustomerRepository
 from wasatch_api.governance.application.queries import GovernanceQueries
 from wasatch_api.governance.infrastructure.repository import GovernanceRepository
 from wasatch_api.shared.database.session import get_session_factory
-from wasatch_api.shared.errors import UnauthenticatedError
 from wasatch_api.work_orders.application.queries import WorkOrderQueries
 from wasatch_api.work_orders.infrastructure.repository import WorkOrderRepository
-from wasatch_api.workforce.application.access import UNAUTHENTICATED_MESSAGE
+from wasatch_api.workforce.application.access import require_authenticated_reader
 from wasatch_api.workforce.domain.entities import LaboratoryActor
 
 
@@ -48,12 +47,14 @@ def governance_queries(session: Session) -> GovernanceQueries:
 
 
 def require_laboratory_actor(request: Request) -> LaboratoryActor:
-    """Return the synthetic employee the local adapter already resolved.
+    """Return the active synthetic employee required for a business read.
 
-    Later write commands in this slice take this actor as the person acting.
+    The application service enforces that rule. Later write commands in this
+    slice take this actor as the person acting. The header adapter does not
+    grant a role by itself.
     """
 
     actor = getattr(request.state, "laboratory_actor", None)
     if not isinstance(actor, LaboratoryActor):
-        raise UnauthenticatedError(UNAUTHENTICATED_MESSAGE)
-    return actor
+        actor = None
+    return require_authenticated_reader(actor)

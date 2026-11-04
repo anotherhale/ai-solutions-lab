@@ -48,7 +48,9 @@ OpenAPI: http://localhost:8000/docs
 
 ## Laboratory actor
 
-Send the synthetic employee business id in `X-Laboratory-Actor`. The local adapter looks that employee up and reads `is_approver` from the employee's role. No password is stored. `emp_0001` (general manager) is an approver. `emp_0004` (dispatcher) is not. Only `active` employees authenticate. Health checks do not use the header.
+Send the synthetic employee business id in `X-Laboratory-Actor`. That header is a local development identity simulation, not authentication. The adapter looks the employee up and reads `is_approver` from the employee's role. No password is stored, and there is no identity provider. `emp_0001` (general manager) is an approver. `emp_0004` (dispatcher) is not. Only `active` employees authenticate. Health checks do not use the header.
+
+The adapter runs only when `APP_ENV` is `local`, `development`, or `test`. `APP_ENV=production` and `APP_ENV=prod` raise `UnsafeProductionConfiguration` during startup and do not serve. Other environments fail closed the same way. The future production authenticator is a different adapter. It is not this header.
 
 ```bash
 curl -s -H 'X-Laboratory-Actor: emp_0001' \

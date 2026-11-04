@@ -15,7 +15,7 @@ from wasatch_api.api.routes import (
     health,
     work_orders,
 )
-from wasatch_api.config import get_settings
+from wasatch_api.config import get_settings, reject_unsafe_production_configuration
 from wasatch_api.shared.logging import configure_logging
 from wasatch_api.workforce.infrastructure.local_authenticator import (
     LABORATORY_ACTOR_HEADER,
@@ -24,18 +24,20 @@ from wasatch_api.workforce.infrastructure.local_authenticator import (
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    reject_unsafe_production_configuration(settings.app_env)
     configure_logging(settings.app_log_level)
     app = FastAPI(
         title="Wasatch Business Systems API",
         description=(
             "Laboratory API for synthetic Wasatch Business Systems data. "
-            "Reads of customer and employee data require the "
-            f"{LABORATORY_ACTOR_HEADER} header. Writes are denied. "
-            "React and AI assistants are not part of this service."
+            f"{LABORATORY_ACTOR_HEADER} is a local synthetic development "
+            "identity simulation. Reads of customer and employee data require "
+            "that header. Writes are denied. Production configuration refuses "
+            "to start. React and AI assistants are not part of this service."
         ),
         version=__version__,
     )
-    app.add_middleware(LaboratoryAccessMiddleware)
+    app.add_middleware(LaboratoryAccessMiddleware, app_env=settings.app_env)
     origins = settings.cors_origin_list()
     if origins:
         app.add_middleware(

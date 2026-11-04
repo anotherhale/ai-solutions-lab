@@ -6,12 +6,14 @@ import json
 from collections.abc import Awaitable, Callable, MutableMapping
 
 from wasatch_api.api.errors import error_body
+from wasatch_api.config import reject_unsafe_production_configuration
 from wasatch_api.shared.database.session import get_session_factory
 from wasatch_api.shared.logging import log_access
 from wasatch_api.workforce.application.access import (
     UNAUTHENTICATED_MESSAGE,
     WRITE_DENIED_MESSAGE,
-    decide_http_access,
+    AccessDecision,
+    LaboratoryAccessService,
 )
 from wasatch_api.workforce.infrastructure.local_authenticator import (
     LABORATORY_ACTOR_HEADER,
@@ -28,8 +30,15 @@ _HEADER = LABORATORY_ACTOR_HEADER.lower().encode("latin-1")
 
 
 class LaboratoryAccessMiddleware:
-    def __init__(self, app: Callable[[Scope, Receive, Send], Awaitable[None]]) -> None:
+    def __init__(
+        self,
+        app: Callable[[Scope, Receive, Send], Awaitable[None]],
+        *,
+        app_env: str,
+    ) -> None:
+        reject_unsafe_production_configuration(app_env)
         self.app = app
+        self._app_env = app_env
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope.get("type") != "http":
@@ -40,8 +49,7 @@ class LaboratoryAccessMiddleware:
             await self.app(scope, receive, send)
             return
 
-        actor = _authenticate(scope)
-        decision = decide_http_access(actor, str(scope.get("method", "GET")), path)
+        decision = self._decide(scope, path)
         log_access(decision)
         if decision.outcome == "unauthenticated":
             await _drain(receive)
@@ -53,18 +61,23 @@ class LaboratoryAccessMiddleware:
             return
         state = scope.setdefault("state", {})
         if isinstance(state, dict):
-            state["laboratory_actor"] = actor
+            state["laboratory_actor"] = decision.actor
         await self.app(scope, receive, send)
 
-
-def _authenticate(scope: Scope):
-    presented = _header(scope)
-    session = get_session_factory()()
-    try:
-        authenticator = LocalEmployeeAuthenticator(EmployeeDirectory(session))
-        return authenticator.authenticate(presented)
-    finally:
-        session.close()
+    def _decide(self, scope: Scope, path: str) -> AccessDecision:
+        presented = _header(scope)
+        session = get_session_factory()()
+        try:
+            service = LaboratoryAccessService(
+                LocalEmployeeAuthenticator(
+                    EmployeeDirectory(session), app_env=self._app_env
+                )
+            )
+            return service.decide_request(
+                presented, str(scope.get("method", "GET")), path
+            )
+        finally:
+            session.close()
 
 
 def _header(scope: Scope) -> str | None:

@@ -82,18 +82,21 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 
 ### CS-3 — Laboratory actor and approver role
 
-- Status: this pull request
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/9
+- Merge: `5b2ffc4`
 - Depends on: CS-2 (done, `7760106`)
 - Persist `roles` from `roles.json` and attach `employees.role_id` with a foreign key. `is_approver` comes from that role. Persist `teams` in the same change only if the employee foreign key is straightforward; team membership is not required to approve a message.
 - Add a local authentication adapter for synthetic employees. Default deny on writes. Reads of customer and employee data require an authenticated laboratory actor.
 - Keep the adapter inside the monolith. No Azure identity provider, no purchased identity service, and no production credentials.
-- Tests cover an anonymous write rejection and an authenticated read of a ticket.
+- The `X-Laboratory-Actor` adapter is limited to local synthetic development (`APP_ENV` of `local`, `development`, or `test`). `APP_ENV=production` and `APP_ENV=prod` fail startup. There is no password system and no identity provider. A production authenticator would be a later `EmployeeAuthenticator` adapter, not this header. ADR 0006 records that boundary.
+- Tests cover anonymous access, an unauthorized role (`emp_0004`), and a privileged role (`emp_0001`).
 - Acceptance: every later write in this slice knows which synthetic employee is acting, and non-approver roles cannot decide approvals.
 
 ### CS-4 — Approve or reject a customer message
 
-- Status: blocked on CS-3
-- Depends on: CS-3
+- Status: not started
+- Depends on: CS-3 (done, `5b2ffc4`)
 - Application service for the human decision on `send_customer_message`: approve or reject a pending request.
 - The service appends `decision_history`, sets reviewer and `decided_at`, and inserts an audit event.
 - The service leaves the message unsent. Status `sent` is not a result of this command.

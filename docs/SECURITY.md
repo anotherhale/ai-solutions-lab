@@ -25,7 +25,13 @@ No production environment has been deployed. The absence of running services doe
 - Separate read paths from paths that can change schedules, invoices, or customer communications.
 - Do not give AI tools more authority than the user who invoked them.
 
-The laboratory API applies those rules inside the monolith. A caller presents a synthetic employee business id in the `X-Laboratory-Actor` header. The local adapter loads that active employee and the role's `is_approver` flag. It stores no password, and it is not an Azure identity provider or a purchased identity service. Reads under `/api/v1` require that actor. Writes are denied unless a later command explicitly allows the actor. An approval decision requires `is_approver` on the role. Team membership is not that authority. The decision command itself is a later change.
+The laboratory API applies those rules inside the monolith. A local caller presents a synthetic employee business id in the `X-Laboratory-Actor` header. That header is a development-only identity simulation. `emp_0001` is an approver. `emp_0004` is not. There is no password. The adapter loads the active employee and the role's `is_approver` flag. It is not an Azure identity provider or a purchased identity service.
+
+The adapter runs only when `APP_ENV` is `local`, `development`, or `test`. `APP_ENV=production` and `APP_ENV=prod` are production configurations. Startup raises `UnsafeProductionConfiguration` and does not serve traffic. The header is not activated. Any other environment fails the same way, because business reads must stay authenticated and no second authenticator exists.
+
+Reads under `/api/v1` require an active laboratory actor. Writes are denied unless a later command explicitly allows the actor. The workforce application service enforces those rules, including the approver role. An approval decision requires `is_approver` on the role. Team membership is not that authority. The decision command itself is a later change.
+
+The future production authentication boundary is a different `EmployeeAuthenticator` adapter. That adapter is not this header. It is not implemented. It will not be a password system in this service, and this repository does not add a real identity provider. Until that adapter exists, production configuration does not boot. See [ADR 0006](adr/0006-laboratory-actor-development-only.md). Wasatch records remain synthetic.
 
 ## Sensitive Business Information
 
