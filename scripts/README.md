@@ -8,6 +8,10 @@ Repository maintenance scripts. These are not application services.
 | `validate_wasatch_domain.py` | JSON Schema, referential integrity, and invariants |
 | `generate_wasatch_fixtures.py` | Deterministic generator for `data/fixtures/valid/` |
 | `wasatch_dev.sh` | Start Postgres, migrate, seed, and run the API |
+| `bootstrap_laboratory.sh` | Postgres, Python venv, review app, and Playwright setup |
+| `prepare_wasatch_database.py` | Create DB, migrate, and seed for CI or host-run API |
+| `run_wasatch_api_host.sh` | Prepare database and serve API on port 8000 (no reload) |
+| `smoke_compose.sh` | Build Compose API image, start stack, verify health and routes |
 
 ```bash
 python3 scripts/validate_repo.py

@@ -57,7 +57,8 @@ Pull requests should describe:
 - Add or update tests when behavior changes.
 - Prefer unit tests for domain and application rules.
 - Use `services/wasatch-api/tests/` for unit, integration, and API tests of the first host.
-- Review-screen checks live in `apps/wasatch-review` and do not need a database or a provider key. They are not part of the GitHub Actions database job. `tests/e2e/` remains reserved for a later browser suite.
+- Review-screen unit checks live in `apps/wasatch-review` and do not need a database or a provider key. GitHub Actions runs `npm test`, `npm run typecheck`, and `npm run build` in that app.
+- Browser workflows live in `tests/e2e/` (Playwright). They need PostgreSQL and the host-run API; CI runs them in the **Review workbench browser tests** job.
 - Use synthetic Wasatch Business Systems data only.
 - Do not fabricate test results. If a suite cannot be run, say so.
 
@@ -75,13 +76,12 @@ GitHub Actions runs that pytest command against PostgreSQL with pgvector. The se
 
 ## First application (local)
 
-1. Copy `.env.example` to `.env` and keep the Compose placeholders, or set your own.
-2. Start PostgreSQL: `docker compose up -d postgres`.
-3. Create `services/wasatch-api/.venv` with Python 3.12 and `pip install -e 'services/wasatch-api[dev]'`.
-4. From `services/wasatch-api`, run `alembic upgrade head` then `wasatch-api seed`.
-5. Start the API with `uvicorn wasatch_api.main:app --reload` or `scripts/wasatch_dev.sh`.
-6. Open http://localhost:8000/docs.
-7. From `apps/wasatch-review`, run `npm install` and `npm run dev`. Open http://127.0.0.1:5173. The dev server proxies `/api` to the API on port 8000.
+1. Run `scripts/bootstrap_laboratory.sh` once, or manually: copy `.env.example` to `.env`, start PostgreSQL, create the API venv, and `npm ci` in `apps/wasatch-review`.
+2. Start the API with `scripts/wasatch_dev.sh` (reload) or `scripts/run_wasatch_api_host.sh` (CI-style, no reload).
+3. Open http://localhost:8000/docs.
+4. From `apps/wasatch-review`, run `npm run dev` and open http://127.0.0.1:5173. The dev server proxies `/api` to port 8000.
+5. Optional: `cd tests/e2e && npm test` after `npx playwright install chromium`.
+6. Optional: `scripts/smoke_compose.sh` verifies the Compose API image and startup path.
 
 Do not run `docker compose down -v` as part of normal shutdown; that destroys the named volume.
 

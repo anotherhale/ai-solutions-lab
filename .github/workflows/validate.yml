@@ -33,6 +33,38 @@ jobs:
       - name: Validate Wasatch domain fixtures
         run: python scripts/validate_wasatch_domain.py
 
+  wasatch-review:
+    name: Wasatch review frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/wasatch-review/package-lock.json
+
+      - name: Install and verify review app
+        working-directory: apps/wasatch-review
+        run: |
+          npm ci
+          npm test
+          npm run typecheck
+          npm run build
+
+  compose-smoke:
+    name: Compose API smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build and smoke-test Compose stack
+        run: scripts/smoke_compose.sh
+
   wasatch-api:
     name: Wasatch API tests
     runs-on: ubuntu-latest
@@ -79,3 +111,55 @@ jobs:
             fi
           fi
           exit "$pytest_status"
+
+  browser-e2e:
+    name: Review workbench browser tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: wasatch
+          POSTGRES_PASSWORD: wasatch
+          POSTGRES_DB: wasatch
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wasatch -d wasatch"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            apps/wasatch-review/package-lock.json
+            tests/e2e/package-lock.json
+
+      - name: Install API and review app
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "services/wasatch-api[dev]"
+          cd apps/wasatch-review && npm ci
+
+      - name: Install Playwright and run browser tests
+        working-directory: tests/e2e
+        env:
+          CI: "1"
+          WASATCH_DATABASE_URL: postgresql+psycopg://wasatch:wasatch@localhost:5432/wasatch_test
+          WASATCH_REQUIRE_DATABASE: "1"
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm test

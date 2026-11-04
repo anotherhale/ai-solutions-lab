@@ -240,8 +240,10 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py` still skips a local run when PostgreSQL is down. CI fails that skip. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` rejects a run that did not execute the database tests. |
 | String foreign key for invoices | `employees.role_id` and `employees.team_id` reference `roles` and `teams` as of CS-3. `work_orders.invoice_id` remains a string. |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
-| Starlette `TestClient` deprecation warning | pytest warning, 1 occurrence |
-| No Compose image smoke test in CI | API container is defined and was not started during the 2026-11-04 assessment |
+| Starlette `TestClient` deprecation warning | Closed. `anyio>=4.8.0,<4.15` in `services/wasatch-api/pyproject.toml` until Starlette ships the `from_thread.BlockingPortal` import. |
+| No Compose image smoke test in CI | Closed. `scripts/smoke_compose.sh` runs in the **Compose API smoke** GitHub Actions job. |
+| Review-screen checks not in CI | Closed. **Wasatch review frontend** job runs Vitest, typecheck, and production build. |
+| No browser suite for review workflows | Closed. Playwright specs in `tests/e2e/` run in **Review workbench browser tests**. |
 | No dependency-audit tool | Review each new dependency in the pull request for purpose, what it replaces, license, and maintenance. Add a tool only when a task needs it. |
 
 ## Explicitly out of the next implementation
