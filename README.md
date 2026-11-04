@@ -4,7 +4,7 @@ Engineering laboratory for practical AI solutions that small and midsize busines
 
 This repository began as a showcase for AI cloud solutions. It is now the home for a reusable implementation platform, a simulated Utah HVAC business, and a public consulting portfolio.
 
-A read-only FastAPI service and local PostgreSQL environment now exist for synthetic Wasatch data. React, AI assistants, and Azure have not been implemented.
+A FastAPI service and local PostgreSQL environment now exist for synthetic Wasatch data. The service can draft a suggested reply through a model port. The default port is a fake and does not call a provider. React and Azure have not been implemented.
 
 ## Business Objectives
 

@@ -1,17 +1,17 @@
 # Architecture
 
-This document describes the system architecture for AI Solutions Lab. A read-only FastAPI slice and local PostgreSQL environment now exist. React, AI providers, Redis, n8n, and Azure are still future work.
+This document describes the system architecture for AI Solutions Lab. A FastAPI slice and local PostgreSQL environment now exist. The host can draft a suggested reply through a model port. React, Redis, n8n, and Azure are still future work.
 
 ## Initial System Architecture
 
 The deployable system is a modular monolith. The implemented slice today is FastAPI plus PostgreSQL:
 
 - A React + TypeScript presentation layer (**future**)
-- A Python + FastAPI application host (**implemented**, read-only)
+- A Python + FastAPI application host (**implemented**)
 - PostgreSQL with pgvector for relational data and later embeddings (**local Compose**)
 - Redis for cache and short-lived coordination (**not in this slice**)
 - n8n for workflow automation at the edges (**future**)
-- OpenAI as the first AI provider, reached only through an application port (**future**)
+- OpenAI as the first AI provider, reached only through an application port (**adapter implemented; default provider is a fake and does not call the network**)
 - OpenTelemetry for traces, metrics, and logs (**future**)
 - Docker Compose for local PostgreSQL and the API container
 - Azure and Terraform for later cloud environments (**not deployed**)
@@ -28,7 +28,7 @@ flowchart LR
         Queries[Customer and Work Order Queries]
         Domain[Wasatch Domain Model]
         Persist[Persistence Adapters]
-        AIPorts["AI Ports (future)"]
+        AIPorts["AI Ports"]
         Queries --> Domain
         Queries --> Persist
         Persist --> Domain
@@ -36,10 +36,10 @@ flowchart LR
 
     API --> Queries
     Persist --> PG[(PostgreSQL / pgvector)]
-    AIPorts -.-> OpenAI["OpenAI Adapter (future)"]
+    AIPorts -.-> OpenAI["OpenAI Adapter (configuration)"]
 ```
 
-Customer-service reads, governance reads, and ticket retrieval are in the host. Document processing, workflow automation, knowledge search beyond the synthetic procedure corpus, sales, and BI remain planned. The host does not call a model and does not store embedding columns.
+Customer-service reads, governance reads, ticket retrieval, and suggested-reply drafts are in the host. Document processing, workflow automation, knowledge search beyond the synthetic procedure corpus, sales, and BI remain planned. The default model port is an in-process fake. The OpenAI adapter runs only when configuration selects it and a non-placeholder key is present. The host does not store embedding columns and does not deliver customer messages.
 
 ## Architectural Principles
 
@@ -74,13 +74,13 @@ Specialized services in Java, Scala, or Rust are allowed only with a written jus
 
 ## AI Provider Abstraction Strategy
 
-The application layer will define ports for:
+The application layer defines ports for:
 
-- Chat completion and tool use
+- Chat completion (tool calls are not used by the draft reply)
 - Embeddings
-- Moderation or safety checks when required
+- The commitment check that decides whether a reply needs approval. That rule is domain policy, not a provider moderation call.
 
-OpenAI is the first adapter. Domain objects must not import OpenAI clients, model names as business rules, or prompt strings scattered across modules. Model selection, retries, and token accounting belong in infrastructure or a dedicated AI application service.
+OpenAI is the first adapter. Domain objects do not import the OpenAI client. Model names, retries, and token accounting stay in the infrastructure adapter. The Wasatch draft prompt lives in the draft use case so every provider sees the same instructions.
 
 This keeps the laboratory able to compare providers later without rewriting Wasatch use cases.
 

@@ -16,6 +16,9 @@ dependencies = [
     "psycopg[binary]>=3.2.3,<3.3",
     "pydantic>=2.10.3,<2.12",
     "pydantic-settings>=2.7.0,<2.10",
+    # Official client for the OpenAI chat and embedding adapter. The default
+    # provider is the in-process fake. Tests and CI do not need an API key.
+    "openai>=3.45.0,<4",
 ]
 
 [project.optional-dependencies]

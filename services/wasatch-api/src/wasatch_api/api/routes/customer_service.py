@@ -1,4 +1,7 @@
-"""Read-only support-ticket, message, and interaction routes."""
+"""Support-ticket, message, and interaction routes.
+
+The draft command creates an unsent suggested reply. It does not deliver it.
+"""
 
 from __future__ import annotations
 
@@ -10,6 +13,7 @@ from sqlalchemy.orm import Session
 from wasatch_api.api.dependencies import (
     customer_service_queries,
     db_session,
+    draft_suggested_replies,
     require_laboratory_actor,
     retrieval_queries,
 )
@@ -21,8 +25,10 @@ from wasatch_api.api.schemas import (
     SupportTicketListItemOut,
     TicketRetrievalOut,
 )
+from wasatch_api.customer_service.application.draft_reply import DraftSuggestedReply
 from wasatch_api.customer_service.application.queries import CustomerServiceQueries
 from wasatch_api.customer_service.application.retrieval import RetrievalQueries
+from wasatch_api.workforce.domain.entities import LaboratoryActor
 
 router = APIRouter(
     prefix="/api/v1",
@@ -45,6 +51,14 @@ def retrieval(session: SessionDep) -> RetrievalQueries:
 
 
 RetrievalDep = Annotated[RetrievalQueries, Depends(retrieval)]
+ActorDep = Annotated[LaboratoryActor, Depends(require_laboratory_actor)]
+
+
+def drafts(session: SessionDep) -> DraftSuggestedReply:
+    return draft_suggested_replies(session)
+
+
+DraftDep = Annotated[DraftSuggestedReply, Depends(drafts)]
 
 
 @router.get("/support-tickets", response_model=PageOut[SupportTicketListItemOut])
@@ -138,3 +152,15 @@ def get_interaction(interaction_id: str, service: QueriesDep) -> InteractionOut:
 )
 def retrieve_for_ticket(ticket_id: str, service: RetrievalDep) -> TicketRetrievalOut:
     return TicketRetrievalOut.from_domain(service.for_ticket(ticket_id))
+
+
+@router.post(
+    "/support-tickets/{ticket_id}/draft-replies",
+    response_model=MessageOut,
+)
+def draft_suggested_reply(
+    ticket_id: str, actor: ActorDep, service: DraftDep
+) -> MessageOut:
+    """Create an unsent suggested reply grounded in retrieval for this ticket."""
+
+    return MessageOut.from_domain(service.draft(actor, ticket_id))

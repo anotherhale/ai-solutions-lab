@@ -57,6 +57,6 @@ Optional sections such as related ADRs or rollback notes may be added when they 
 | [0001](0001-modular-monolith-architecture.md) | Modular monolith architecture | Accepted |
 | [0002](0002-python-fastapi-backend.md) | Python and FastAPI backend | Accepted |
 | [0003](0003-postgresql-pgvector.md) | PostgreSQL and pgvector | Accepted |
-| [0004](0004-openai-provider-abstraction.md) | OpenAI provider abstraction | Proposed |
+| [0004](0004-openai-provider-abstraction.md) | OpenAI provider abstraction | Accepted |
 | [0005](0005-docker-compose-local-development.md) | Docker Compose local development | Accepted |
 | [0006](0006-laboratory-actor-development-only.md) | Laboratory actor adapter is development-only | Accepted |

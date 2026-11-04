@@ -118,7 +118,9 @@ def test_approval_resource_stays_read_only(
     assert current.json()["decided_at"] is None
     spec = client.get("/openapi.json").json()
     decision_path = "/api/v1/approval-requests/{approval_id}/decisions"
+    draft_path = "/api/v1/support-tickets/{ticket_id}/draft-replies"
     assert set(spec["paths"][decision_path]) == {"post"}
+    assert set(spec["paths"][draft_path]) == {"post"}
     http_methods = {
         "get",
         "post",
@@ -129,8 +131,9 @@ def test_approval_resource_stays_read_only(
         "options",
         "trace",
     }
+    writes = {decision_path, draft_path}
     for path, operations in spec["paths"].items():
-        allowed = {"post"} if path == decision_path else {"get", "head"}
+        allowed = {"post"} if path in writes else {"get", "head"}
         assert http_methods & set(operations) <= allowed
 
 

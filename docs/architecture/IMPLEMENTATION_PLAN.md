@@ -72,14 +72,14 @@ Mapped scope is the customer kernel plus the field slice required by those endpo
 
 ## Phase 2.2 — customer-service vertical slice
 
-**State: in progress.** CS-1 (`047702e`), CS-2 (`7760106`), and CS-3 (`5b2ffc4`) are on `develop`. The laboratory actor header is a local synthetic development simulation (`ac26535`), and a production configuration fails startup. CI fails when the Wasatch API database tests are skipped (`d1178e8`). CS-4 records the human approve or reject for a pending customer message and does not send it.
+**State: in progress.** CS-1 (`047702e`), CS-2 (`7760106`), and CS-3 (`5b2ffc4`) are on `develop`. The laboratory actor header is a local synthetic development simulation (`ac26535`), and a production configuration fails startup. CI fails when the Wasatch API database tests are skipped (`d1178e8`). CS-5 retrieval is on `develop` (`a03fea9`, pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12)). CS-4 records the human approve or reject for a pending customer message and does not send it (`0785ab9`, pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13)). CS-6 drafts a suggested reply through the model port.
 
 Roadmap exit: a dispatcher or customer-service agent can review an inbound inquiry, inspect a suggested reply, and approve or reject it, using synthetic data.
 
 ### Boundaries
 
 - Inquiries, messages, interactions, approvals, and audit events already have JSON Schemas and valid fixtures. Persistence reuses those files.
-- Suggested replies do not exist yet. The draft use case creates them. It does not rewrite historical fixture messages.
+- Suggested replies are created by the draft use case on an existing ticket. It does not rewrite historical fixture messages.
 - One pending outbound example is already in the fixtures: `msg_0016` on `tkt_0007`, status `pending_approval`, approval `apr_0001`. Decision tests should use that row.
 - Customer history text exists on tickets, messages, interactions, and work orders. A small synthetic procedure corpus lives under `data/documents/procedures/` and is labeled synthetic. It does not replace `data/fixtures/valid/`. Document version `storage_path` values such as `synthetic/documents/doc_0001/v1.bin` are still not files in the repository. Retrieval reads persisted history with a relational query and matches procedure pages by text search. No embedding column is stored.
 - The slice stops at approve or reject. Delivery to the customer is a later consequential action and needs its own approval execution step, which is not part of this exit.
@@ -92,12 +92,12 @@ Tasks and dependencies are specified in [../../ENGINEERING_BACKLOG.md](../../ENG
 1. **CS-1.** Read tickets, messages, and interactions. Link work orders to tickets with a foreign key.
 2. **CS-2.** Read approvals and audit events. Audit rows stay insert-only.
 3. **CS-3.** Persist roles so `is_approver` is real, and require an authenticated synthetic employee before any write. Done in `5b2ffc4`. The header adapter is local synthetic development only and is not a production authenticator.
-4. **CS-4.** Human approve or reject of `send_customer_message`, with an audit event, without marking the message sent. This change.
-5. **CS-5.** Retrieval port over persisted history plus a new synthetic procedure corpus. Vector storage stays in PostgreSQL and waits for an embedding port.
-6. **CS-6.** Draft a suggested reply through the AI port and open an approval request when the text would commit the company.
+4. **CS-4.** Human approve or reject of `send_customer_message`, with an audit event, without marking the message sent. Done in `0785ab9`.
+5. **CS-5.** Retrieval port over persisted history plus a new synthetic procedure corpus. Done in `a03fea9`. The embedding port now exists. No vector column is filled.
+6. **CS-6.** Draft a suggested reply through the AI port and open an approval request when the text would commit the company. This change.
 7. **CS-7.** React review surface under `apps/` for that approve and reject flow.
 
-CS-5 may proceed in parallel with CS-3 and CS-4 after CS-1. CS-6 waits for CS-4 and CS-5. CS-7 waits for CS-6.
+CS-5 landed beside CS-4 after CS-1. CS-6 follows CS-4 and CS-5. CS-7 waits for CS-6.
 
 ### Module shape
 

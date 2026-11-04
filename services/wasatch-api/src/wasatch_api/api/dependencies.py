@@ -7,7 +7,9 @@ from collections.abc import Iterator
 from fastapi import Request
 from sqlalchemy.orm import Session
 
+from wasatch_api.ai.infrastructure.provider import build_model_provider
 from wasatch_api.config import get_settings
+from wasatch_api.customer_service.application.draft_reply import DraftSuggestedReply
 from wasatch_api.customer_service.application.queries import CustomerServiceQueries
 from wasatch_api.customer_service.application.retrieval import RetrievalQueries
 from wasatch_api.customer_service.infrastructure.procedure_corpus import (
@@ -61,6 +63,15 @@ def customer_service_queries(session: Session) -> CustomerServiceQueries:
 def retrieval_queries(session: Session) -> RetrievalQueries:
     return RetrievalQueries(
         RelationalTextRetrieval(session, ProcedureCorpus.load_default())
+    )
+
+
+def draft_suggested_replies(session: Session) -> DraftSuggestedReply:
+    settings = get_settings()
+    return DraftSuggestedReply(
+        RelationalTextRetrieval(session, ProcedureCorpus.load_default()),
+        build_model_provider(settings),
+        CustomerServiceRepository(session),
     )
 
 

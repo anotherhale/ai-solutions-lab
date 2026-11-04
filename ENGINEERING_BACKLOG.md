@@ -95,7 +95,9 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 
 ### CS-4 — Approve or reject a customer message
 
-- Status: this pull request
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/13
+- Merge: `0785ab9`
 - Depends on: CS-3 (done, `5b2ffc4`)
 - Application service for the human decision on `send_customer_message`: approve or reject a pending request.
 - The service appends `decision_history`, sets reviewer and `decided_at`, and inserts an audit event.
@@ -106,7 +108,9 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 
 ### CS-5 — Retrieval over synthetic history and procedures
 
-- Status: blocked on CS-1
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/12
+- Merge: `a03fea9`
 - Depends on: CS-1. Can proceed beside CS-3 and CS-4 after CS-1 is merged.
 - Retrieval port in the application layer. First adapter queries persisted ticket, message, interaction, and work-order text for one customer.
 - `data/documents/` has no bytes. Document version rows point at synthetic paths such as `synthetic/documents/doc_0001/v1.bin`, and those files are not in the repository. Add a small synthetic procedure corpus under `data/documents/` when this task starts, labeled synthetic, and register it without replacing `data/fixtures/valid/`.
@@ -115,7 +119,7 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 
 ### CS-6 — Draft a suggested reply
 
-- Status: blocked on CS-4 and CS-5
+- Status: this pull request
 - Depends on: CS-3, CS-4, CS-5, and ADR 0004
 - Define chat and embedding ports. Domain packages do not import a provider SDK.
 - OpenAI is the first adapter and stays behind configuration. Tests use a fake port. Repository validation and CI stay free of an API key.
