@@ -15,14 +15,14 @@ Additional constraints:
 
 - **`anyio>=4.8.0,<4.15`** is pinned because Starlette’s `TestClient` still imports `anyio.abc.BlockingPortal` until a released Starlette includes the `from_thread` alias (see pyproject comment and existing pytest warning).
 - **OpenTelemetry** packages pin FastAPI instrumentation (`opentelemetry-instrumentation-fastapi==0.66b2`); a FastAPI major-line jump must be checked against instrumentation compatibility.
-- The API uses FastAPI **`APIRouter(..., on_startup=...)`** in at least one module; Starlette 1.x / current FastAPI routing removed that keyword, so a naïve Starlette-only bump breaks import.
+- Application route modules do not pass `on_startup` to `APIRouter`. **FastAPI 0.121.3** still forwards lifecycle kwargs into Starlette’s `Router` during import. **Starlette 1.3.1** rejects those kwargs, so pairing the pinned FastAPI with Starlette 1.x fails at import time (`TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'` when loading routes).
 
 Spike results (2026-11-04, synthetic database, full pytest with PostgreSQL):
 
 | Stack | Starlette advisories (pip-audit) | Pytest |
 |---|---|---|
 | Pinned lab stack (FastAPI 0.121.3, Starlette 0.50.0) | Five PYSEC IDs (ignored in CI script) | 195 passed (local) |
-| Forced Starlette 1.3.1 on FastAPI 0.121.3 | None on Starlette | **Import failure** (`APIRouter` unexpected `on_startup`) |
+| Forced Starlette 1.3.1 on FastAPI 0.121.3 | None on Starlette | **Import failure** (FastAPI 0.121 `APIRouter` incompatible with Starlette 1.x `Router`) |
 | FastAPI 0.162.0 + Starlette 1.3.1 (manual install, not editable pin) | None on Starlette | Not fully validated against editable pin; resolver conflict with current `fastapi<0.122` |
 
 FastAPI **0.162.0** metadata allows `starlette>=0.46.0` without an upper bound, so a supported laboratory path is to **raise the FastAPI upper bound**, **pin Starlette to a fixed 1.x patch** (for example `>=1.3.1`), and **remove router `on_startup` usage** in favor of application lifespan hooks.
@@ -39,12 +39,12 @@ FastAPI **0.162.0** metadata allows `starlette>=0.46.0` without an upper bound, 
 - **Bump Starlette within 0.5x only.** Rejected. `pip-audit` still reports the same five IDs on 0.52.1; fixes are on 1.x.
 - **Permanently ignore Starlette in CI.** Rejected. Ignores are a temporary bridge; ADR 0007 and SEC-1 exist to remove them.
 - **Replace FastAPI with another framework.** Rejected. ADR 0002 stands; the issue is transitive HTTP stack patching, not framework choice.
-- **Immediate upgrade to FastAPI 0.162 + Starlette 1.3.1 in this change.** Rejected. Requires pyproject bound changes, router lifecycle refactors, anyio pin re-evaluation, OpenTelemetry smoke checks, and full CI green—explicitly deferred to SEC-1.
+- **Immediate upgrade to FastAPI 0.162 + Starlette 1.3.1 in this change.** Rejected. Requires pyproject bound changes, anyio pin re-evaluation, OpenTelemetry smoke checks, and full CI green—explicitly deferred to SEC-1.
 
 ## Consequences
 
 - Security posture: known Starlette CVE-class advisories remain on the pinned stack until SEC-1 completes; risk is documented and gated in CI with explicit ignores rather than silent acceptance.
-- SEC-1 implementation must: widen FastAPI pin to a tested release (for example 0.162.x), pin Starlette `>=1.3.1`, migrate `on_startup` on routers to lifespan, re-run `pip-audit` without Starlette ignores, run full pytest and Playwright jobs, and update this ADR to **Accepted** when merged.
+- SEC-1 implementation must: widen FastAPI pin to a tested release (for example 0.162.x), pin Starlette `>=1.3.1`, re-run `pip-audit` without Starlette ignores, run full pytest and Playwright jobs, and update this ADR to **Accepted** when merged.
 - Until SEC-1 lands, feature work must not add new `pip-audit --ignore-vuln` entries for Starlette or FastAPI.
 
 ## Related

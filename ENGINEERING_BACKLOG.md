@@ -255,7 +255,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Status: ready
 - Depends on: ADR 0007 merged as Proposed (this change)
 - Widen the FastAPI pin to a tested release that supports Starlette 1.x (spike: 0.162.x). Pin Starlette to a patched 1.x release (for example `>=1.3.1`).
-- Replace `APIRouter(..., on_startup=...)` with application lifespan hooks.
+- Confirm application lifespan hooks in `create_app` remain valid on the upgraded FastAPI/Starlette pair.
 - Re-evaluate the `anyio<4.15` pin after Starlette upgrades.
 - Remove Starlette entries from `STARLETTE_IGNORES` in `scripts/audit_wasatch_dependencies.sh` when `pip-audit` is clean.
 - Acceptance: full pytest with `WASATCH_REQUIRE_DATABASE=1`, all five **Repository Validation** jobs green, ADR 0007 marked Accepted.
