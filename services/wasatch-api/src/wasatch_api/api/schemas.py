@@ -24,6 +24,11 @@ from wasatch_api.customers.domain.entities import (
     ServiceLocation,
     ServiceLocationDetail,
 )
+from wasatch_api.documents.domain.entities import (
+    Document,
+    DocumentExtraction,
+    DocumentVersion,
+)
 from wasatch_api.governance.domain.entities import (
     ApprovalDecision,
     ApprovalRequest,
@@ -715,6 +720,148 @@ class TicketRetrievalOut(BaseModel):
             history=[HistoryPassageOut.from_domain(item) for item in result.history],
             procedures=[
                 ProcedurePageOut.from_domain(item) for item in result.procedures
+            ],
+        )
+
+
+class DocumentVersionOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    document_id: str
+    version_number: int
+    storage_path: str
+    checksum_sha256: str
+    created_at: str
+    byte_size: int | None = None
+    created_by_employee_id: str | None = None
+
+    @classmethod
+    def from_domain(cls, version: DocumentVersion) -> DocumentVersionOut:
+        return cls(
+            id=version.id,
+            document_id=version.document_id,
+            version_number=version.version_number,
+            storage_path=version.storage_path,
+            checksum_sha256=version.checksum_sha256,
+            byte_size=version.byte_size,
+            created_by_employee_id=version.created_by_employee_id,
+            created_at=dump_datetime(version.created_at),
+        )
+
+
+class DocumentExtractionOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    document_id: str
+    document_version_id: str
+    status: str
+    extractor: str
+    extracted_at: str
+    created_at: str
+    updated_at: str
+    confidence: float | None = None
+    extracted_fields: dict | None = None
+    reviewed_by_employee_id: str | None = None
+    reviewed_at: str | None = None
+    review_notes: str | None = None
+
+    @classmethod
+    def from_domain(cls, extraction: DocumentExtraction) -> DocumentExtractionOut:
+        return cls(
+            id=extraction.id,
+            document_id=extraction.document_id,
+            document_version_id=extraction.document_version_id,
+            status=extraction.status,
+            extractor=extraction.extractor,
+            confidence=extraction.confidence,
+            extracted_fields=extraction.extracted_fields,
+            reviewed_by_employee_id=extraction.reviewed_by_employee_id,
+            reviewed_at=dump_datetime(extraction.reviewed_at)
+            if extraction.reviewed_at
+            else None,
+            review_notes=extraction.review_notes,
+            extracted_at=dump_datetime(extraction.extracted_at),
+            created_at=dump_datetime(extraction.created_at),
+            updated_at=dump_datetime(extraction.updated_at),
+        )
+
+
+class DocumentListItemOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    title: str
+    document_type: str
+    status: str
+    source: str
+    mime_type: str
+    untrusted: bool
+    customer_id: str | None = None
+    current_version_id: str | None = None
+
+    @classmethod
+    def from_domain(cls, document: Document) -> DocumentListItemOut:
+        return cls(
+            id=document.id,
+            title=document.title,
+            document_type=document.document_type,
+            status=document.status,
+            source=document.source,
+            mime_type=document.mime_type,
+            untrusted=document.untrusted,
+            customer_id=document.customer_id,
+            current_version_id=document.current_version_id,
+        )
+
+
+class DocumentDetailOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    title: str
+    document_type: str
+    status: str
+    source: str
+    mime_type: str
+    untrusted: bool
+    created_at: str
+    updated_at: str
+    customer_id: str | None = None
+    service_location_id: str | None = None
+    work_order_id: str | None = None
+    invoice_id: str | None = None
+    current_version_id: str | None = None
+    uploaded_by_employee_id: str | None = None
+    notes: str | None = None
+    versions: list[DocumentVersionOut] = Field(default_factory=list)
+    extractions: list[DocumentExtractionOut] = Field(default_factory=list)
+
+    @classmethod
+    def from_domain(cls, document: Document) -> DocumentDetailOut:
+        return cls(
+            id=document.id,
+            title=document.title,
+            document_type=document.document_type,
+            status=document.status,
+            source=document.source,
+            mime_type=document.mime_type,
+            untrusted=document.untrusted,
+            customer_id=document.customer_id,
+            service_location_id=document.service_location_id,
+            work_order_id=document.work_order_id,
+            invoice_id=document.invoice_id,
+            current_version_id=document.current_version_id,
+            uploaded_by_employee_id=document.uploaded_by_employee_id,
+            notes=document.notes,
+            created_at=dump_datetime(document.created_at),
+            updated_at=dump_datetime(document.updated_at),
+            versions=[
+                DocumentVersionOut.from_domain(item) for item in document.versions
+            ],
+            extractions=[
+                DocumentExtractionOut.from_domain(item) for item in document.extractions
             ],
         )
 

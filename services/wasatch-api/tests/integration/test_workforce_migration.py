@@ -120,7 +120,7 @@ def test_workforce_revision_upgrades_and_downgrades(seeded_engine: Engine) -> No
         _assert_upgrade_backfill_rolls_back(seeded_engine, revision)
         assert "roles" not in set(inspect(seeded_engine).get_table_names())
 
-        command.upgrade(config, "head")
+        command.upgrade(config, "0004")
         assert _version(seeded_engine) == "0004"
         upgraded = inspect(seeded_engine)
         for table in ("roles", "teams"):

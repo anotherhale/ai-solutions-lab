@@ -74,4 +74,4 @@ The simulated subject remains **Wasatch Business Systems**. All business data is
 
 This roadmap implements the objectives and scope in [PROJECT_CHARTER.md](PROJECT_CHARTER.md). Technology choices remain those in [ARCHITECTURE.md](ARCHITECTURE.md) unless an ADR changes them.
 
-Phase 1 documentation and domain contracts are in place. Phase 2's customer-service exit is demonstrable on the local API: the review screen opens one synthetic inquiry and approves or rejects the suggested reply. It does not send the message. Embeddings are not stored. Cloud deployment has not started.
+Phase 1 documentation and domain contracts are in place. Phase 2's customer-service exit is demonstrable on the local API: the review screen opens one synthetic inquiry and approves or rejects the suggested reply. It does not send the message. Phase 3 has a read-only persistence slice for the existing document fixtures. Human review of extractions has not started. Embeddings are not stored. Cloud deployment has not started.

@@ -44,6 +44,9 @@ def test_expected_tables_exist(engine: Engine) -> None:
         "audit_events",
         "roles",
         "teams",
+        "documents",
+        "document_versions",
+        "document_extractions",
         "alembic_version",
     }
     assert expected <= names
@@ -85,6 +88,17 @@ def test_seed_is_idempotent(seeded_engine: Engine) -> None:
     assert second["role"]["updated"] == 12
     assert second["team"]["created"] == 0
     assert second["team"]["updated"] == 5
+    assert first["document"]["created"] == 0
+    assert first["document"]["updated"] == 30
+    assert first["document_version"]["created"] == 0
+    assert first["document_version"]["updated"] == 31
+    assert first["document_extraction"]["created"] == 0
+    assert first["document_extraction"]["updated"] == 18
+    assert second["document"]["created"] == 0
+    assert second["document"]["updated"] == 30
+    assert second["document_version"]["created"] == 0
+    assert second["document_extraction"]["created"] == 0
+    assert second["document_extraction"]["updated"] == 18
 
 
 def test_seed_rejects_quality_issues(db_session: Session) -> None:
@@ -250,3 +264,54 @@ def test_seeded_counts_match_slice(db_session: Session) -> None:
     assert tuple(dispatcher) == ("role_0004", False, "team_0003")
     assert lead == "emp_0010"
     assert manager_team is None
+    documents = db_session.execute(text("SELECT count(*) FROM documents")).scalar()
+    versions = db_session.execute(
+        text("SELECT count(*) FROM document_versions")
+    ).scalar()
+    extractions = db_session.execute(
+        text("SELECT count(*) FROM document_extractions")
+    ).scalar()
+    current_version = db_session.execute(
+        text(
+            """
+            SELECT versions.business_id
+            FROM documents
+            JOIN document_versions AS versions
+              ON versions.id = documents.current_version_id
+            WHERE documents.business_id = 'doc_0004'
+            """
+        )
+    ).scalar()
+    version_count = db_session.execute(
+        text(
+            """
+            SELECT count(*)
+            FROM document_versions
+            JOIN documents ON documents.id = document_versions.document_id
+            WHERE documents.business_id = 'doc_0004'
+            """
+        )
+    ).scalar()
+    invoice_id = db_session.execute(
+        text("SELECT invoice_id FROM documents WHERE business_id = 'doc_0005'")
+    ).scalar()
+    vector_columns = db_session.execute(
+        text(
+            """
+            SELECT count(*)
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name IN (
+                    'documents', 'document_versions', 'document_extractions'
+              )
+              AND udt_name = 'vector'
+            """
+        )
+    ).scalar()
+    assert documents == 30
+    assert versions == 31
+    assert extractions == 18
+    assert current_version == "dv_0031"
+    assert version_count == 2
+    assert invoice_id == "inv_0005"
+    assert vector_columns == 0

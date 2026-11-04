@@ -4,7 +4,7 @@ Engineering laboratory for practical AI solutions that small and midsize busines
 
 This repository began as a showcase for AI cloud solutions. It is now the home for a reusable implementation platform, a simulated Utah HVAC business, and a public consulting portfolio.
 
-A FastAPI service and local PostgreSQL environment now exist for synthetic Wasatch data. The service can draft a suggested reply through a model port. The default port is a fake and does not call a provider. `apps/wasatch-review` is a React and TypeScript screen that approves or rejects that reply. It does not send the message. Azure has not been implemented.
+A FastAPI service and local PostgreSQL environment now exist for synthetic Wasatch data. The service can draft a suggested reply through a model port and can read persisted document, version, and extraction fixtures. The default port is a fake and does not call a provider. `apps/wasatch-review` is a React and TypeScript screen that approves or rejects that reply. It does not send the message. Document extraction review is not implemented. Azure has not been implemented.
 
 ## Business Objectives
 
