@@ -48,7 +48,7 @@ def _finance_tables(db_session: Session) -> list[str]:
             SELECT table_name
             FROM information_schema.tables
             WHERE table_schema = 'public'
-              AND table_name IN ('invoices', 'invoice_lines', 'payments')
+              AND table_name IN ('invoice_lines', 'payments')
             ORDER BY table_name
             """
         )

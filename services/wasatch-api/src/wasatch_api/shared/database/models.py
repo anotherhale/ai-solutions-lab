@@ -162,6 +162,21 @@ class ServiceLocationORM(Base):
     equipment: Mapped[list[EquipmentORM]] = relationship(back_populates="location")
 
 
+class InvoiceORM(Base):
+    __tablename__ = "invoices"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("customers.id", ondelete="RESTRICT"), index=True
+    )
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    customer: Mapped[CustomerORM] = relationship()
+
+
 class EmployeeORM(Base):
     __tablename__ = "employees"
 
@@ -305,7 +320,11 @@ class WorkOrderORM(Base):
     scheduled_for: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completion_notes: Mapped[str | None] = mapped_column(Text)
-    invoice_id: Mapped[str | None] = mapped_column(String(16))
+    invoice_id: Mapped[str | None] = mapped_column(
+        String(16),
+        ForeignKey("invoices.business_id", ondelete="SET NULL"),
+        index=True,
+    )
     cancelled_reason: Mapped[str | None] = mapped_column(Text)
     reopen_reason: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
@@ -314,6 +333,10 @@ class WorkOrderORM(Base):
     customer: Mapped[CustomerORM] = relationship()
     service_location: Mapped[ServiceLocationORM] = relationship()
     requested_by: Mapped[ContactORM | None] = relationship()
+    invoice: Mapped[InvoiceORM | None] = relationship(
+        foreign_keys=[invoice_id],
+        primaryjoin="WorkOrderORM.invoice_id == InvoiceORM.business_id",
+    )
     support_ticket: Mapped[SupportTicketORM | None] = relationship(
         "SupportTicketORM",
         foreign_keys=[support_ticket_id],
