@@ -104,3 +104,31 @@ From `services/wasatch-api`, `pytest` uses that Postgres and creates the `wasatc
 ## Definition of Honest Completion
 
 A task is complete only when the requested change is in the repository, relevant documents are consistent, and verification that could be run was run. If something remains unfinished, list it explicitly.
+
+## Strict GitHub Merge Policy
+
+Never use a direct merge operation as a fallback for failed auto-merge configuration.
+
+Allowed:
+- GraphQL enablePullRequestAutoMerge, with squash strategy.
+- Read-only GitHub PR and status inspection.
+- Creating and updating PRs.
+- Requesting independent reviews where supported.
+
+Prohibited:
+- gh pr merge, including --auto.
+- REST PUT /pulls/{pull_number}/merge.
+- GraphQL mergePullRequest.
+- Any operation that immediately merges a PR.
+
+After requesting auto-merge:
+1. Verify autoMergeRequest is non-null.
+2. Verify the requested merge method.
+3. Report the actual merge-queue status.
+4. If the request fails, leave the PR open.
+5. Report the exact GitHub response in #ai-development.
+6. Never attempt an alternative merge operation.
+
+A green CI status does not authorize an agent to merge.
+
+Only the repository owner's explicitly authorized merge process may override this policy.
