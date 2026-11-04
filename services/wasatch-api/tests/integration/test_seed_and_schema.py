@@ -31,6 +31,7 @@ def test_expected_tables_exist(engine: Engine) -> None:
         "service_locations",
         "employees",
         "equipment",
+        "invoices",
         "work_orders",
         "work_order_tasks",
         "appointments",

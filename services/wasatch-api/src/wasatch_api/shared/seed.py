@@ -27,6 +27,7 @@ from wasatch_api.shared.database.models import (
     EmployeeORM,
     EquipmentORM,
     InteractionORM,
+    InvoiceORM,
     MessageORM,
     RoleORM,
     ServiceLocationORM,
@@ -324,6 +325,22 @@ def seed_valid_fixtures(
         equipment_ids[record["id"]] = _get_by_business_id(
             session, EquipmentORM, record["id"]
         ).id
+
+    for record in _load_records(fixtures_dir, "invoices.json"):
+        action = _upsert(
+            session,
+            InvoiceORM,
+            record["id"],
+            {
+                "customer_id": _require(
+                    customer_ids, record["customer_id"], "customer"
+                ),
+                "status": record["status"],
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("invoice", action)
 
     work_order_ids: dict[str, uuid.UUID] = {}
     work_order_records = _load_records(fixtures_dir, "work_orders.json")

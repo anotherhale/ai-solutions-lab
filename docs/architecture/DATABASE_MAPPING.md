@@ -38,7 +38,7 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `teams` | `teams.json` | `lead_employee_id` references `employees`. Team membership is not required to approve a message |
 | `employees` | `employees.json` | `role_id` references `roles`; `team_id` references `teams`. An unmatched business id becomes NULL during upgrade; seed sets the fixture links |
 | `equipment` | `equipment.json` | |
-| `work_orders` | `work_orders.json` | `support_ticket_id` references `support_tickets.id`; `invoice_id` remains a string |
+| `work_orders` | `work_orders.json` | `support_ticket_id` references `support_tickets.id`; `invoice_id` references `invoices.business_id` |
 | `work_order_assignments` | `assigned_employee_ids` | Many-to-many |
 | `work_order_equipment` | `equipment_ids` | Many-to-many |
 | `work_order_tasks` | `work_order_tasks.json` | |
