@@ -60,9 +60,10 @@ the pytest database **`wasatch_test`**.
 | `wasatch_test` | Pytest migrations, downgrade/upgrade cycles, seeds |
 | `wasatch_development_ops` | Append-only development activity (durable) |
 
-Pytest resolves its URL from **`WASATCH_TEST_DATABASE_URL` only**. It does **not**
-fall back to `WASATCH_DATABASE_URL`, so a shell export for the API or an old
-activity configuration cannot redirect migration tests onto `wasatch`.
+Pytest resolves its URL from **`WASATCH_TEST_DATABASE_URL`**, or from
+`WASATCH_DATABASE_URL` only when that URL’s database name is **`wasatch_test`**
+(GitHub Actions). Exports aimed at **`wasatch`** or **`wasatch_development_ops`**
+do not redirect migration tests.
 
 Provision the ops database once per environment:
 

@@ -8,10 +8,7 @@ import uuid
 import pytest
 from alembic import command
 from alembic.config import Config
-from development_ops.database import (
-    DEFAULT_DEVELOPMENT_OPS_DATABASE_URL,
-    ensure_development_ops_database,
-)
+from development_ops.database import ensure_development_ops_database
 from development_ops.models import ActivityEventCreate
 from development_ops.persistence.repository import ActivityEventRepository
 from development_ops.recorder import ActivityRecorder
@@ -21,16 +18,15 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
 from wasatch_api.config import REPO_ROOT, get_settings
+from wasatch_api.testing.postgres import wasatch_development_ops_database_url_for_tests
 
 API_ROOT = REPO_ROOT / "services" / "wasatch-api"
 
 
 @pytest.fixture(scope="module")
 def isolated_ops_engine() -> Engine:
-    url = os.environ.get(
-        "DEVELOPMENT_OPS_DATABASE_URL",
-        DEFAULT_DEVELOPMENT_OPS_DATABASE_URL,
-    )
+    previous_wasatch_url = os.environ.get("WASATCH_DATABASE_URL")
+    url = wasatch_development_ops_database_url_for_tests()
     ensure_development_ops_database(url)
     os.environ["WASATCH_DATABASE_URL"] = url
     get_settings.cache_clear()
@@ -41,9 +37,10 @@ def isolated_ops_engine() -> Engine:
     engine = create_engine(url, pool_pre_ping=True)
     yield engine
     engine.dispose()
-    from wasatch_api.testing.postgres import wasatch_test_database_url
-
-    os.environ["WASATCH_DATABASE_URL"] = wasatch_test_database_url()
+    if previous_wasatch_url is not None:
+        os.environ["WASATCH_DATABASE_URL"] = previous_wasatch_url
+    else:
+        os.environ.pop("WASATCH_DATABASE_URL", None)
     get_settings.cache_clear()
 
 

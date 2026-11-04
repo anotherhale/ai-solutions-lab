@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import os
-
 from development_ops.database import (
     DEFAULT_DEVELOPMENT_OPS_DATABASE_URL,
     development_ops_database_url,
