@@ -29,6 +29,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from wasatch_api.shared.database.base import Base
+from wasatch_api.shared.database.vector import PROCEDURE_EMBEDDING_WIDTH, Vector
 
 work_order_assignments = Table(
     "work_order_assignments",
@@ -605,7 +606,11 @@ class AuditEventORM(Base):
 
 
 class DocumentORM(Base):
-    """Source file metadata. Bytes stay outside this table. No embedding column."""
+    """Source file metadata. Bytes stay outside this table.
+
+    This table has no embedding column. Procedure-page vectors live on
+    ``procedure_page_embeddings``.
+    """
 
     __tablename__ = "documents"
 
@@ -733,7 +738,8 @@ class DocumentExtractionORM(Base):
     """Extracted fields. A review decision updates status and reviewer columns.
 
     The decision does not post a payment or change an invoice. There is no
-    embedding column.
+    embedding column. Untrusted extractions are not copied into
+    ``procedure_page_embeddings``.
     """
 
     __tablename__ = "document_extractions"
@@ -782,3 +788,22 @@ class DocumentExtractionORM(Base):
     )
     document_version: Mapped[DocumentVersionORM] = relationship()
     reviewed_by: Mapped[EmployeeORM | None] = relationship()
+
+
+class ProcedurePageEmbeddingORM(Base):
+    """Synthetic procedure page text. Not a document version and not an extraction.
+
+    ``embedding`` is sized to the laboratory port. The fake port is that
+    default. The vector is not a trusted semantic model.
+    """
+
+    __tablename__ = "procedure_page_embeddings"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    procedure_id: Mapped[str] = mapped_column(String(16), unique=True)
+    embedding_model: Mapped[str] = mapped_column(String(64))
+    embedding: Mapped[tuple[float, ...]] = mapped_column(
+        Vector(PROCEDURE_EMBEDDING_WIDTH)
+    )
+    token_count: Mapped[int] = mapped_column(Integer)
+    embedded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

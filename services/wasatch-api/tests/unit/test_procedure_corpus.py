@@ -21,7 +21,10 @@ RETRIEVAL_FILES = (
     PACKAGE / "application" / "ports.py",
     PACKAGE / "application" / "retrieval.py",
     PACKAGE / "domain" / "retrieval.py",
+    PACKAGE / "domain" / "embeddings.py",
+    PACKAGE / "application" / "procedure_embeddings.py",
     PACKAGE / "infrastructure" / "procedure_corpus.py",
+    PACKAGE / "infrastructure" / "procedure_embeddings.py",
     PACKAGE / "infrastructure" / "relational_retrieval.py",
 )
 BANNED_IMPORTS = {"openai", "httpx", "urllib", "requests", "anthropic", "socket"}

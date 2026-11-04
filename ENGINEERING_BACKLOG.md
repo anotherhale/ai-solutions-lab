@@ -114,7 +114,7 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 - Depends on: CS-1. Can proceed beside CS-3 and CS-4 after CS-1 is merged.
 - Retrieval port in the application layer. First adapter queries persisted ticket, message, interaction, and work-order text for one customer.
 - `data/documents/` has no bytes. Document version rows point at synthetic paths such as `synthetic/documents/doc_0001/v1.bin`, and those files are not in the repository. Add a small synthetic procedure corpus under `data/documents/` when this task starts, labeled synthetic, and register it without replacing `data/fixtures/valid/`.
-- Keep embeddings in PostgreSQL. Add a vector column only when an embedding port can fill it. Until then, retrieval is relational and text search. No second vector database.
+- Keep embeddings in PostgreSQL. Add a vector column only when an embedding port can fill it. EMB-1 does that for procedure pages. Customer-history retrieval stays relational. No second vector database.
 - Acceptance: a query for a known synthetic ticket returns that customer's history and any matching procedure page, with tests that do not call a network model.
 
 ### CS-6 — Draft a suggested reply
@@ -152,6 +152,18 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 - Embeddings are not part of this slice. No vector column is added. Alembic `0005` already stores the review columns
 - Acceptance: `emp_0001` can accept `dx_0003` and reject `dx_0009` while invoice and payment fixtures stay unchanged. `emp_0004` is denied. An anonymous caller receives 401
 
+### EMB-1 — Procedure-page embeddings in PostgreSQL
+
+- Status: done in this change
+- Depends on: CS-5 retrieval (`a03fea9`) and the embedding port from CS-6 (`781bcc0`)
+- Alembic revision `0006` adds `procedure_page_embeddings.embedding` as `vector(8)`, the width the laboratory embedding port returns. The fake port is that default and is deterministic. Domain code does not choose a different width.
+- An application service fills one vector per synthetic procedure page by calling `EmbeddingPort`. Infrastructure writes the column. Domain code does not import a vendor SDK.
+- Only procedure text is embedded. Document version `storage_path` values are still not files. Unaccepted, `needs_review`, low-confidence, and financial extractions are not inserted. Accepting an extraction does not post a payment or change an invoice.
+- Retrieval for `tkt_0015` still cites `proc_0001`. Customer history stays a relational query. The fake vectors are not a trusted semantic model.
+- `AI_PROVIDER` stays `fake`. `openai` with `OPENAI_API_KEY=replace-me` fails before an OpenAI client is constructed. Tests unset `AI_PROVIDER` and `OPENAI_API_KEY` and do not call the network.
+- Phase 4 workflows are not started. No Redis, n8n, or second vector database.
+- Acceptance: filling the index through the fake port writes the procedure vectors and does not open a provider socket. `tkt_0015` still returns `proc_0001`. The placeholder OpenAI key fails before client construction. An unaccepted financial extraction is not inserted.
+
 ## After the customer-service slice
 
 These follow [docs/ROADMAP.md](docs/ROADMAP.md). Dates in that roadmap are planning windows, not commitments. Do not start them by pulling infrastructure forward.
@@ -159,7 +171,7 @@ These follow [docs/ROADMAP.md](docs/ROADMAP.md). Dates in that roadmap are plann
 | ID | Phase | Work | Depends on |
 |---|---|---|---|
 | DOC-P3 | 3 | Human review for low-confidence and financial extractions. | Done in this change. See the DOC-P3 section. Embeddings are not this item. |
-| EMB-1 | 3 | Embeddings in the existing PostgreSQL instance when a task fills the embedding port. | Not started. No vector column. The embedding port is not used to fill one. Version rows are still path strings. |
+| EMB-1 | 3 | Embeddings in the existing PostgreSQL instance when a task fills the embedding port. | Done in this change. `procedure_page_embeddings.embedding` is `vector(8)`. Only procedure text is stored. Version rows are still path strings. Phase 4 is not started. |
 | WF-1 | 4 | One multi-step Wasatch workflow with human approval and an audit trail. n8n only for an edge automation that the monolith does not own as the system of record. | CS-4 and the document review path if the workflow uses documents |
 | OPS-1 | 5 | OpenTelemetry on the running host, Terraform for a non-production Azure environment, runbooks, backup notes, and secret-management notes. | A module worth operating. No production customer deployment. |
 | PORT-1 | 6 | One case study that states what was simulated and what was measured. | A finished laboratory slice with honest limits |

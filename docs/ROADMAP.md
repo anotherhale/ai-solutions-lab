@@ -33,7 +33,7 @@ The simulated subject remains **Wasatch Business Systems**. All business data is
 - Ingest synthetic invoices, work orders, and vendor documents.
 - Classify documents and extract structured fields.
 - Require human review for low-confidence extractions and any financial effect.
-- Store embeddings in PostgreSQL with pgvector.
+- Store embeddings in PostgreSQL with pgvector. Procedure-page text is stored in `procedure_page_embeddings.embedding`. Document packets still have no bytes in the repository, and the embedding is not a trusted model. Phase 4 is not started.
 
 **Exit criteria:** A reviewer can process a document packet from upload through validated structured output without trusting the model blindly.
 

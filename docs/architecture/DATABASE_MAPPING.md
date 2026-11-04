@@ -25,7 +25,7 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | Addresses | Discrete columns, not JSON documents |
 | Lists of enumerations | PostgreSQL `TEXT[]` (employee certifications) |
 | Flexible documents | `audit_events.details` and `document_extractions.extracted_fields` use JSONB. Extraction payloads stay untrusted until an approver accepts them. The review command does not post finance |
-| Vectors | `CREATE EXTENSION vector` is applied now; no embedding columns yet. The embedding port exists and does not fill one |
+| Vectors | `CREATE EXTENSION vector` is applied in revision `0001`. Revision `0006` adds `procedure_page_embeddings.embedding` as `vector(8)`, the laboratory fake port's width. Only synthetic procedure text is stored. The vector is not a trusted model |
 
 ## Tables in this slice
 
@@ -51,7 +51,8 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `audit_events` | `audit_events.json` | Insert-only. No `updated_at`. Optional `approval_request_id` references `approval_requests.id`. `details` is JSONB for the open map. The customer-message decision and the extraction review each insert one row. Neither updates an audit event |
 | `documents` | `documents.json` | UUID primary key and unique `business_id`. `invoice_id` stays a string. `current_version_id` references `document_versions`. No vector column |
 | `document_versions` | `document_versions.json` | `storage_path` is a synthetic relative path. The bytes are not in the repository. Unique `(document_id, version_number)` |
-| `document_extractions` | `document_extractions.json` | `extracted_fields` is JSONB. The review command updates `status`, `reviewed_by_employee_id`, `reviewed_at`, `review_notes`, and `updated_at`. It does not change `extracted_fields` or the document `invoice_id`. No vector column |
+| `document_extractions` | `document_extractions.json` | `extracted_fields` is JSONB. The review command updates `status`, `reviewed_by_employee_id`, `reviewed_at`, `review_notes`, and `updated_at`. It does not change `extracted_fields` or the document `invoice_id`. No vector column. Unaccepted, `needs_review`, low-confidence, and financial rows are not copied into `procedure_page_embeddings` |
+| `procedure_page_embeddings` | `data/documents/procedures/` | Not seeded from `data/fixtures/valid/`. `embedding` is `vector(8)`. One row per synthetic procedure page after the fill service runs. Document version bytes are not stored |
 
 ## Deferred entities
 
@@ -61,7 +62,7 @@ Add them in later slices with the same UUID + `business_id` pattern. Do not load
 
 ## Retrieval
 
-Ticket retrieval reads one customer's persisted text: ticket subjects, message bodies, interaction summaries, and work-order text (summary, description, completion notes, cancellation reason, reopen reason, and task descriptions). Procedure pages stay files under `data/documents/procedures/`. They are not rows in `documents` and they are not seeded from `data/fixtures/valid/`. Matching is whole-word text search over the ticket subject and message bodies. There is no vector column and no second vector database. The embedding port can produce vectors, and this slice does not store them.
+Ticket retrieval reads one customer's persisted text: ticket subjects, message bodies, interaction summaries, and work-order text (summary, description, completion notes, cancellation reason, reopen reason, and task descriptions). Procedure pages stay files under `data/documents/procedures/`. They are not rows in `documents` and they are not seeded from `data/fixtures/valid/`. Matching starts from whole-word text search over the ticket subject and message bodies. When `procedure_page_embeddings` has a vector for a matched page, retrieval orders that match with the stored vector. There is no second vector database. The vectors are the fake port's output and are not a trusted semantic model.
 
 Revision `0002` downgrade copies ticket business ids back onto `work_orders.support_ticket_id` and drops the customer-service tables. Reload `data/fixtures/valid/` after that downgrade.
 
@@ -70,6 +71,8 @@ Revision `0003` downgrade copies approval business ids back onto `messages.appro
 Revision `0004` downgrade copies role and team business ids back onto `employees.role_id` and `employees.team_id`, then drops `teams` and `roles`. That is safe on the synthetic database. Reload `data/fixtures/valid/` after that downgrade. `is_approver` is not stored on `employees`.
 
 Revision `0005` downgrade drops `document_extractions`, `document_versions`, and `documents`. That is safe on the synthetic database. Reload `data/fixtures/valid/` after that downgrade. The revision does not add a vector column.
+
+Revision `0006` downgrade drops `procedure_page_embeddings`. That is safe on the synthetic database. Procedure pages remain files. The revision does not embed document version bytes or extractions.
 
 ## Contract layers
 

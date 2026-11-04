@@ -47,6 +47,7 @@ def test_expected_tables_exist(engine: Engine) -> None:
         "documents",
         "document_versions",
         "document_extractions",
+        "procedure_page_embeddings",
         "alembic_version",
     }
     assert expected <= names

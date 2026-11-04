@@ -80,6 +80,30 @@ def awaiting_review(status: str) -> bool:
     return status in AWAITING_REVIEW_STATUSES
 
 
+def extraction_barred_from_trusted_index(
+    *,
+    status: str,
+    confidence: Decimal | float | None,
+    extracted_fields: Mapping[str, object] | None,
+    document_invoice_id: str | None,
+) -> bool:
+    """True when this extraction must not enter the procedure embedding index.
+
+    Unaccepted rows, ``needs_review``, low confidence, and financial
+    extractions are barred. Accepting a financial extraction does not admit
+    it. Accepting still does not post a payment or change an invoice.
+    Procedure page text is a separate source and is the only text this
+    slice embeds.
+    """
+
+    # ``needs_review`` and every other undecided status are unaccepted.
+    if status != "accepted" or status == "needs_review":
+        return True
+    if is_low_confidence(confidence):
+        return True
+    return has_financial_effect(extracted_fields, document_invoice_id)
+
+
 def unattended_status(
     status: str,
     *,

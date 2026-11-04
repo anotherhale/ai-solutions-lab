@@ -8,7 +8,7 @@ The deployable system is a modular monolith. The implemented slice today is Fast
 
 - A React + TypeScript review screen (**implemented** in `apps/wasatch-review`; approve or reject only, no delivery)
 - A Python + FastAPI application host (**implemented**)
-- PostgreSQL with pgvector for relational data and later embeddings (**local Compose**)
+- PostgreSQL with pgvector for relational data and procedure-page embeddings (**local Compose**; `procedure_page_embeddings.embedding`, fake port, not a trusted model)
 - Redis for cache and short-lived coordination (**not in this slice**)
 - n8n for workflow automation at the edges (**future**)
 - OpenAI as the first AI provider, reached only through an application port (**adapter implemented; default provider is a fake and does not call the network**)
@@ -37,7 +37,7 @@ flowchart LR
     AIPorts -.-> OpenAI["OpenAI Adapter (configuration)"]
 ```
 
-Customer-service reads, governance reads, ticket retrieval, and suggested-reply drafts are in the host. The review screen calls that API and does not deliver the message. Document processing, workflow automation, knowledge search beyond the synthetic procedure corpus, sales, and BI remain planned. The default model port is an in-process fake. The OpenAI adapter runs only when configuration selects it and a non-placeholder key is present. The host does not store embedding columns and does not deliver customer messages.
+Customer-service reads, governance reads, ticket retrieval, and suggested-reply drafts are in the host. The review screen calls that API and does not deliver the message. The host stores synthetic procedure-page embeddings in PostgreSQL and does not deliver customer messages. Those vectors are not a trusted model. Document version bytes are not stored. Workflow automation, knowledge search beyond the synthetic procedure corpus, sales, and BI remain planned. The default model port is an in-process fake. The OpenAI adapter runs only when configuration selects it and a non-placeholder key is present.
 
 ## Architectural Principles
 

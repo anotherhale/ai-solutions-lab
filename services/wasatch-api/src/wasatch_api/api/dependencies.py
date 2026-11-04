@@ -65,15 +65,24 @@ def customer_service_queries(session: Session) -> CustomerServiceQueries:
 
 def retrieval_queries(session: Session) -> RetrievalQueries:
     return RetrievalQueries(
-        RelationalTextRetrieval(session, ProcedureCorpus.load_default())
+        RelationalTextRetrieval(
+            session,
+            ProcedureCorpus.load_default(),
+            embeddings=build_model_provider(get_settings()),
+        )
     )
 
 
 def draft_suggested_replies(session: Session) -> DraftSuggestedReply:
     settings = get_settings()
+    provider = build_model_provider(settings)
     return DraftSuggestedReply(
-        RelationalTextRetrieval(session, ProcedureCorpus.load_default()),
-        build_model_provider(settings),
+        RelationalTextRetrieval(
+            session,
+            ProcedureCorpus.load_default(),
+            embeddings=provider,
+        ),
+        provider,
         CustomerServiceRepository(session),
     )
 

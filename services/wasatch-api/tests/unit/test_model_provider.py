@@ -47,6 +47,12 @@ def test_default_provider_is_the_fake_and_does_not_need_a_key(
 def test_openai_without_a_usable_key_is_rejected_before_the_client(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    import openai
+
+    def _reject_client(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("OpenAI client constructed")
+
+    monkeypatch.setattr(openai, "OpenAI", _reject_client)
     monkeypatch.setenv("AI_PROVIDER", "openai")
     monkeypatch.setenv("OPENAI_API_KEY", "replace-me")
     get_settings.cache_clear()

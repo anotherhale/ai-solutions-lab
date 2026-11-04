@@ -40,7 +40,7 @@ class ChatPort(Protocol):
 
 
 class EmbeddingPort(Protocol):
-    """Embed text. This slice does not write a vector column."""
+    """Embed text. Persistence of the vector stays in the caller."""
 
     def embed(self, texts: Sequence[str]) -> tuple[Embedding, ...]:
         """Return one embedding per text, in the same order."""

@@ -173,5 +173,5 @@ def test_documents_revision_upgrades_and_downgrades(seeded_engine: Engine) -> No
     assert versions == 31
     assert extractions == 18
     assert current == "dv_0031"
-    assert _version(seeded_engine) == "0005"
+    assert _version(seeded_engine) == "0006"
     assert _vector_columns(seeded_engine) == []
