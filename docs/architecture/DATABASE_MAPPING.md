@@ -47,8 +47,8 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `messages` | `messages.json` | `approval_request_id` references `approval_requests.id` |
 | `interactions` | `interactions.json` | Optional links to a ticket and a work order |
 | `approval_requests` | `approval_requests.json` | `subject_id` stays the subject's business id |
-| `approval_decision_history` | `decision_history` on each approval | Child rows ordered by `position`; replaced when the approval is reseeded |
-| `audit_events` | `audit_events.json` | Insert-only. No `updated_at`. Optional `approval_request_id` references `approval_requests.id`. `details` is JSONB for the open map; extraction payloads stay deferred |
+| `approval_decision_history` | `decision_history` on each approval | Child rows ordered by `position`; replaced when the approval is reseeded. The customer-message decision appends one row |
+| `audit_events` | `audit_events.json` | Insert-only. No `updated_at`. Optional `approval_request_id` references `approval_requests.id`. `details` is JSONB for the open map; extraction payloads stay deferred. The customer-message decision inserts one row and does not update the message |
 
 ## Deferred entities
 

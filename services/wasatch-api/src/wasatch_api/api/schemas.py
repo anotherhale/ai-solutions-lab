@@ -407,6 +407,15 @@ class WorkOrderDetailOut(BaseModel):
         )
 
 
+class ApprovalDecisionIn(BaseModel):
+    """Human approve or reject. This request does not send the message."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    decision: Literal["approved", "rejected"]
+    note: str | None = None
+
+
 class ApprovalDecisionOut(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

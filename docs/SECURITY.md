@@ -29,7 +29,7 @@ The laboratory API applies those rules inside the monolith. A local caller prese
 
 The adapter runs only when `APP_ENV` is `local`, `development`, or `test`. `APP_ENV=production` and `APP_ENV=prod` are production configurations. Startup raises `UnsafeProductionConfiguration` and does not serve traffic. The header is not activated. Any other environment fails the same way, because business reads must stay authenticated and no second authenticator exists.
 
-Reads under `/api/v1` require an active laboratory actor. Writes are denied unless a later command explicitly allows the actor. The workforce application service enforces those rules, including the approver role. An approval decision requires `is_approver` on the role. Team membership is not that authority. The decision command itself is a later change.
+Reads under `/api/v1` require an active laboratory actor. Writes are denied unless a command explicitly allows the actor. The workforce application service enforces those rules, including the approver role. An approval decision requires `is_approver` on the role. Team membership is not that authority. The customer-message command records approve or reject for that approver, appends an audit event, and does not send the message.
 
 The future production authentication boundary is a different `EmployeeAuthenticator` adapter. That adapter is not this header. It is not implemented. It will not be a password system in this service, and this repository does not add a real identity provider. Until that adapter exists, production configuration does not boot. See [ADR 0006](adr/0006-laboratory-actor-development-only.md). Wasatch records remain synthetic.
 

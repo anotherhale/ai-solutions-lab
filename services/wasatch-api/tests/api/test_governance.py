@@ -100,19 +100,38 @@ def test_message_is_readable_with_its_approval_request(client: TestClient) -> No
     assert direct.json()["subject_id"] == message["id"]
 
 
-def test_no_approval_decision_can_be_recorded(client: TestClient) -> None:
+def test_approval_resource_stays_read_only(
+    client: TestClient, decision_transaction: None
+) -> None:
     for method in ("post", "put", "patch", "delete"):
         response = getattr(client, method)("/api/v1/approval-requests/apr_0001")
         assert response.status_code == 403
         assert response.json()["error"]["code"] == "forbidden"
+        assert response.json()["error"]["message"] == "writes are denied"
     missing = client.post("/api/v1/approval-requests/apr_0001/decisions")
-    assert missing.status_code == 403
-    assert missing.json()["error"]["code"] == "forbidden"
+    assert missing.status_code == 422
+    assert missing.json()["error"]["code"] == "invalid_parameter"
     current = client.get("/api/v1/approval-requests/apr_0001")
     assert current.status_code == 200
     assert current.json()["status"] == "pending"
+    assert current.json()["decision_history"] == []
+    assert current.json()["decided_at"] is None
     spec = client.get("/openapi.json").json()
-    assert not any("decision" in path for path in spec["paths"])
+    decision_path = "/api/v1/approval-requests/{approval_id}/decisions"
+    assert set(spec["paths"][decision_path]) == {"post"}
+    http_methods = {
+        "get",
+        "post",
+        "put",
+        "patch",
+        "delete",
+        "head",
+        "options",
+        "trace",
+    }
+    for path, operations in spec["paths"].items():
+        allowed = {"post"} if path == decision_path else {"get", "head"}
+        assert http_methods & set(operations) <= allowed
 
 
 def test_list_audit_events_paginated(client: TestClient) -> None:

@@ -15,7 +15,7 @@ curl -s -H 'X-Laboratory-Actor: emp_0001' \
 
 `emp_0001` is the synthetic general manager (`role_0001`, `is_approver` true). `emp_0004` is the synthetic dispatcher (`role_0004`, `is_approver` false). The adapter loads the employee and reads `is_approver` from that role. Only an `active` employee is accepted. Unknown, blank, and inactive values are rejected.
 
-Every later write in this slice can take the resolved actor from the request. Writes are denied for every actor. There is no route that records an approval decision. The workforce application service rejects a non-approver role before any such command exists. Team membership is not required.
+Every later write in this slice can take the resolved actor from the request. Writes are denied except the customer-message decision. `POST /api/v1/approval-requests/{approval_id}/decisions` lets an approver approve or reject a pending `send_customer_message`. The workforce application service calls `authorize_approval_decision` before that command writes. A non-approver is denied. The command appends `decision_history`, sets `reviewer_employee_id` and `decided_at`, and inserts an audit event. It does not send the message and does not mark it `sent`. Team membership is not required.
 
 The process starts only when `APP_ENV` is `local`, `development`, or `test`. `APP_ENV=production` and `APP_ENV=prod` raise `UnsafeProductionConfiguration` during startup and do not serve. The same refusal applies to every other environment. A future production authenticator would be a separate `EmployeeAuthenticator` adapter, not this header, not a password system, and not an identity provider in this service. See [ADR 0006](../adr/0006-laboratory-actor-development-only.md).
 
@@ -51,7 +51,7 @@ Defaults: `page=1`, `page_size=20`, maximum `page_size=100`. Ordering is by busi
 | HTTP | Code | When |
 |---|---|---|
 | 401 | `unauthenticated` | `/api/v1` call without an active laboratory actor |
-| 403 | `forbidden` | Authenticated write. Writes are denied in this slice |
+| 403 | `forbidden` | Authenticated write other than the customer-message decision, or a non-approver attempting that decision |
 | 404 | `not_found` | Unknown business id |
 | 422 | `invalid_parameter` | Bad query values such as an unknown status |
 | 503 | — | Readiness probe cannot reach PostgreSQL |
@@ -76,10 +76,11 @@ Defaults: `page=1`, `page_size=20`, maximum `page_size=100`. Ordering is by busi
 | GET | `/api/v1/interactions/{interaction_id}` | One customer touch |
 | GET | `/api/v1/approval-requests` | Filter by status or action type |
 | GET | `/api/v1/approval-requests/{approval_id}` | One approval request, including decision history |
+| POST | `/api/v1/approval-requests/{approval_id}/decisions` | Approve or reject a pending customer message. The message stays unsent |
 | GET | `/api/v1/audit-events` | Filter by outcome or approval request |
 | GET | `/api/v1/audit-events/{audit_event_id}` | One audit event |
 
-A message that references an approval includes that approval request on the message payload. There is no route that records an approval decision, and there is no write route for audit events. An authenticated write receives `403`. An anonymous write receives `401`.
+A message that references an approval includes that approval request on the message payload. The decision route is the only write. There is no write route that updates or deletes audit events. An authenticated write outside that command receives `403`. An anonymous call receives `401`.
 
 `GET /api/v1/support-tickets/{ticket_id}/retrieval` is read-only and requires `X-Laboratory-Actor`. History is that ticket's customer only, ordered by source (`support_ticket`, `message`, `interaction`, `work_order`) and then business id. Procedure pages are the synthetic files under `data/documents/procedures/` whose text shares a content word with the ticket subject and message bodies. The route does not call a model.
 
@@ -106,7 +107,7 @@ A message that references an approval includes that approval request on the mess
 }
 ```
 
-CORS is off unless `CORS_ORIGINS` is set. When it is set, allowed headers include `X-Laboratory-Actor`.
+CORS is off unless `CORS_ORIGINS` is set. When it is set, allowed methods include `POST` for the decision command, and allowed headers include `X-Laboratory-Actor`.
 
 ## Example requests
 
@@ -136,4 +137,8 @@ curl -s -H 'X-Laboratory-Actor: emp_0001' \
   http://localhost:8000/api/v1/approval-requests/apr_0001
 curl -s -H 'X-Laboratory-Actor: emp_0001' \
   'http://localhost:8000/api/v1/audit-events?approval_request_id=apr_0001'
+curl -s -X POST -H 'X-Laboratory-Actor: emp_0001' \
+  -H 'content-type: application/json' \
+  -d '{"decision":"approved","note":"Overtime approved."}' \
+  http://localhost:8000/api/v1/approval-requests/apr_0001/decisions
 ```

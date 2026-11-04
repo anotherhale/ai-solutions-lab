@@ -32,7 +32,9 @@ def create_app() -> FastAPI:
             "Laboratory API for synthetic Wasatch Business Systems data. "
             f"{LABORATORY_ACTOR_HEADER} is a local synthetic development "
             "identity simulation. Reads of customer and employee data require "
-            "that header. Writes are denied. Production configuration refuses "
+            "that header. An approver may approve or reject a pending "
+            "customer message. That command does not send the message. "
+            "Other writes are denied. Production configuration refuses "
             "to start. React and AI assistants are not part of this service."
         ),
         version=__version__,
@@ -43,7 +45,7 @@ def create_app() -> FastAPI:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=origins,
-            allow_methods=["GET", "HEAD", "OPTIONS"],
+            allow_methods=["GET", "HEAD", "POST", "OPTIONS"],
             allow_headers=["Accept", LABORATORY_ACTOR_HEADER],
         )
     register_exception_handlers(app)
