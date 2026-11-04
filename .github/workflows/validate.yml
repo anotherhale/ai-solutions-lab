@@ -38,15 +38,18 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
+        # Same maintenance database as Compose. Pytest creates wasatch_test,
+        # applies Alembic, and loads data/fixtures/valid. pgvector supplies
+        # the vector extension those migrations enable.
         image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: wasatch
           POSTGRES_PASSWORD: wasatch
-          POSTGRES_DB: wasatch_test
+          POSTGRES_DB: wasatch
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U wasatch -d wasatch_test"
+          --health-cmd "pg_isready -U wasatch -d wasatch"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 12
@@ -66,4 +69,13 @@ jobs:
         working-directory: services/wasatch-api
         env:
           WASATCH_DATABASE_URL: postgresql+psycopg://wasatch:wasatch@localhost:5432/wasatch_test
-        run: pytest
+          WASATCH_REQUIRE_DATABASE: "1"
+        run: |
+          pytest_status=0
+          pytest -ra --tb=short --junitxml="${RUNNER_TEMP}/wasatch-api-pytest.xml" || pytest_status=$?
+          if ! python ../../scripts/check_wasatch_api_pytest.py "${RUNNER_TEMP}/wasatch-api-pytest.xml"; then
+            if [ "$pytest_status" -eq 0 ]; then
+              pytest_status=1
+            fi
+          fi
+          exit "$pytest_status"

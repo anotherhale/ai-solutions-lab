@@ -116,7 +116,7 @@ All laboratory records are synthetic. Production-like schemas should still assum
 | Environment | Strategy | Status |
 |---|---|---|
 | Local | Docker Compose for PostgreSQL with pgvector; FastAPI on the host or in Compose | Implemented for the read-only slice |
-| Continuous integration | GitHub Actions for formatting, linting, fixture validation, and API tests | No cloud credentials required |
+| Continuous integration | GitHub Actions for formatting, linting, fixture validation, and API tests against PostgreSQL. A skipped integration or API test fails the job. | No cloud credentials required |
 | Cloud | Microsoft Azure, provisioned with Terraform | Not deployed |
 
 Do not introduce Kubernetes or additional runtime clusters unless an ADR records a requirement that the modular monolith cannot meet.
