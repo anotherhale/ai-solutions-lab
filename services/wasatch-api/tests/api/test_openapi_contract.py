@@ -7,15 +7,16 @@ from typing import Any
 
 from fastapi.testclient import TestClient
 
+from wasatch_api.documents.application.decisions import EXTRACTION_REVIEW_DECISIONS
+from wasatch_api.governance.application.decisions import CUSTOMER_MESSAGE_DECISIONS
+from wasatch_api.workflows.domain.follow_up import FOLLOW_UP_DECISIONS
+
 from .openapi_contract_catalog import (
     POST_BODY_DECISION_ENUMS,
     READ_PATHS,
     SLICE_PATH_METHODS,
     WRITE_PATHS,
 )
-from wasatch_api.documents.application.decisions import EXTRACTION_REVIEW_DECISIONS
-from wasatch_api.governance.application.decisions import CUSTOMER_MESSAGE_DECISIONS
-from wasatch_api.workflows.domain.follow_up import FOLLOW_UP_DECISIONS
 
 
 def _openapi(client: TestClient) -> dict[str, Any]:
