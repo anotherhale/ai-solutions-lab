@@ -137,7 +137,7 @@ The review screen proxies `/api` to that process. From `apps/wasatch-review`: `n
 | Engineering standards | In progress |
 | Repository tooling | In progress |
 | Synthetic domain model and fixtures | Defined |
-| Wasatch API | On `develop`: customer-service reads, retrieval, draft replies, human approval, document reads, extraction review, procedure-page embeddings, the follow-up visit, and host traces. `main` is not the deployed product |
+| Wasatch API | On `develop`: customer-service reads, retrieval, draft replies, human approval, document reads, extraction review, procedure-page embeddings, the follow-up visit, host traces, and read-only invoice, line, and payment routes. Those finance routes do not post a payment. `main` is not the deployed product |
 | Suggested-reply and extraction review screen | Implemented in `apps/wasatch-review`. It records approve/reject for replies and accept/reject for one extraction; it does not send messages or post money |
 | AI application services | Draft replies and embeddings use the fake provider by default. The placeholder OpenAI key fails before a client is constructed. CI does not call a model |
 | Local Docker environment | PostgreSQL with pgvector |

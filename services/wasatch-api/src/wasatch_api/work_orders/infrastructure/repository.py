@@ -29,6 +29,7 @@ class WorkOrderRepository:
                 selectinload(WorkOrderORM.service_location),
                 selectinload(WorkOrderORM.requested_by),
                 selectinload(WorkOrderORM.support_ticket),
+                selectinload(WorkOrderORM.invoice),
                 selectinload(WorkOrderORM.assigned_employees),
                 selectinload(WorkOrderORM.equipment),
                 selectinload(WorkOrderORM.tasks).selectinload(
@@ -65,6 +66,7 @@ class WorkOrderRepository:
             selectinload(WorkOrderORM.service_location),
             selectinload(WorkOrderORM.requested_by),
             selectinload(WorkOrderORM.support_ticket),
+            selectinload(WorkOrderORM.invoice),
             selectinload(WorkOrderORM.assigned_employees),
         )
         count_stmt = select(func.count()).select_from(WorkOrderORM)

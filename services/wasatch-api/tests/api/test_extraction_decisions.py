@@ -68,19 +68,31 @@ def _document_finance(client: TestClient) -> dict[str, dict]:
     return recorded
 
 
-def _finance_tables(db_session: Session) -> list[str]:
-    rows = db_session.execute(
+def _persisted_finance(db_session: Session) -> tuple[list[tuple], list[tuple]]:
+    invoices = db_session.execute(
         text(
             """
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema = 'public'
-              AND table_name IN ('invoices', 'invoice_lines', 'payments')
-            ORDER BY table_name
+            SELECT business_id, status, total_amount, amount_paid_amount, balance_amount
+            FROM invoices
+            ORDER BY business_id
             """
         )
     ).all()
-    return [row[0] for row in rows]
+    payments = db_session.execute(
+        text(
+            """
+            SELECT payments.business_id, invoices.business_id,
+                   payments.status, payments.amount_amount
+            FROM payments
+            JOIN invoices ON invoices.id = payments.invoice_id
+            ORDER BY payments.business_id
+            """
+        )
+    ).all()
+    return (
+        [(row[0], row[1], str(row[2]), str(row[3]), str(row[4])) for row in invoices],
+        [(row[0], row[1], row[2], str(row[3])) for row in payments],
+    )
 
 
 def test_approver_accepts_needs_review_without_posting(
@@ -99,7 +111,9 @@ def test_approver_accepts_needs_review_without_posting(
     finance_bytes = _finance_bytes()
     finance_rows = _finance_rows()
     documents = _document_finance(client)
-    assert _finance_tables(db_session) == []
+    persisted = _persisted_finance(db_session)
+    assert len(persisted[0]) == 30
+    assert len(persisted[1]) == 20
     assert documents["doc_0003"]["invoice_id"] is None
     assert documents["doc_0003"]["status"] == "extracted"
 
@@ -136,7 +150,7 @@ def test_approver_accepts_needs_review_without_posting(
     assert _document_finance(client) == documents
     assert _finance_bytes() == finance_bytes
     assert _finance_rows() == finance_rows
-    assert _finance_tables(db_session) == []
+    assert _persisted_finance(db_session) == persisted
 
     audits = client.get("/api/v1/audit-events", params={"page_size": 100})
     assert audits.status_code == 200

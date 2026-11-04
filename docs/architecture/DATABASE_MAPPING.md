@@ -38,7 +38,7 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `teams` | `teams.json` | `lead_employee_id` references `employees`. Team membership is not required to approve a message |
 | `employees` | `employees.json` | `role_id` references `roles`; `team_id` references `teams`. An unmatched business id becomes NULL during upgrade; seed sets the fixture links |
 | `equipment` | `equipment.json` | |
-| `work_orders` | `work_orders.json` | `support_ticket_id` references `support_tickets.id`; `invoice_id` remains a string |
+| `work_orders` | `work_orders.json` | `support_ticket_id` references `support_tickets.id`. `invoice_id` references `invoices.id` |
 | `work_order_assignments` | `assigned_employee_ids` | Many-to-many |
 | `work_order_equipment` | `equipment_ids` | Many-to-many |
 | `work_order_tasks` | `work_order_tasks.json` | |
@@ -54,12 +54,13 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `document_extractions` | `document_extractions.json` | `extracted_fields` is JSONB. The review command updates `status`, `reviewed_by_employee_id`, `reviewed_at`, `review_notes`, and `updated_at`. It does not change `extracted_fields` or the document `invoice_id`. No vector column. Unaccepted, `needs_review`, low-confidence, and financial rows are not copied into `procedure_page_embeddings` |
 | `procedure_page_embeddings` | `data/documents/procedures/` | Not seeded from `data/fixtures/valid/`. `embedding` is `vector(8)`. One row per synthetic procedure page after the fill service runs. Document version bytes are not stored |
 | `follow_up_visits` | Created by the follow-up command, not by seed | One row per approved customer-message approval after a dispatcher opens it. Status is `unscheduled`, `confirmed`, or `cancelled`. No technician column, no appointment, and no vector column. Confirm and cancel do not post finance |
+| `invoices` | `invoices.json` | UUID primary key and unique `business_id`. Money is numeric amount plus currency. `work_order_id` references `work_orders`. No posting command |
+| `invoice_lines` | `invoice_lines.json` | `invoice_id` references `invoices`. Optional `work_order_id` references `work_orders` |
+| `payments` | `payments.json` | `invoice_id` references `invoices`. Fixture status may already be `posted`. A read does not post a new payment |
 
 ## Deferred entities
 
-Not mapped yet: Invoice, InvoiceLine, Payment.
-
-Add them in later slices with the same UUID + `business_id` pattern. Do not load `data/fixtures/quality-issues/` into this database.
+No finance entity from `data/schemas/v1/finance/` remains unmapped. Do not load `data/fixtures/quality-issues/` into this database. File bytes for document versions are still not stored.
 
 ## Retrieval
 
@@ -76,6 +77,8 @@ Revision `0005` downgrade drops `document_extractions`, `document_versions`, and
 Revision `0006` downgrade drops `procedure_page_embeddings`. That is safe on the synthetic database. Procedure pages remain files. The revision does not embed document version bytes or extractions.
 
 Revision `0007` downgrade drops `follow_up_visits`. That is safe on the synthetic database. It does not update or delete audit events. The insert-only trigger on `audit_events` stays in place. The revision does not add a vector column.
+
+Revision `0008` downgrade copies invoice business ids back onto `work_orders.invoice_id`, then drops `payments`, `invoice_lines`, and `invoices`. That is safe on the synthetic database. Reload `data/fixtures/valid/` after that downgrade. `documents.invoice_id` stays a string. The revision does not post a payment or add a vector column.
 
 ## Contract layers
 

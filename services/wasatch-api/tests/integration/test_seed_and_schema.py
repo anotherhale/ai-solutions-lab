@@ -48,6 +48,9 @@ def test_expected_tables_exist(engine: Engine) -> None:
         "document_versions",
         "document_extractions",
         "procedure_page_embeddings",
+        "invoices",
+        "invoice_lines",
+        "payments",
         "alembic_version",
     }
     assert expected <= names
@@ -100,6 +103,13 @@ def test_seed_is_idempotent(seeded_engine: Engine) -> None:
     assert second["document_version"]["created"] == 0
     assert second["document_extraction"]["created"] == 0
     assert second["document_extraction"]["updated"] == 18
+    assert first["invoice"]["created"] == 0
+    assert first["invoice"]["updated"] == 30
+    assert first["invoice_line"]["updated"] == 40
+    assert first["payment"]["updated"] == 20
+    assert second["invoice"]["created"] == 0
+    assert second["invoice_line"]["created"] == 0
+    assert second["payment"]["created"] == 0
 
 
 def test_seed_rejects_quality_issues(db_session: Session) -> None:
@@ -316,3 +326,22 @@ def test_seeded_counts_match_slice(db_session: Session) -> None:
     assert version_count == 2
     assert invoice_id == "inv_0005"
     assert vector_columns == 0
+    invoices = db_session.execute(text("SELECT count(*) FROM invoices")).scalar()
+    invoice_lines = db_session.execute(
+        text("SELECT count(*) FROM invoice_lines")
+    ).scalar()
+    payments = db_session.execute(text("SELECT count(*) FROM payments")).scalar()
+    linked_invoice = db_session.execute(
+        text(
+            """
+            SELECT invoices.business_id
+            FROM work_orders
+            JOIN invoices ON invoices.id = work_orders.invoice_id
+            WHERE work_orders.business_id = 'wo_0028'
+            """
+        )
+    ).scalar()
+    assert invoices == 30
+    assert invoice_lines == 40
+    assert payments == 20
+    assert linked_invoice == "inv_0005"

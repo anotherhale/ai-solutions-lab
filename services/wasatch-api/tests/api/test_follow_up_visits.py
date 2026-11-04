@@ -41,19 +41,31 @@ def _finance_rows() -> tuple[list, list]:
     return invoice_rows, payment_rows
 
 
-def _finance_tables(db_session: Session) -> list[str]:
-    rows = db_session.execute(
+def _persisted_finance(db_session: Session) -> tuple[list[tuple], list[tuple]]:
+    invoices = db_session.execute(
         text(
             """
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema = 'public'
-              AND table_name IN ('invoices', 'invoice_lines', 'payments')
-            ORDER BY table_name
+            SELECT business_id, status, total_amount, amount_paid_amount, balance_amount
+            FROM invoices
+            ORDER BY business_id
             """
         )
     ).all()
-    return [row[0] for row in rows]
+    payments = db_session.execute(
+        text(
+            """
+            SELECT payments.business_id, invoices.business_id,
+                   payments.status, payments.amount_amount
+            FROM payments
+            JOIN invoices ON invoices.id = payments.invoice_id
+            ORDER BY payments.business_id
+            """
+        )
+    ).all()
+    return (
+        [(row[0], row[1], str(row[2]), str(row[3]), str(row[4])) for row in invoices],
+        [(row[0], row[1], row[2], str(row[3])) for row in payments],
+    )
 
 
 def _message_without_approval(payload: dict) -> dict:
@@ -120,7 +132,9 @@ def test_dispatcher_confirms_only_after_approval_and_leaves_the_message_unsent(
     assert original["status"] == "pending_approval"
     finance_bytes = _finance_bytes()
     finance_rows = _finance_rows()
-    assert _finance_tables(db_session) == []
+    persisted = _persisted_finance(db_session)
+    assert len(persisted[0]) == 30
+    assert len(persisted[1]) == 20
     work_orders = _work_orders(client)
     field = _field_detail(client)
     assert anonymous_client.get(FOLLOW_UP, headers=DISPATCHER).status_code == 404
@@ -221,7 +235,7 @@ def test_dispatcher_confirms_only_after_approval_and_leaves_the_message_unsent(
     assert _field_detail(client) == field
     assert _finance_bytes() == finance_bytes
     assert _finance_rows() == finance_rows
-    assert _finance_tables(db_session) == []
+    assert _persisted_finance(db_session) == persisted
 
     linked = client.get(
         "/api/v1/audit-events",
@@ -257,6 +271,8 @@ def test_dispatcher_can_cancel_the_unscheduled_follow_up(
 ) -> None:
     finance_bytes = _finance_bytes()
     finance_rows = _finance_rows()
+    persisted = _persisted_finance(db_session)
+    assert len(persisted[0]) == 30
     work_orders = _work_orders(client)
     field = _field_detail(client)
     approved = client.post(APPROVAL, json={"decision": "approved"})
@@ -286,7 +302,7 @@ def test_dispatcher_can_cancel_the_unscheduled_follow_up(
     assert _field_detail(client) == field
     assert _finance_bytes() == finance_bytes
     assert _finance_rows() == finance_rows
-    assert _finance_tables(db_session) == []
+    assert _persisted_finance(db_session) == persisted
     linked = client.get(
         "/api/v1/audit-events",
         params={"approval_request_id": "apr_0001", "page_size": 100},

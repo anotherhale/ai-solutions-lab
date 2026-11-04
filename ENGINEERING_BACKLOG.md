@@ -213,6 +213,16 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 - The page does not post an invoice, change a payment, trust future extraction output, call a model, send a customer message, or add a new app.
 - Acceptance: `emp_0001` can accept or reject `dx_0003` from the review screen. The request body carries only the decision and note, and no invoice, payment, delivery, or provider URL is called.
 
+### FIN-1 — Read synthetic invoices, lines, and payments
+
+- Status: done in this change
+- Depends on: the work-order slice. `work_orders.invoice_id` was still a string after CS-3
+- Alembic revision `0008` stores `invoices`, `invoice_lines`, and `payments` from `data/fixtures/valid/`. Counts are 30, 40, and 20
+- `work_orders.invoice_id` references `invoices.id`. `documents.invoice_id` stays a business-id string
+- Read routes: `GET /api/v1/invoices`, `GET /api/v1/invoices/{invoice_id}`, `GET /api/v1/invoice-lines`, `GET /api/v1/invoice-lines/{line_id}`, `GET /api/v1/payments`, and `GET /api/v1/payments/{payment_id}`. They require `X-Laboratory-Actor`
+- No command posts a payment, changes a total, or marks an invoice posted. `POST /api/v1/invoices` and `POST /api/v1/payments` stay denied
+- Acceptance: `inv_0005` is readable with lines `il_0007` and `il_0008`, and `wo_0028` references that invoice. `pay_0001` stays `posted` as fixture data. An anonymous caller receives 401. An authenticated post receives 403. Extraction review and follow-up confirmation leave the stored invoice and payment rows unchanged. Downgrade of `0008` restores the string on `work_orders.invoice_id` and drops the finance tables
+
 ## After the customer-service slice
 
 These follow [docs/ROADMAP.md](docs/ROADMAP.md). Dates in that roadmap are planning windows, not commitments. Do not start them by pulling infrastructure forward.
@@ -238,7 +248,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Thin HTTP contract tests | Closed. `tests/api/test_openapi_contract.py` and `openapi_contract_catalog.py` assert the full slice path/method catalog, write-route methods, decision enums, and runtime error envelopes. `tests/unit/test_contract_alignment.py` still aligns JSON Schema status enums. |
 | Downgrade is untested | Revision `0001` defines `downgrade`. New revisions include an upgrade test and a downgrade test when the downgrade is safe on the synthetic database. |
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py` still skips a local run when PostgreSQL is down. CI fails that skip. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` rejects a run that did not execute the database tests. |
-| String foreign key for invoices | `employees.role_id` and `employees.team_id` reference `roles` and `teams` as of CS-3. `work_orders.invoice_id` remains a string. |
+| String foreign key for invoices | Closed by FIN-1. `work_orders.invoice_id` references `invoices.id`. `documents.invoice_id` stays a string. Reads do not post a payment or change a total. |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
 | Starlette `TestClient` deprecation warning | Closed. `anyio>=4.8.0,<4.15` in `services/wasatch-api/pyproject.toml` until Starlette ships the `from_thread.BlockingPortal` import. |
 | No Compose image smoke test in CI | Closed. `scripts/smoke_compose.sh` runs in the **Compose API smoke** GitHub Actions job. |

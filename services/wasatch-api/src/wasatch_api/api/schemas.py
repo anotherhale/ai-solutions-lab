@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -29,6 +30,7 @@ from wasatch_api.documents.domain.entities import (
     DocumentExtraction,
     DocumentVersion,
 )
+from wasatch_api.finance.domain.entities import Invoice, InvoiceLine, Money, Payment
 from wasatch_api.governance.domain.entities import (
     ApprovalDecision,
     ApprovalRequest,
@@ -918,6 +920,154 @@ class DocumentDetailOut(BaseModel):
             extractions=[
                 DocumentExtractionOut.from_domain(item) for item in document.extractions
             ],
+        )
+
+
+class MoneyOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    amount: str
+    currency: str
+
+    @classmethod
+    def from_domain(cls, money: Money) -> MoneyOut:
+        return cls(amount=money.amount, currency=money.currency)
+
+
+def _quantity(value: Decimal) -> int | float:
+    integral = value.to_integral()
+    if value == integral:
+        return int(integral)
+    return float(value)
+
+
+class InvoiceLineOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    invoice_id: str
+    description: str
+    quantity: int | float
+    unit_price: MoneyOut
+    line_total: MoneyOut
+    line_type: str
+    work_order_id: str | None = None
+    created_at: str
+    updated_at: str
+
+    @classmethod
+    def from_domain(cls, line: InvoiceLine) -> InvoiceLineOut:
+        return cls(
+            id=line.id,
+            invoice_id=line.invoice_id,
+            description=line.description,
+            quantity=_quantity(line.quantity),
+            unit_price=MoneyOut.from_domain(line.unit_price),
+            line_total=MoneyOut.from_domain(line.line_total),
+            line_type=line.line_type,
+            work_order_id=line.work_order_id,
+            created_at=dump_datetime(line.created_at),
+            updated_at=dump_datetime(line.updated_at),
+        )
+
+
+class PaymentOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    invoice_id: str
+    amount: MoneyOut
+    method: str
+    status: str
+    received_on: str
+    reference: str | None = None
+    received_by_employee_id: str | None = None
+    notes: str | None = None
+    created_at: str
+    updated_at: str
+
+    @classmethod
+    def from_domain(cls, payment: Payment) -> PaymentOut:
+        received_on = dump_date(payment.received_on)
+        return cls(
+            id=payment.id,
+            invoice_id=payment.invoice_id,
+            amount=MoneyOut.from_domain(payment.amount),
+            method=payment.method,
+            status=payment.status,
+            received_on=received_on or "",
+            reference=payment.reference,
+            received_by_employee_id=payment.received_by_employee_id,
+            notes=payment.notes,
+            created_at=dump_datetime(payment.created_at),
+            updated_at=dump_datetime(payment.updated_at),
+        )
+
+
+class InvoiceListItemOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    customer_id: str
+    work_order_id: str | None = None
+    status: str
+    total: MoneyOut
+    amount_paid: MoneyOut
+    balance: MoneyOut
+    issued_on: str | None = None
+    due_on: str | None = None
+    created_at: str
+    updated_at: str
+
+    @classmethod
+    def from_domain(cls, invoice: Invoice) -> InvoiceListItemOut:
+        return cls(
+            id=invoice.id,
+            customer_id=invoice.customer_id,
+            work_order_id=invoice.work_order_id,
+            status=invoice.status,
+            total=MoneyOut.from_domain(invoice.total),
+            amount_paid=MoneyOut.from_domain(invoice.amount_paid),
+            balance=MoneyOut.from_domain(invoice.balance),
+            issued_on=dump_date(invoice.issued_on),
+            due_on=dump_date(invoice.due_on),
+            created_at=dump_datetime(invoice.created_at),
+            updated_at=dump_datetime(invoice.updated_at),
+        )
+
+
+class InvoiceDetailOut(InvoiceListItemOut):
+    subtotal: MoneyOut
+    tax: MoneyOut
+    adjustments: MoneyOut
+    voided_on: str | None = None
+    void_reason: str | None = None
+    notes: str | None = None
+    lines: list[InvoiceLineOut]
+    payments: list[PaymentOut]
+
+    @classmethod
+    def from_domain(cls, invoice: Invoice) -> InvoiceDetailOut:
+        return cls(
+            id=invoice.id,
+            customer_id=invoice.customer_id,
+            work_order_id=invoice.work_order_id,
+            status=invoice.status,
+            subtotal=MoneyOut.from_domain(invoice.subtotal),
+            tax=MoneyOut.from_domain(invoice.tax),
+            adjustments=MoneyOut.from_domain(invoice.adjustments),
+            total=MoneyOut.from_domain(invoice.total),
+            amount_paid=MoneyOut.from_domain(invoice.amount_paid),
+            balance=MoneyOut.from_domain(invoice.balance),
+            issued_on=dump_date(invoice.issued_on),
+            due_on=dump_date(invoice.due_on),
+            voided_on=dump_date(invoice.voided_on),
+            void_reason=invoice.void_reason,
+            notes=invoice.notes,
+            created_at=dump_datetime(invoice.created_at),
+            updated_at=dump_datetime(invoice.updated_at),
+            lines=[InvoiceLineOut.from_domain(item) for item in invoice.lines],
+            payments=[PaymentOut.from_domain(item) for item in invoice.payments],
         )
 
 

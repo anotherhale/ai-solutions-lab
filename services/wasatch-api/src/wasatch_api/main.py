@@ -12,6 +12,7 @@ from wasatch_api.api.routes import (
     customer_service,
     customers,
     documents,
+    finance,
     governance,
     health,
     work_orders,
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
             "an approved customer message and then confirm or cancel it. The "
             "visit stays unscheduled until that decision. The command does "
             "not send the message, assign a technician, or post finance. "
+            "Invoice, line, and payment routes are read-only. "
             "Other writes are denied. "
             "The model provider defaults to a fake that does not call the "
             "network. Procedure-page embeddings, when filled, use that same "
@@ -68,6 +70,7 @@ def create_app() -> FastAPI:
     app.include_router(customer_service.router)
     app.include_router(governance.router)
     app.include_router(documents.router)
+    app.include_router(finance.router)
     app.include_router(workflows.router)
     configure_telemetry(app)
     return app

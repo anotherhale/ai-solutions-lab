@@ -79,6 +79,14 @@ EXTRACTION_STATUSES = frozenset(
     {"pending", "succeeded", "failed", "needs_review", "accepted", "rejected"}
 )
 EXTRACTORS = frozenset({"human", "model", "rules"})
+INVOICE_STATUSES = frozenset(
+    {"draft", "issued", "partially_paid", "paid", "overdue", "voided"}
+)
+INVOICE_LINE_TYPES = frozenset(
+    {"labor", "parts", "travel", "equipment", "adjustment", "agreement"}
+)
+PAYMENT_STATUSES = frozenset({"pending", "posted", "failed", "reversed"})
+PAYMENT_METHODS = frozenset({"ach", "check", "card", "wire", "credit_memo"})
 
 
 @dataclass(frozen=True)
@@ -195,6 +203,38 @@ def validate_extractor(extractor: str | None) -> str | None:
     if extractor not in EXTRACTORS:
         raise InvalidParameterError(f"unsupported extractor: {extractor}")
     return extractor
+
+
+def validate_invoice_status(status: str | None) -> str | None:
+    if status is None:
+        return None
+    if status not in INVOICE_STATUSES:
+        raise InvalidParameterError(f"unsupported invoice status: {status}")
+    return status
+
+
+def validate_invoice_line_type(line_type: str | None) -> str | None:
+    if line_type is None:
+        return None
+    if line_type not in INVOICE_LINE_TYPES:
+        raise InvalidParameterError(f"unsupported invoice line type: {line_type}")
+    return line_type
+
+
+def validate_payment_status(status: str | None) -> str | None:
+    if status is None:
+        return None
+    if status not in PAYMENT_STATUSES:
+        raise InvalidParameterError(f"unsupported payment status: {status}")
+    return status
+
+
+def validate_payment_method(method: str | None) -> str | None:
+    if method is None:
+        return None
+    if method not in PAYMENT_METHODS:
+        raise InvalidParameterError(f"unsupported payment method: {method}")
+    return method
 
 
 def escape_like(term: str) -> str:

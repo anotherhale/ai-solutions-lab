@@ -14,7 +14,7 @@ Do not implement production client work, live customer data, or unrelated produc
 
 ## Current Status
 
-Documentation, domain contracts, synthetic fixtures, a local PostgreSQL environment, and a FastAPI slice exist. The API can read synthetic operations, record an approval decision, and draft a suggested reply. The default model port is a fake and does not call a provider. `apps/wasatch-review` is a React and TypeScript screen for that decision. It does not send customer messages. Synthetic procedure-page embeddings are stored in PostgreSQL (`procedure_page_embeddings.embedding`). They are procedure text from the fake port, not a trusted model, and not document bytes. Outbound delivery and cloud environments have not been implemented and must not be described as if they have.
+Documentation, domain contracts, synthetic fixtures, a local PostgreSQL environment, and a FastAPI slice exist. The API can read synthetic operations, invoices, lines, and payments, record an approval decision, and draft a suggested reply. Invoice routes do not post a payment or change a total. The default model port is a fake and does not call a provider. `apps/wasatch-review` is a React and TypeScript screen for that decision. It does not send customer messages. Synthetic procedure-page embeddings are stored in PostgreSQL (`procedure_page_embeddings.embedding`). They are procedure text from the fake port, not a trusted model, and not document bytes. Outbound delivery and cloud environments have not been implemented and must not be described as if they have.
 
 Inspect the working tree and relevant documents before making changes. Preserve useful existing content.
 

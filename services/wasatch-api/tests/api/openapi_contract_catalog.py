@@ -37,6 +37,12 @@ SLICE_PATH_METHODS: dict[str, frozenset[str]] = {
     "/api/v1/document-extractions": frozenset({"get"}),
     "/api/v1/document-extractions/{extraction_id}": frozenset({"get"}),
     "/api/v1/document-extractions/{extraction_id}/decisions": frozenset({"post"}),
+    "/api/v1/invoices": frozenset({"get"}),
+    "/api/v1/invoices/{invoice_id}": frozenset({"get"}),
+    "/api/v1/invoice-lines": frozenset({"get"}),
+    "/api/v1/invoice-lines/{line_id}": frozenset({"get"}),
+    "/api/v1/payments": frozenset({"get"}),
+    "/api/v1/payments/{payment_id}": frozenset({"get"}),
 }
 
 WRITE_PATHS = frozenset(

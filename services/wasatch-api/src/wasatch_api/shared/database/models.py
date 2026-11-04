@@ -305,7 +305,16 @@ class WorkOrderORM(Base):
     scheduled_for: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completion_notes: Mapped[str | None] = mapped_column(Text)
-    invoice_id: Mapped[str | None] = mapped_column(String(16))
+    invoice_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "invoices.id",
+            use_alter=True,
+            name="fk_work_orders_invoice",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
     cancelled_reason: Mapped[str | None] = mapped_column(Text)
     reopen_reason: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
@@ -317,6 +326,10 @@ class WorkOrderORM(Base):
     support_ticket: Mapped[SupportTicketORM | None] = relationship(
         "SupportTicketORM",
         foreign_keys=[support_ticket_id],
+    )
+    invoice: Mapped[InvoiceORM | None] = relationship(
+        "InvoiceORM",
+        foreign_keys=[invoice_id],
     )
     assigned_employees: Mapped[list[EmployeeORM]] = relationship(
         secondary=work_order_assignments
@@ -878,3 +891,143 @@ class FollowUpVisitORM(Base):
     decided_by: Mapped[EmployeeORM | None] = relationship(
         foreign_keys=[decided_by_employee_id]
     )
+
+
+class InvoiceORM(Base):
+    """Synthetic invoice. Reads do not post a payment or change a total.
+
+    ``documents.invoice_id`` stays a business-id string. This table is the
+    target of ``work_orders.invoice_id``.
+    """
+
+    __tablename__ = "invoices"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey("customers.id", name="fk_invoices_customer", ondelete="RESTRICT"),
+        index=True,
+    )
+    work_order_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "work_orders.id",
+            name="fk_invoices_work_order",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    issued_on: Mapped[date | None] = mapped_column(Date)
+    due_on: Mapped[date | None] = mapped_column(Date)
+    voided_on: Mapped[date | None] = mapped_column(Date)
+    void_reason: Mapped[str | None] = mapped_column(Text)
+    subtotal_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    subtotal_currency: Mapped[str] = mapped_column(String(3))
+    tax_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    tax_currency: Mapped[str] = mapped_column(String(3))
+    adjustments_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    adjustments_currency: Mapped[str] = mapped_column(String(3))
+    total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    total_currency: Mapped[str] = mapped_column(String(3))
+    amount_paid_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    amount_paid_currency: Mapped[str] = mapped_column(String(3))
+    balance_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    balance_currency: Mapped[str] = mapped_column(String(3))
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    customer: Mapped[CustomerORM] = relationship()
+    work_order: Mapped[WorkOrderORM | None] = relationship(foreign_keys=[work_order_id])
+    lines: Mapped[list[InvoiceLineORM]] = relationship(
+        back_populates="invoice",
+        order_by="InvoiceLineORM.business_id",
+    )
+    payments: Mapped[list[PaymentORM]] = relationship(
+        back_populates="invoice",
+        order_by="PaymentORM.business_id",
+    )
+
+
+class InvoiceLineORM(Base):
+    """Billable row on a synthetic invoice. There is no write route."""
+
+    __tablename__ = "invoice_lines"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    invoice_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "invoices.id",
+            name="fk_invoice_lines_invoice",
+            ondelete="RESTRICT",
+        ),
+        index=True,
+    )
+    work_order_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "work_orders.id",
+            name="fk_invoice_lines_work_order",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    description: Mapped[str] = mapped_column(Text)
+    quantity: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    unit_price_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    unit_price_currency: Mapped[str] = mapped_column(String(3))
+    line_total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    line_total_currency: Mapped[str] = mapped_column(String(3))
+    line_type: Mapped[str] = mapped_column(String(32), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    invoice: Mapped[InvoiceORM] = relationship(back_populates="lines")
+    work_order: Mapped[WorkOrderORM | None] = relationship()
+
+
+class PaymentORM(Base):
+    """Synthetic payment already present in the fixtures.
+
+    Loading a row does not post money. There is no command that changes
+    ``status`` or an invoice total.
+    """
+
+    __tablename__ = "payments"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    invoice_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "invoices.id",
+            name="fk_payments_invoice",
+            ondelete="RESTRICT",
+        ),
+        index=True,
+    )
+    amount_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    amount_currency: Mapped[str] = mapped_column(String(3))
+    method: Mapped[str] = mapped_column(String(32))
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    received_on: Mapped[date] = mapped_column(Date)
+    reference: Mapped[str | None] = mapped_column(String(128))
+    received_by_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            name="fk_payments_received_by",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    invoice: Mapped[InvoiceORM] = relationship(back_populates="payments")
+    received_by: Mapped[EmployeeORM | None] = relationship()

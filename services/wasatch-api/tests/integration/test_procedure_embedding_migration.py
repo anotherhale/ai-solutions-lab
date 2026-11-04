@@ -10,10 +10,12 @@ from alembic.config import Config
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import sessionmaker
 
 from wasatch_api.ai.infrastructure.fake import FakeModelPort
 from wasatch_api.config import REPO_ROOT, get_settings
 from wasatch_api.shared.database.vector import PROCEDURE_EMBEDDING_WIDTH
+from wasatch_api.shared.seed import seed_valid_fixtures
 
 API_ROOT = REPO_ROOT / "services" / "wasatch-api"
 
@@ -62,7 +64,16 @@ def test_procedure_embedding_revision_upgrades_and_downgrades(engine: Engine) ->
         _assert_document_tables_have_no_vector(engine)
     finally:
         command.upgrade(config, "head")
+        _reseed(engine)
         get_settings.cache_clear()
+
+
+def _reseed(engine: Engine) -> None:
+    session = sessionmaker(bind=engine, autoflush=False)()
+    try:
+        seed_valid_fixtures(session, REPO_ROOT / "data" / "fixtures" / "valid")
+    finally:
+        session.close()
 
 
 def _embedding_type(engine: Engine) -> str:

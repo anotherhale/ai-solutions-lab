@@ -93,14 +93,22 @@ Defaults: `page=1`, `page_size=20`, maximum `page_size=100`. Ordering is by busi
 | GET | `/api/v1/document-extractions` | Filter by status, extractor, or document |
 | GET | `/api/v1/document-extractions/{extraction_id}` | One extraction. Fields stay untrusted until accepted |
 | POST | `/api/v1/document-extractions/{extraction_id}/decisions` | Accept or reject an extraction awaiting review. Does not post an invoice or a payment |
+| GET | `/api/v1/invoices` | Filter by status or customer |
+| GET | `/api/v1/invoices/{invoice_id}` | Invoice plus lines and payments. A read does not post |
+| GET | `/api/v1/invoice-lines` | Filter by invoice or line type |
+| GET | `/api/v1/invoice-lines/{line_id}` | One invoice line |
+| GET | `/api/v1/payments` | Filter by status or invoice |
+| GET | `/api/v1/payments/{payment_id}` | One payment. Fixture status is not a new posting |
 
-A message that references an approval includes that approval request on the message payload. The draft, customer-message decision, extraction-review, and follow-up routes are the writes. There is no write route that updates or deletes audit events. Document and version routes stay read-only. `GET` on an extraction does not accept it. `GET` on a follow-up does not open or decide it. An authenticated write outside those four commands receives `403`. An anonymous call receives `401`.
+A message that references an approval includes that approval request on the message payload. The draft, customer-message decision, extraction-review, and follow-up routes are the writes. There is no write route that updates or deletes audit events. Document and version routes stay read-only. Invoice, line, and payment routes stay read-only. `GET` on an extraction does not accept it. `GET` on a follow-up does not open or decide it. `GET` on an invoice or a payment does not post money. An authenticated write outside those four commands receives `403`. An anonymous call receives `401`.
 
 `POST /api/v1/support-tickets/{ticket_id}/draft-replies` requires `X-Laboratory-Actor`. The server builds the reply from retrieval for that ticket. The client does not submit the body. The default provider is `AI_PROVIDER=fake`, which quotes retrieved source ids and does not call the network. `AI_PROVIDER=openai` is used only with a non-placeholder `OPENAI_API_KEY`. For synthetic ticket `tkt_0015` the fake reply cites `msg_0015` and procedure `proc_0001` and promises a visit, so the message is `pending_approval`. Rejecting that approval leaves the message unsent.
 
 `GET /api/v1/documents/{document_id}` is read-only and requires `X-Laboratory-Actor`. Versions nested on a document are ordered by `version_number`. Extractions nested on a document, and the extraction list, are ordered by business id. `storage_path` is a synthetic relative path. The response does not include file bytes or an embedding. `extracted_fields` is the stored JSON object and stays untrusted until an approver accepts that extraction.
 
 `POST /api/v1/document-extractions/{extraction_id}/decisions` requires `X-Laboratory-Actor` and an approver role. The body is `{"decision": "accepted" | "rejected", "note": optional}`. Awaiting review means `pending`, `succeeded`, `failed`, or `needs_review`. Confidence below 0.8, a missing score, an invoice or money key in `extracted_fields`, or a document linked to an invoice is not accepted by a read, a seed, or a background job. The command does not change `extracted_fields`, `invoice_id`, invoice totals, or payment status. Embeddings are not stored.
+
+`GET /api/v1/invoices/{invoice_id}` is read-only and requires `X-Laboratory-Actor`. Lines and payments nested on an invoice are ordered by business id. Money is `{amount, currency}` with a two-digit amount string. `documents.invoice_id` remains the business id string and is not a foreign key. There is no route that posts a payment or changes `total`, `amount_paid`, or `balance`.
 
 `POST /api/v1/approval-requests/{approval_id}/follow-up-visits` requires `X-Laboratory-Actor` and dispatcher role `role_0004`. The body is `{"decision": "open" | "confirm" | "cancel", "note": optional}`. `open` requires an approved `send_customer_message` and records status `unscheduled`. `confirm` and `cancel` apply only to that unscheduled visit. The note is stored on confirm or cancel. The command does not mark the message `sent`, set the approval `executed_at`, assign a technician, create an appointment, or post finance.
 

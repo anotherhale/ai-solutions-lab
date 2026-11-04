@@ -15,6 +15,7 @@ On the integration branch `develop`, the repository contains a local laboratory 
 - Procedure-page embeddings
 - A follow-up visit after an approved customer message
 - Host traces
+- Read-only invoice, line, and payment routes. A read does not post a payment
 
 `main` is not the deployed product. Approving a customer message does not send it. Confirming a follow-up does not dispatch a technician and does not change invoices. No Azure environment is running.
 
@@ -107,7 +108,13 @@ An approver may accept or reject an extraction that is awaiting review. Awaiting
 
 The decision stores status, reviewer, `reviewed_at`, and optional `review_notes`, and it inserts an audit event. It does not post a payment, change an invoice total, or mark an invoice posted. Fixture `dx_0004` is already `accepted` in the JSON and its `review_notes` say "Accepted for posting." That sentence is fixture text. The review command still does not post.
 
-Invoice and payment fixtures exist as JSON. They are not posted by this slice. `PROJECT_STATUS.md`, "Verification for the follow-up visit," records that `information_schema` had no `invoices`, `invoice_lines`, or `payments` table and that the invoice and payment fixture bytes were unchanged. This case study did not query a database.
+Invoice and payment fixtures exist as JSON. The extraction review and the follow-up command do not post them. `PROJECT_STATUS.md`, "Verification for the follow-up visit," records the measurement from that earlier session: `information_schema` had no `invoices`, `invoice_lines`, or `payments` table, and the fixture bytes were unchanged. A later read slice stores those fixtures. See "Invoices are readable rows" below. This case study did not query a database.
+
+## Invoices are readable rows
+
+Alembic revision `0008` stores `invoices`, `invoice_lines`, and `payments` from the synthetic fixtures. `work_orders.invoice_id` references `invoices.id`. `documents.invoice_id` stays a business-id string. The HTTP routes are `GET` only and require `X-Laboratory-Actor`. A read does not post a payment, change `total`, or mark an invoice posted. Fixture payments that are already `posted` stay fixture rows. There is no screen for this read.
+
+The counts and the check that an authenticated `POST` is denied are in `PROJECT_STATUS.md`, "Verification for invoice reads."
 
 ## Procedure embeddings are not a semantic model
 

@@ -24,6 +24,7 @@ from wasatch_api.shared.database.models import (
     DocumentVersionORM,
     EmployeeORM,
     InteractionORM,
+    InvoiceORM,
     MessageORM,
     RoleORM,
     ServiceLocationORM,
@@ -179,15 +180,20 @@ def test_work_order_mapping_uses_ticket_business_id() -> None:
         created_at=now,
         updated_at=now,
     )
+    invoice = InvoiceORM(id=uuid.uuid4(), business_id="inv_0005")
     row.customer = customer
     row.service_location = location
     row.support_ticket = ticket
+    row.invoice = invoice
+    row.invoice_id = invoice.id
     row.assigned_employees = []
     mapped = work_order_from_orm(row, detail=False)
     assert mapped.id == "wo_0004"
     assert mapped.customer_id == "cust_0003"
     assert mapped.support_ticket_id == "tkt_0004"
     assert mapped.support_ticket_id != str(ticket.id)
+    assert mapped.invoice_id == "inv_0005"
+    assert mapped.invoice_id != str(invoice.id)
 
 
 def test_interaction_mapping_uses_business_ids() -> None:
