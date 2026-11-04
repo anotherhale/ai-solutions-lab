@@ -39,6 +39,9 @@ def test_expected_tables_exist(engine: Engine) -> None:
         "support_tickets",
         "messages",
         "interactions",
+        "approval_requests",
+        "approval_decision_history",
+        "audit_events",
         "alembic_version",
     }
     assert expected <= names
@@ -63,6 +66,15 @@ def test_seed_is_idempotent(seeded_engine: Engine) -> None:
     assert second["message"]["updated"] == 17
     assert second["interaction"]["created"] == 0
     assert second["interaction"]["updated"] == 15
+    assert first["approval_request"]["created"] == 0
+    assert first["approval_request"]["updated"] == 10
+    assert first["audit_event"]["created"] == 0
+    assert first["audit_event"]["updated"] == 0
+    assert first["audit_event"]["skipped"] == 50
+    assert second["approval_request"]["updated"] == 10
+    assert second["audit_event"]["created"] == 0
+    assert second["audit_event"]["updated"] == 0
+    assert second["audit_event"]["skipped"] == 50
 
 
 def test_seed_rejects_quality_issues(db_session: Session) -> None:
@@ -123,6 +135,25 @@ def test_seeded_counts_match_slice(db_session: Session) -> None:
     interactions = db_session.execute(
         text("SELECT count(*) FROM interactions")
     ).scalar()
+    approvals = db_session.execute(
+        text("SELECT count(*) FROM approval_requests")
+    ).scalar()
+    decisions = db_session.execute(
+        text("SELECT count(*) FROM approval_decision_history")
+    ).scalar()
+    audits = db_session.execute(text("SELECT count(*) FROM audit_events")).scalar()
+    pending_message = db_session.execute(
+        text(
+            """
+            SELECT ar.business_id
+            FROM messages AS msg
+            JOIN approval_requests AS ar ON ar.id = msg.approval_request_id
+            WHERE msg.business_id = 'msg_0016'
+              AND msg.status = 'pending_approval'
+              AND msg.requires_approval IS TRUE
+            """
+        )
+    ).scalar()
     linked = db_session.execute(
         text(
             """
@@ -139,3 +170,7 @@ def test_seeded_counts_match_slice(db_session: Session) -> None:
     assert messages == 17
     assert interactions == 15
     assert linked == 15
+    assert approvals == 10
+    assert decisions == 11
+    assert audits == 50
+    assert pending_message == "apr_0001"

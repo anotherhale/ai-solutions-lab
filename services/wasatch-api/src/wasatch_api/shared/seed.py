@@ -1,4 +1,7 @@
-"""Idempotent loader for valid Wasatch synthetic fixtures."""
+"""Idempotent loader for valid Wasatch synthetic fixtures.
+
+Audit events are insert-only. A later seed skips an audit row that already exists.
+"""
 
 from __future__ import annotations
 
@@ -11,6 +14,9 @@ from sqlalchemy.orm import Session
 
 from wasatch_api.shared.database.models import (
     AppointmentORM,
+    ApprovalDecisionORM,
+    ApprovalRequestORM,
+    AuditEventORM,
     ContactORM,
     CustomerORM,
     EmployeeORM,
@@ -58,6 +64,21 @@ def _upsert(session: Session, model, business_id: str, values: dict) -> str:
     for key, value in values.items():
         setattr(existing, key, value)
     return "updated"
+
+
+def _insert_if_absent(session: Session, model, business_id: str, values: dict) -> str:
+    """Insert a row once. Existing rows are left unchanged.
+
+    Audit events use this path. The table rejects UPDATE and DELETE.
+    """
+
+    existing = _get_by_business_id(session, model, business_id)
+    if existing is not None:
+        return "skipped"
+    row = model(id=uuid.uuid4(), business_id=business_id, **values)
+    session.add(row)
+    session.flush()
+    return "created"
 
 
 def _address(payload: dict, prefix: str = "") -> dict:
@@ -420,6 +441,57 @@ def seed_valid_fixtures(
             ticket_ids, record.get("support_ticket_id"), "support ticket"
         )
 
+    approval_ids: dict[str, uuid.UUID] = {}
+    for record in _load_records(fixtures_dir, "approval_requests.json"):
+        action = _upsert(
+            session,
+            ApprovalRequestORM,
+            record["id"],
+            {
+                "action_type": record["action_type"],
+                "status": record["status"],
+                "requested_by_employee_id": _require(
+                    employee_ids, record["requested_by_employee_id"], "employee"
+                ),
+                "reviewer_employee_id": _link(
+                    employee_ids, record.get("reviewer_employee_id"), "employee"
+                ),
+                "subject_type": record["subject_type"],
+                "subject_id": record["subject_id"],
+                "rationale": record["rationale"],
+                "decision_notes": record.get("decision_notes"),
+                "requested_at": parse_datetime(record["requested_at"]),
+                "decided_at": parse_datetime(record["decided_at"])
+                if record.get("decided_at")
+                else None,
+                "executed_at": parse_datetime(record["executed_at"])
+                if record.get("executed_at")
+                else None,
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("approval_request", action)
+        approval = _get_by_business_id(session, ApprovalRequestORM, record["id"])
+        approval_ids[record["id"]] = approval.id
+        approval.decision_history.clear()
+        session.flush()
+        for position, entry in enumerate(record.get("decision_history") or []):
+            approval.decision_history.append(
+                ApprovalDecisionORM(
+                    id=uuid.uuid4(),
+                    approval_request_id=approval.id,
+                    position=position,
+                    at=parse_datetime(entry["at"]),
+                    actor_employee_id=_require(
+                        employee_ids, entry["actor_employee_id"], "employee"
+                    ),
+                    from_status=entry["from_status"],
+                    to_status=entry["to_status"],
+                    note=entry.get("note"),
+                )
+            )
+
     for record in _load_records(fixtures_dir, "messages.json"):
         action = _upsert(
             session,
@@ -440,7 +512,9 @@ def seed_valid_fixtures(
                     contact_ids, record.get("author_contact_id"), "contact"
                 ),
                 "requires_approval": bool(record.get("requires_approval", False)),
-                "approval_request_id": record.get("approval_request_id"),
+                "approval_request_id": _link(
+                    approval_ids, record.get("approval_request_id"), "approval request"
+                ),
                 "sent_at": parse_datetime(record["sent_at"]),
                 "created_at": parse_datetime(record["created_at"]),
                 "updated_at": parse_datetime(record["updated_at"]),
@@ -476,6 +550,31 @@ def seed_valid_fixtures(
             },
         )
         tally("interaction", action)
+
+    for record in _load_records(fixtures_dir, "audit_events.json"):
+        action = _insert_if_absent(
+            session,
+            AuditEventORM,
+            record["id"],
+            {
+                "occurred_at": parse_datetime(record["occurred_at"]),
+                "actor_type": record["actor_type"],
+                "actor_employee_id": _link(
+                    employee_ids, record.get("actor_employee_id"), "employee"
+                ),
+                "action": record["action"],
+                "subject_type": record["subject_type"],
+                "subject_id": record["subject_id"],
+                "outcome": record["outcome"],
+                "approval_request_id": _link(
+                    approval_ids,
+                    record.get("approval_request_id"),
+                    "approval request",
+                ),
+                "details": record.get("details"),
+            },
+        )
+        tally("audit_event", action)
 
     session.commit()
     return counts

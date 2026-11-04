@@ -24,7 +24,7 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | Timestamps | `TIMESTAMPTZ` |
 | Addresses | Discrete columns, not JSON documents |
 | Lists of enumerations | PostgreSQL `TEXT[]` (employee certifications) |
-| Flexible documents | Deferred. JSONB is reserved for later extraction payloads |
+| Flexible documents | `audit_events.details` uses JSONB for the open audit map. Extraction payloads stay deferred |
 | Vectors | `CREATE EXTENSION vector` is applied now; no embedding columns yet |
 
 ## Tables in this slice
@@ -42,16 +42,21 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `work_order_tasks` | `work_order_tasks.json` | |
 | `appointments` | `appointments.json` | Self-FK `replaces_appointment_id` |
 | `support_tickets` | `support_tickets.json` | `related_document_ids` is `TEXT[]` of document business ids |
-| `messages` | `messages.json` | `approval_request_id` stays a string until approval requests are mapped |
+| `messages` | `messages.json` | `approval_request_id` references `approval_requests.id` |
 | `interactions` | `interactions.json` | Optional links to a ticket and a work order |
+| `approval_requests` | `approval_requests.json` | `subject_id` stays the subject's business id |
+| `approval_decision_history` | `decision_history` on each approval | Child rows ordered by `position`; replaced when the approval is reseeded |
+| `audit_events` | `audit_events.json` | Insert-only. No `updated_at`. Optional `approval_request_id` references `approval_requests.id`. `details` is JSONB for the open map; extraction payloads stay deferred |
 
 ## Deferred entities
 
-Not mapped yet: Role, Team, Invoice, InvoiceLine, Payment, Document, DocumentVersion, DocumentExtraction, ApprovalRequest, AuditEvent.
+Not mapped yet: Role, Team, Invoice, InvoiceLine, Payment, Document, DocumentVersion, DocumentExtraction.
 
 Add them in later slices with the same UUID + `business_id` pattern. Do not load `data/fixtures/quality-issues/` into this database.
 
 Revision `0002` downgrade copies ticket business ids back onto `work_orders.support_ticket_id` and drops the customer-service tables. Reload `data/fixtures/valid/` after that downgrade.
+
+Revision `0003` downgrade copies approval business ids back onto `messages.approval_request_id`, then drops `audit_events`, `approval_decision_history`, and `approval_requests`. It does not `UPDATE` or `DELETE` individual audit rows; dropping the table is the schema rollback and is safe on the synthetic database. Reload `data/fixtures/valid/` after that downgrade. The database trigger `audit_events_insert_only` rejects row updates and deletes while the table exists.
 
 ## Contract layers
 

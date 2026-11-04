@@ -23,7 +23,7 @@ from sqlalchemy import (
     UniqueConstraint,
     Uuid,
 )
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from wasatch_api.shared.database.base import Base
@@ -389,7 +389,15 @@ class MessageORM(Base):
         Uuid, ForeignKey("contacts.id", ondelete="SET NULL")
     )
     requires_approval: Mapped[bool] = mapped_column(Boolean, default=False)
-    approval_request_id: Mapped[str | None] = mapped_column(String(16))
+    approval_request_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "approval_requests.id",
+            name="fk_messages_approval_request",
+            ondelete="RESTRICT",
+        ),
+        index=True,
+    )
     sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
@@ -397,6 +405,10 @@ class MessageORM(Base):
     support_ticket: Mapped[SupportTicketORM] = relationship(back_populates="messages")
     author_employee: Mapped[EmployeeORM | None] = relationship()
     author_contact: Mapped[ContactORM | None] = relationship()
+    approval_request: Mapped[ApprovalRequestORM | None] = relationship(
+        "ApprovalRequestORM",
+        foreign_keys=[approval_request_id],
+    )
 
 
 class InteractionORM(Base):
@@ -431,3 +443,101 @@ class InteractionORM(Base):
     support_ticket: Mapped[SupportTicketORM | None] = relationship()
     work_order: Mapped[WorkOrderORM | None] = relationship()
     employee: Mapped[EmployeeORM] = relationship()
+
+
+class ApprovalRequestORM(Base):
+    __tablename__ = "approval_requests"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    action_type: Mapped[str] = mapped_column(String(32), index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    requested_by_employee_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="RESTRICT"), index=True
+    )
+    reviewer_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="SET NULL"), index=True
+    )
+    subject_type: Mapped[str] = mapped_column(String(32))
+    subject_id: Mapped[str] = mapped_column(String(16))
+    rationale: Mapped[str] = mapped_column(Text)
+    decision_notes: Mapped[str | None] = mapped_column(Text)
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    executed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    requested_by: Mapped[EmployeeORM] = relationship(
+        foreign_keys=[requested_by_employee_id]
+    )
+    reviewer: Mapped[EmployeeORM | None] = relationship(
+        foreign_keys=[reviewer_employee_id]
+    )
+    decision_history: Mapped[list[ApprovalDecisionORM]] = relationship(
+        back_populates="approval_request",
+        cascade="all, delete-orphan",
+        order_by="ApprovalDecisionORM.position",
+    )
+
+
+class ApprovalDecisionORM(Base):
+    """One append-only transition on an approval request. Not an audit event."""
+
+    __tablename__ = "approval_decision_history"
+    __table_args__ = (
+        UniqueConstraint(
+            "approval_request_id",
+            "position",
+            name="uq_approval_decision_position",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    approval_request_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("approval_requests.id", ondelete="CASCADE"), index=True
+    )
+    position: Mapped[int] = mapped_column(Integer)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    actor_employee_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="RESTRICT")
+    )
+    from_status: Mapped[str] = mapped_column(String(32))
+    to_status: Mapped[str] = mapped_column(String(32))
+    note: Mapped[str | None] = mapped_column(Text)
+
+    approval_request: Mapped[ApprovalRequestORM] = relationship(
+        back_populates="decision_history"
+    )
+    actor: Mapped[EmployeeORM] = relationship()
+
+
+class AuditEventORM(Base):
+    """Insert-only audit row. Callers do not update or delete it."""
+
+    __tablename__ = "audit_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    actor_type: Mapped[str] = mapped_column(String(32))
+    actor_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="RESTRICT"), index=True
+    )
+    action: Mapped[str] = mapped_column(String(128))
+    subject_type: Mapped[str] = mapped_column(String(32))
+    subject_id: Mapped[str] = mapped_column(String(16))
+    outcome: Mapped[str] = mapped_column(String(32), index=True)
+    approval_request_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "approval_requests.id",
+            name="fk_audit_events_approval_request",
+            ondelete="RESTRICT",
+        ),
+        index=True,
+    )
+    details: Mapped[dict | None] = mapped_column(JSONB)
+
+    actor_employee: Mapped[EmployeeORM | None] = relationship()
+    approval_request: Mapped[ApprovalRequestORM | None] = relationship()

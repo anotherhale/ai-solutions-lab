@@ -7,7 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from wasatch_api import __version__
 from wasatch_api.api.errors import register_exception_handlers
-from wasatch_api.api.routes import customer_service, customers, health, work_orders
+from wasatch_api.api.routes import (
+    customer_service,
+    customers,
+    governance,
+    health,
+    work_orders,
+)
 from wasatch_api.config import get_settings
 
 
@@ -34,6 +40,7 @@ def create_app() -> FastAPI:
     app.include_router(customers.router)
     app.include_router(work_orders.router)
     app.include_router(customer_service.router)
+    app.include_router(governance.router)
     return app
 
 

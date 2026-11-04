@@ -68,6 +68,11 @@ def test_get_support_ticket_includes_messages(client: TestClient) -> None:
     assert pending["status"] == "pending_approval"
     assert pending["requires_approval"] is True
     assert pending["approval_request_id"] == "apr_0001"
+    assert pending["approval_request"]["id"] == "apr_0001"
+    assert pending["approval_request"]["status"] == "pending"
+    assert pending["approval_request"]["action_type"] == "send_customer_message"
+    assert pending["approval_request"]["subject_id"] == "msg_0016"
+    assert pending["approval_request"]["decision_history"] == []
     assert pending["author_employee_id"] == "emp_0006"
 
 
@@ -98,8 +103,14 @@ def test_list_and_get_messages(client: TestClient) -> None:
 
     detail = client.get("/api/v1/messages/msg_0016")
     assert detail.status_code == 200
-    assert detail.json()["support_ticket_id"] == "tkt_0007"
-    assert detail.json()["body"].startswith("We can be on site")
+    message = detail.json()
+    assert message["support_ticket_id"] == "tkt_0007"
+    assert message["status"] == "pending_approval"
+    assert message["requires_approval"] is True
+    assert message["approval_request_id"] == "apr_0001"
+    assert message["approval_request"]["id"] == "apr_0001"
+    assert message["approval_request"]["status"] == "pending"
+    assert message["body"].startswith("We can be on site")
 
     missing = client.get("/api/v1/messages/msg_9999")
     assert missing.status_code == 404
