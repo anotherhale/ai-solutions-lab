@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import uuid
+from decimal import Decimal
 from pathlib import Path
 
 from sqlalchemy import select
@@ -19,6 +20,9 @@ from wasatch_api.shared.database.models import (
     AuditEventORM,
     ContactORM,
     CustomerORM,
+    DocumentExtractionORM,
+    DocumentORM,
+    DocumentVersionORM,
     EmployeeORM,
     EquipmentORM,
     InteractionORM,
@@ -619,6 +623,115 @@ def seed_valid_fixtures(
             },
         )
         tally("audit_event", action)
+
+    document_ids: dict[str, uuid.UUID] = {}
+    document_records = _load_records(fixtures_dir, "documents.json")
+    for record in document_records:
+        action = _upsert(
+            session,
+            DocumentORM,
+            record["id"],
+            {
+                "title": record["title"],
+                "document_type": record["document_type"],
+                "status": record["status"],
+                "source": record["source"],
+                "mime_type": record["mime_type"],
+                "untrusted": bool(record["untrusted"]),
+                "customer_id": _link(
+                    customer_ids, record.get("customer_id"), "customer"
+                ),
+                "service_location_id": _link(
+                    location_ids,
+                    record.get("service_location_id"),
+                    "service location",
+                ),
+                "work_order_id": _link(
+                    work_order_ids, record.get("work_order_id"), "work order"
+                ),
+                "invoice_id": record.get("invoice_id"),
+                "uploaded_by_employee_id": _link(
+                    employee_ids,
+                    record.get("uploaded_by_employee_id"),
+                    "employee",
+                ),
+                "notes": record.get("notes"),
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("document", action)
+        document_ids[record["id"]] = _get_by_business_id(
+            session, DocumentORM, record["id"]
+        ).id
+
+    version_ids: dict[str, uuid.UUID] = {}
+    for record in _load_records(fixtures_dir, "document_versions.json"):
+        action = _upsert(
+            session,
+            DocumentVersionORM,
+            record["id"],
+            {
+                "document_id": _require(
+                    document_ids, record["document_id"], "document"
+                ),
+                "version_number": record["version_number"],
+                "storage_path": record["storage_path"],
+                "checksum_sha256": record["checksum_sha256"],
+                "byte_size": record.get("byte_size"),
+                "created_by_employee_id": _link(
+                    employee_ids,
+                    record.get("created_by_employee_id"),
+                    "employee",
+                ),
+                "created_at": parse_datetime(record["created_at"]),
+            },
+        )
+        tally("document_version", action)
+        version_ids[record["id"]] = _get_by_business_id(
+            session, DocumentVersionORM, record["id"]
+        ).id
+
+    for record in document_records:
+        document = _get_by_business_id(session, DocumentORM, record["id"])
+        document.current_version_id = _link(
+            version_ids, record.get("current_version_id"), "document version"
+        )
+
+    for record in _load_records(fixtures_dir, "document_extractions.json"):
+        confidence = record.get("confidence")
+        action = _upsert(
+            session,
+            DocumentExtractionORM,
+            record["id"],
+            {
+                "document_id": _require(
+                    document_ids, record["document_id"], "document"
+                ),
+                "document_version_id": _require(
+                    version_ids,
+                    record["document_version_id"],
+                    "document version",
+                ),
+                "status": record["status"],
+                "extractor": record["extractor"],
+                "confidence": None if confidence is None else Decimal(str(confidence)),
+                "extracted_fields": record.get("extracted_fields"),
+                "reviewed_by_employee_id": _link(
+                    employee_ids,
+                    record.get("reviewed_by_employee_id"),
+                    "employee",
+                ),
+                "reviewed_at": parse_datetime(record["reviewed_at"])
+                if record.get("reviewed_at")
+                else None,
+                "review_notes": record.get("review_notes"),
+                "extracted_at": parse_datetime(record["extracted_at"]),
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("document_extraction", action)
 
     session.commit()
     return counts

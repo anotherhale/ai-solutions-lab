@@ -23,6 +23,8 @@ from wasatch_api.customer_service.infrastructure.repository import (
 )
 from wasatch_api.customers.application.queries import CustomerQueries
 from wasatch_api.customers.infrastructure.repository import CustomerRepository
+from wasatch_api.documents.application.queries import DocumentQueries
+from wasatch_api.documents.infrastructure.repository import DocumentRepository
 from wasatch_api.governance.application.decisions import CustomerMessageDecisions
 from wasatch_api.governance.application.queries import GovernanceQueries
 from wasatch_api.governance.infrastructure.repository import GovernanceRepository
@@ -77,6 +79,10 @@ def draft_suggested_replies(session: Session) -> DraftSuggestedReply:
 
 def governance_queries(session: Session) -> GovernanceQueries:
     return GovernanceQueries(GovernanceRepository(session))
+
+
+def document_queries(session: Session) -> DocumentQueries:
+    return DocumentQueries(DocumentRepository(session))
 
 
 def customer_message_decisions(session: Session) -> CustomerMessageDecisions:

@@ -24,7 +24,7 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | Timestamps | `TIMESTAMPTZ` |
 | Addresses | Discrete columns, not JSON documents |
 | Lists of enumerations | PostgreSQL `TEXT[]` (employee certifications) |
-| Flexible documents | `audit_events.details` uses JSONB for the open audit map. Extraction payloads stay deferred |
+| Flexible documents | `audit_events.details` and `document_extractions.extracted_fields` use JSONB. Extraction payloads stay untrusted. This slice stores them and does not record a review decision |
 | Vectors | `CREATE EXTENSION vector` is applied now; no embedding columns yet. The embedding port exists and does not fill one |
 
 ## Tables in this slice
@@ -48,23 +48,28 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `interactions` | `interactions.json` | Optional links to a ticket and a work order |
 | `approval_requests` | `approval_requests.json` | `subject_id` stays the subject's business id |
 | `approval_decision_history` | `decision_history` on each approval | Child rows ordered by `position`; replaced when the approval is reseeded. The customer-message decision appends one row |
-| `audit_events` | `audit_events.json` | Insert-only. No `updated_at`. Optional `approval_request_id` references `approval_requests.id`. `details` is JSONB for the open map; extraction payloads stay deferred. The customer-message decision inserts one row and does not update the message |
+| `audit_events` | `audit_events.json` | Insert-only. No `updated_at`. Optional `approval_request_id` references `approval_requests.id`. `details` is JSONB for the open map. The customer-message decision inserts one row and does not update the message |
+| `documents` | `documents.json` | UUID primary key and unique `business_id`. `invoice_id` stays a string. `current_version_id` references `document_versions`. No vector column |
+| `document_versions` | `document_versions.json` | `storage_path` is a synthetic relative path. The bytes are not in the repository. Unique `(document_id, version_number)` |
+| `document_extractions` | `document_extractions.json` | `extracted_fields` is JSONB and stays untrusted. No review command writes this table |
 
 ## Deferred entities
 
-Not mapped yet: Invoice, InvoiceLine, Payment, Document, DocumentVersion, DocumentExtraction.
+Not mapped yet: Invoice, InvoiceLine, Payment.
 
 Add them in later slices with the same UUID + `business_id` pattern. Do not load `data/fixtures/quality-issues/` into this database.
 
 ## Retrieval
 
-Ticket retrieval reads one customer's persisted text: ticket subjects, message bodies, interaction summaries, and work-order text (summary, description, completion notes, cancellation reason, reopen reason, and task descriptions). Procedure pages stay files under `data/documents/procedures/`. They are not rows in a document table and they are not seeded from `data/fixtures/valid/`. Matching is whole-word text search over the ticket subject and message bodies. There is no vector column and no second vector database. The embedding port can produce vectors, and this slice does not store them.
+Ticket retrieval reads one customer's persisted text: ticket subjects, message bodies, interaction summaries, and work-order text (summary, description, completion notes, cancellation reason, reopen reason, and task descriptions). Procedure pages stay files under `data/documents/procedures/`. They are not rows in `documents` and they are not seeded from `data/fixtures/valid/`. Matching is whole-word text search over the ticket subject and message bodies. There is no vector column and no second vector database. The embedding port can produce vectors, and this slice does not store them.
 
 Revision `0002` downgrade copies ticket business ids back onto `work_orders.support_ticket_id` and drops the customer-service tables. Reload `data/fixtures/valid/` after that downgrade.
 
 Revision `0003` downgrade copies approval business ids back onto `messages.approval_request_id`, then drops `audit_events`, `approval_decision_history`, and `approval_requests`. It does not `UPDATE` or `DELETE` individual audit rows; dropping the table is the schema rollback and is safe on the synthetic database. Reload `data/fixtures/valid/` after that downgrade. The database trigger `audit_events_insert_only` rejects row updates and deletes while the table exists.
 
 Revision `0004` downgrade copies role and team business ids back onto `employees.role_id` and `employees.team_id`, then drops `teams` and `roles`. That is safe on the synthetic database. Reload `data/fixtures/valid/` after that downgrade. `is_approver` is not stored on `employees`.
+
+Revision `0005` downgrade drops `document_extractions`, `document_versions`, and `documents`. That is safe on the synthetic database. Reload `data/fixtures/valid/` after that downgrade. The revision does not add a vector column.
 
 ## Contract layers
 

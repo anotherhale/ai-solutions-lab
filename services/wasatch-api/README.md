@@ -2,7 +2,7 @@
 
 FastAPI service for synthetic Wasatch Business Systems data.
 
-This is the modular-monolith slice. It does not store embeddings and it does not include the React screen. That screen is `apps/wasatch-review`. Reads under `/api/v1` require a laboratory actor. An active employee may draft a suggested reply. An approver may approve or reject a pending customer message. Neither command sends the message. Other writes are denied. The model provider defaults to `AI_PROVIDER=fake` and does not need an API key.
+This is the modular-monolith slice. It does not store embeddings and it does not include the React screen. That screen is `apps/wasatch-review`. Reads under `/api/v1` require a laboratory actor. An active employee may draft a suggested reply. An approver may approve or reject a pending customer message. Neither command sends the message. Document, version, and extraction routes are read-only and do not record a review decision. Other writes are denied. The model provider defaults to `AI_PROVIDER=fake` and does not need an API key.
 
 `GET /api/v1/support-tickets/{ticket_id}/retrieval` reads persisted ticket, message, interaction, and work-order text for that ticket's customer, then matches synthetic procedure pages under `data/documents/procedures/`. It does not call a model and does not store embeddings.
 
@@ -61,4 +61,4 @@ curl -s -H 'X-Laboratory-Actor: emp_0001' \
 
 An anonymous call to `/api/v1` returns 401. An authenticated write other than the suggested-reply draft or the customer-message decision returns 403. `APP_LOG_LEVEL` controls structured logs of the actor, action, subject, and outcome. Message bodies and secrets are not logged.
 
-Seed loads only `data/fixtures/valid/`, including roles, teams, support tickets, messages, interactions, approval requests, and audit events. It refuses `quality-issues/`. The procedure corpus under `data/documents/procedures/` is not seeded and does not replace those fixtures. Approval rows are updated on a later seed. Audit rows are insert-only: a later seed skips an audit event that already exists and does not update or delete it. `employees.role_id` references `roles`. `is_approver` stays on the role.
+Seed loads only `data/fixtures/valid/`, including roles, teams, support tickets, messages, interactions, approval requests, audit events, documents, document versions, and document extractions. It refuses `quality-issues/`. The procedure corpus under `data/documents/procedures/` is not seeded and does not replace those fixtures. Document version rows store `storage_path` and do not load file bytes. No embedding column is filled. Approval rows are updated on a later seed. Audit rows are insert-only: a later seed skips an audit event that already exists and does not update or delete it. `employees.role_id` references `roles`. `is_approver` stays on the role.

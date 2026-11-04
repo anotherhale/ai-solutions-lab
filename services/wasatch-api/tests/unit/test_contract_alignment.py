@@ -9,6 +9,11 @@ from wasatch_api.shared.pagination import (
     APPROVAL_STATUSES,
     AUDIT_OUTCOMES,
     CUSTOMER_STATUSES,
+    DOCUMENT_SOURCES,
+    DOCUMENT_STATUSES,
+    DOCUMENT_TYPES,
+    EXTRACTION_STATUSES,
+    EXTRACTORS,
     MESSAGE_STATUSES,
     SUPPORT_TICKET_STATUSES,
     WORK_ORDER_STATUSES,
@@ -28,6 +33,8 @@ def test_api_status_filters_match_json_schema() -> None:
     message = _schema("customer-service/message.schema.json")
     approval = _schema("governance/approval-request.schema.json")
     audit = _schema("governance/audit-event.schema.json")
+    document = _schema("documents/document.schema.json")
+    extraction = _schema("documents/document-extraction.schema.json")
     assert CUSTOMER_STATUSES == frozenset(customer["properties"]["status"]["enum"])
     assert WORK_ORDER_STATUSES == frozenset(work_order["properties"]["status"]["enum"])
     assert SUPPORT_TICKET_STATUSES == frozenset(ticket["properties"]["status"]["enum"])
@@ -37,6 +44,11 @@ def test_api_status_filters_match_json_schema() -> None:
         approval["properties"]["action_type"]["enum"]
     )
     assert AUDIT_OUTCOMES == frozenset(audit["properties"]["outcome"]["enum"])
+    assert DOCUMENT_STATUSES == frozenset(document["properties"]["status"]["enum"])
+    assert DOCUMENT_TYPES == frozenset(document["properties"]["document_type"]["enum"])
+    assert DOCUMENT_SOURCES == frozenset(document["properties"]["source"]["enum"])
+    assert EXTRACTION_STATUSES == frozenset(extraction["properties"]["status"]["enum"])
+    assert EXTRACTORS == frozenset(extraction["properties"]["extractor"]["enum"])
     assert CUSTOMER_MESSAGE_DECISIONS == frozenset({"approved", "rejected"})
     assert CUSTOMER_MESSAGE_DECISIONS < APPROVAL_STATUSES
     assert "executed" not in CUSTOMER_MESSAGE_DECISIONS

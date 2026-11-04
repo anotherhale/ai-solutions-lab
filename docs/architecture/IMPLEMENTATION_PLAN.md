@@ -72,7 +72,7 @@ Mapped scope is the customer kernel plus the field slice required by those endpo
 
 ## Phase 2.2 — customer-service vertical slice
 
-**State: in progress.** CS-1 (`047702e`), CS-2 (`7760106`), and CS-3 (`5b2ffc4`) are on `develop`. The laboratory actor header is a local synthetic development simulation (`ac26535`), and a production configuration fails startup. CI fails when the Wasatch API database tests are skipped (`d1178e8`). CS-5 retrieval is on `develop` (`a03fea9`, pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12)). CS-4 records the human approve or reject for a pending customer message and does not send it (`0785ab9`, pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13)). CS-6 drafts a suggested reply through the model port (`781bcc0`, pull request [#14](https://github.com/anotherhale/ai-solutions-lab/pull/14)). CS-7 is the React review surface for that decision.
+**State: in progress.** CS-1 (`047702e`), CS-2 (`7760106`), and CS-3 (`5b2ffc4`) are on `develop`. The laboratory actor header is a local synthetic development simulation (`ac26535`), and a production configuration fails startup. CI fails when the Wasatch API database tests are skipped (`d1178e8`). CS-5 retrieval is on `develop` (`a03fea9`, pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12)). CS-4 records the human approve or reject for a pending customer message and does not send it (`0785ab9`, pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13)). CS-6 drafts a suggested reply through the model port (`781bcc0`, pull request [#14](https://github.com/anotherhale/ai-solutions-lab/pull/14)). CS-7 is the React review surface for that decision (`13826ed`, pull request [#15](https://github.com/anotherhale/ai-solutions-lab/pull/15)).
 
 Roadmap exit: a dispatcher or customer-service agent can review an inbound inquiry, inspect a suggested reply, and approve or reject it, using synthetic data.
 
@@ -95,9 +95,9 @@ Tasks and dependencies are specified in [../../ENGINEERING_BACKLOG.md](../../ENG
 4. **CS-4.** Human approve or reject of `send_customer_message`, with an audit event, without marking the message sent. Done in `0785ab9`.
 5. **CS-5.** Retrieval port over persisted history plus a new synthetic procedure corpus. Done in `a03fea9`. The embedding port now exists. No vector column is filled.
 6. **CS-6.** Draft a suggested reply through the AI port and open an approval request when the text would commit the company. Done in `781bcc0`.
-7. **CS-7.** React review surface under `apps/` for that approve and reject flow. This change.
+7. **CS-7.** React review surface under `apps/` for that approve and reject flow. Done in `13826ed`.
 
-CS-5 landed beside CS-4 after CS-1. CS-6 is on `develop`. CS-7 is this change.
+CS-5 landed beside CS-4 after CS-1. CS-6 and CS-7 are on `develop`.
 
 ### Module shape
 
@@ -122,9 +122,9 @@ Structured logs use `APP_LOG_LEVEL`. Each access record has the actor, action, s
 
 ## Phase 3 — intelligent document processing
 
-**State: not started.** Depends on Phase 2.2.
+**State: first slice in progress.** Depends on Phase 2.2. CS-7 is on `develop` (`13826ed`).
 
-Schemas and fixtures for documents, versions, and extractions already exist (30 documents, 31 versions, 18 extractions). There are no bytes to ingest. The phase adds synthetic file content, classification, extraction, and human review for low-confidence results and any financial effect. Embeddings, when added, use pgvector in the same PostgreSQL instance. Model output stays untrusted until a person accepts it.
+Schemas and fixtures for documents, versions, and extractions already exist (30 documents, 31 versions, 18 extractions). The first slice persists those fixtures and serves them on read-only `/api/v1` routes. There are no bytes to ingest. `storage_path` stays a string. There is no vector column. Human review for low-confidence results and any financial effect is not started. Embeddings, when added, use pgvector in the same PostgreSQL instance. Model output stays untrusted until a person accepts it.
 
 ## Phase 4 — workflow automation
 

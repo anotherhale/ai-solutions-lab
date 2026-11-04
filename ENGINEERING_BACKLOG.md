@@ -131,7 +131,9 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 
 ### CS-7 — Review surface
 
-- Status: this pull request
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/15
+- Merge: `13826ed`
 - Depends on: CS-4 and CS-6
 - First React and TypeScript application under `apps/wasatch-review`. No Nx.
 - A customer-service reviewer can open one inbound inquiry, read the suggested reply, and approve or reject it.
@@ -144,7 +146,7 @@ These follow [docs/ROADMAP.md](docs/ROADMAP.md). Dates in that roadmap are plann
 
 | ID | Phase | Work | Depends on |
 |---|---|---|---|
-| DOC-P3 | 3 | Persist document, version, and extraction fixtures. Human review for low-confidence and financial extractions. Embeddings in the existing PostgreSQL instance when an embedding port exists. | CS-7, and a real document corpus rather than path strings alone |
+| DOC-P3 | 3 | Human review for low-confidence and financial extractions. Embeddings in the existing PostgreSQL instance when a task fills the embedding port. Fixture persistence and read routes are a separate first slice. | CS-7 is done. Review still needs its own decision workflow. Version rows are still path strings. |
 | WF-1 | 4 | One multi-step Wasatch workflow with human approval and an audit trail. n8n only for an edge automation that the monolith does not own as the system of record. | CS-4 and the document review path if the workflow uses documents |
 | OPS-1 | 5 | OpenTelemetry on the running host, Terraform for a non-production Azure environment, runbooks, backup notes, and secret-management notes. | A module worth operating. No production customer deployment. |
 | PORT-1 | 6 | One case study that states what was simulated and what was measured. | A finished laboratory slice with honest limits |

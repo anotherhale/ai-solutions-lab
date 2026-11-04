@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from decimal import Decimal
 
 from wasatch_api.customer_service.infrastructure.mapping import (
     interaction_from_orm,
     support_ticket_from_orm,
 )
 from wasatch_api.customers.infrastructure.mapping import customer_from_orm
+from wasatch_api.documents.infrastructure.mapping import document_from_orm
 from wasatch_api.governance.infrastructure.mapping import (
     approval_from_orm,
     audit_event_from_orm,
@@ -17,6 +19,9 @@ from wasatch_api.shared.database.models import (
     AuditEventORM,
     ContactORM,
     CustomerORM,
+    DocumentExtractionORM,
+    DocumentORM,
+    DocumentVersionORM,
     EmployeeORM,
     InteractionORM,
     MessageORM,
@@ -341,3 +346,116 @@ def test_team_mapping_uses_lead_business_id() -> None:
     assert mapped.id == "team_0001"
     assert mapped.id != str(team.id)
     assert mapped.lead_employee_id == "emp_0010"
+
+
+def test_document_mapping_uses_business_ids() -> None:
+    now = datetime(2026, 6, 2, 13, 0, tzinfo=UTC)
+    reviewed = datetime(2026, 6, 8, 10, 0, tzinfo=UTC)
+    customer = CustomerORM(id=uuid.uuid4(), business_id="cust_0003")
+    location = ServiceLocationORM(id=uuid.uuid4(), business_id="loc_0004")
+    uploader = EmployeeORM(id=uuid.uuid4(), business_id="emp_0007")
+    reviewer = EmployeeORM(id=uuid.uuid4(), business_id="emp_0008")
+    author = EmployeeORM(id=uuid.uuid4(), business_id="emp_0009")
+    document = DocumentORM(
+        id=uuid.uuid4(),
+        business_id="doc_0004",
+        title="Synthetic document 4",
+        document_type="vendor_bill",
+        status="needs_review",
+        source="generated",
+        mime_type="image/jpeg",
+        untrusted=False,
+        customer_id=customer.id,
+        service_location_id=location.id,
+        invoice_id="inv_0004",
+        uploaded_by_employee_id=uploader.id,
+        created_at=now,
+        updated_at=now,
+    )
+    first = DocumentVersionORM(
+        id=uuid.uuid4(),
+        business_id="dv_0004",
+        document_id=document.id,
+        version_number=1,
+        storage_path="synthetic/documents/doc_0004/v1.bin",
+        checksum_sha256="a" * 64,
+        byte_size=12548,
+        created_by_employee_id=uploader.id,
+        created_at=now,
+    )
+    current = DocumentVersionORM(
+        id=uuid.uuid4(),
+        business_id="dv_0031",
+        document_id=document.id,
+        version_number=2,
+        storage_path="synthetic/documents/doc_0004/v2.bin",
+        checksum_sha256="b" * 64,
+        byte_size=15001,
+        created_by_employee_id=author.id,
+        created_at=reviewed,
+    )
+    extraction = DocumentExtractionORM(
+        id=uuid.uuid4(),
+        business_id="dx_0004",
+        document_id=document.id,
+        document_version_id=first.id,
+        status="accepted",
+        extractor="model",
+        confidence=Decimal("0.8"),
+        extracted_fields={
+            "vendor_name": "Synthetic Vendor",
+            "invoice_number": "V-0004",
+        },
+        reviewed_by_employee_id=reviewer.id,
+        reviewed_at=reviewed,
+        review_notes="Accepted for posting",
+        extracted_at=now,
+        created_at=now,
+        updated_at=now,
+    )
+    document.customer = customer
+    document.service_location = location
+    document.work_order = None
+    document.uploaded_by = uploader
+    document.current_version = current
+    document.current_version_id = current.id
+    first.document = document
+    first.created_by = uploader
+    current.document = document
+    current.created_by = author
+    extraction.document = document
+    extraction.document_version = first
+    extraction.reviewed_by = reviewer
+    document.versions = [first, current]
+    document.extractions = [extraction]
+
+    mapped = document_from_orm(document, detail=True)
+    assert mapped.id == "doc_0004"
+    assert mapped.id != str(document.id)
+    assert mapped.customer_id == "cust_0003"
+    assert mapped.service_location_id == "loc_0004"
+    assert mapped.work_order_id is None
+    assert mapped.invoice_id == "inv_0004"
+    assert mapped.current_version_id == "dv_0031"
+    assert mapped.current_version_id != str(current.id)
+    assert mapped.uploaded_by_employee_id == "emp_0007"
+    assert mapped.untrusted is False
+    assert [item.id for item in mapped.versions] == ["dv_0004", "dv_0031"]
+    assert mapped.versions[1].version_number == 2
+    assert mapped.versions[1].created_by_employee_id == "emp_0009"
+    assert mapped.versions[1].storage_path == "synthetic/documents/doc_0004/v2.bin"
+    assert mapped.extractions[0].id == "dx_0004"
+    assert mapped.extractions[0].id != str(extraction.id)
+    assert mapped.extractions[0].document_version_id == "dv_0004"
+    assert mapped.extractions[0].status == "accepted"
+    assert mapped.extractions[0].confidence == 0.8
+    assert mapped.extractions[0].reviewed_by_employee_id == "emp_0008"
+    assert mapped.extractions[0].extracted_fields == {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0004",
+    }
+
+    summary = document_from_orm(document, detail=False)
+    assert summary.current_version_id == "dv_0031"
+    assert summary.versions == []
+    assert summary.extractions == []

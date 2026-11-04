@@ -21,7 +21,7 @@ The process starts only when `APP_ENV` is `local`, `development`, or `test`. `AP
 
 ## Identifiers
 
-Path parameters use external business identifiers from the JSON Schema contracts (`cust_0001`, `loc_0001`, `wo_0001`, `tkt_0001`, `msg_0001`, `ixn_0001`, `apr_0001`, `aud_0001`). Internal UUIDs are not returned.
+Path parameters use external business identifiers from the JSON Schema contracts (`cust_0001`, `loc_0001`, `wo_0001`, `tkt_0001`, `msg_0001`, `ixn_0001`, `apr_0001`, `aud_0001`, `doc_0001`, `dv_0001`, `dx_0001`). Internal UUIDs are not returned.
 
 ## Versioning
 
@@ -81,10 +81,18 @@ Defaults: `page=1`, `page_size=20`, maximum `page_size=100`. Ordering is by busi
 | POST | `/api/v1/approval-requests/{approval_id}/decisions` | Approve or reject a pending customer message. The message stays unsent |
 | GET | `/api/v1/audit-events` | Filter by outcome or approval request |
 | GET | `/api/v1/audit-events/{audit_event_id}` | One audit event |
+| GET | `/api/v1/documents` | Filter by status, type, source, or customer |
+| GET | `/api/v1/documents/{document_id}` | Document plus versions and extractions |
+| GET | `/api/v1/document-versions` | Filter by document |
+| GET | `/api/v1/document-versions/{version_id}` | One document version |
+| GET | `/api/v1/document-extractions` | Filter by status, extractor, or document |
+| GET | `/api/v1/document-extractions/{extraction_id}` | One extraction. Fields stay untrusted |
 
-A message that references an approval includes that approval request on the message payload. The draft and decision routes are the writes. There is no write route that updates or deletes audit events. An authenticated write outside those commands receives `403`. An anonymous call receives `401`.
+A message that references an approval includes that approval request on the message payload. The draft and decision routes are the writes. There is no write route that updates or deletes audit events. Document, version, and extraction routes are read-only. They do not record a human review of an extraction. An authenticated write outside the draft and decision commands receives `403`. An anonymous call receives `401`.
 
 `POST /api/v1/support-tickets/{ticket_id}/draft-replies` requires `X-Laboratory-Actor`. The server builds the reply from retrieval for that ticket. The client does not submit the body. The default provider is `AI_PROVIDER=fake`, which quotes retrieved source ids and does not call the network. `AI_PROVIDER=openai` is used only with a non-placeholder `OPENAI_API_KEY`. For synthetic ticket `tkt_0015` the fake reply cites `msg_0015` and procedure `proc_0001` and promises a visit, so the message is `pending_approval`. Rejecting that approval leaves the message unsent.
+
+`GET /api/v1/documents/{document_id}` is read-only and requires `X-Laboratory-Actor`. Versions nested on a document are ordered by `version_number`. Extractions nested on a document, and the extraction list, are ordered by business id. `storage_path` is a synthetic relative path. The response does not include file bytes or an embedding. `extracted_fields` is the stored JSON object and stays untrusted.
 
 `GET /api/v1/support-tickets/{ticket_id}/retrieval` is read-only and requires `X-Laboratory-Actor`. History is that ticket's customer only, ordered by source (`support_ticket`, `message`, `interaction`, `work_order`) and then business id. Procedure pages are the synthetic files under `data/documents/procedures/` whose text shares a content word with the ticket subject and message bodies. The route does not call a model.
 
@@ -143,6 +151,10 @@ curl -s -H 'X-Laboratory-Actor: emp_0001' \
   http://localhost:8000/api/v1/approval-requests/apr_0001
 curl -s -H 'X-Laboratory-Actor: emp_0001' \
   'http://localhost:8000/api/v1/audit-events?approval_request_id=apr_0001'
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  http://localhost:8000/api/v1/documents/doc_0004
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  'http://localhost:8000/api/v1/document-extractions?status=needs_review'
 curl -s -X POST -H 'X-Laboratory-Actor: emp_0001' \
   -H 'content-type: application/json' \
   -d '{"decision":"approved","note":"Overtime approved."}' \

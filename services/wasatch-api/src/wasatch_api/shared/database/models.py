@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
@@ -17,6 +18,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Table,
     Text,
@@ -600,3 +602,179 @@ class AuditEventORM(Base):
 
     actor_employee: Mapped[EmployeeORM | None] = relationship()
     approval_request: Mapped[ApprovalRequestORM | None] = relationship()
+
+
+class DocumentORM(Base):
+    """Source file metadata. Bytes stay outside this table. No embedding column."""
+
+    __tablename__ = "documents"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    title: Mapped[str] = mapped_column(String(255))
+    document_type: Mapped[str] = mapped_column(String(32), index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    source: Mapped[str] = mapped_column(String(32), index=True)
+    mime_type: Mapped[str] = mapped_column(String(128))
+    untrusted: Mapped[bool] = mapped_column(Boolean)
+    customer_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("customers.id", name="fk_documents_customer", ondelete="SET NULL"),
+        index=True,
+    )
+    service_location_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "service_locations.id",
+            name="fk_documents_service_location",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    work_order_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "work_orders.id",
+            name="fk_documents_work_order",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    invoice_id: Mapped[str | None] = mapped_column(String(16))
+    current_version_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "document_versions.id",
+            use_alter=True,
+            name="fk_documents_current_version",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    uploaded_by_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            name="fk_documents_uploaded_by",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    customer: Mapped[CustomerORM | None] = relationship()
+    service_location: Mapped[ServiceLocationORM | None] = relationship()
+    work_order: Mapped[WorkOrderORM | None] = relationship()
+    uploaded_by: Mapped[EmployeeORM | None] = relationship(
+        foreign_keys=[uploaded_by_employee_id]
+    )
+    current_version: Mapped[DocumentVersionORM | None] = relationship(
+        foreign_keys=[current_version_id]
+    )
+    versions: Mapped[list[DocumentVersionORM]] = relationship(
+        back_populates="document",
+        foreign_keys="DocumentVersionORM.document_id",
+        order_by="DocumentVersionORM.version_number",
+    )
+    extractions: Mapped[list[DocumentExtractionORM]] = relationship(
+        back_populates="document",
+        foreign_keys="DocumentExtractionORM.document_id",
+        order_by="DocumentExtractionORM.business_id",
+    )
+
+
+class DocumentVersionORM(Base):
+    """Immutable snapshot pointer. ``storage_path`` is not a file in this repo."""
+
+    __tablename__ = "document_versions"
+    __table_args__ = (
+        UniqueConstraint(
+            "document_id",
+            "version_number",
+            name="uq_document_versions_number",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "documents.id",
+            name="fk_document_versions_document",
+            ondelete="CASCADE",
+        ),
+        index=True,
+    )
+    version_number: Mapped[int] = mapped_column(Integer)
+    storage_path: Mapped[str] = mapped_column(String(255))
+    checksum_sha256: Mapped[str] = mapped_column(String(64))
+    byte_size: Mapped[int | None] = mapped_column(Integer)
+    created_by_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            name="fk_document_versions_created_by",
+            ondelete="SET NULL",
+        ),
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    document: Mapped[DocumentORM] = relationship(
+        back_populates="versions",
+        foreign_keys=[document_id],
+    )
+    created_by: Mapped[EmployeeORM | None] = relationship()
+
+
+class DocumentExtractionORM(Base):
+    """Untrusted extracted fields. This slice does not record a review decision."""
+
+    __tablename__ = "document_extractions"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "documents.id",
+            name="fk_document_extractions_document",
+            ondelete="CASCADE",
+        ),
+        index=True,
+    )
+    document_version_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "document_versions.id",
+            name="fk_document_extractions_version",
+            ondelete="CASCADE",
+        ),
+        index=True,
+    )
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    extractor: Mapped[str] = mapped_column(String(16), index=True)
+    confidence: Mapped[Decimal | None] = mapped_column(Numeric(4, 3))
+    extracted_fields: Mapped[dict | None] = mapped_column(JSONB)
+    reviewed_by_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            name="fk_document_extractions_reviewed_by",
+            ondelete="SET NULL",
+        ),
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    review_notes: Mapped[str | None] = mapped_column(Text)
+    extracted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    document: Mapped[DocumentORM] = relationship(
+        back_populates="extractions",
+        foreign_keys=[document_id],
+    )
+    document_version: Mapped[DocumentVersionORM] = relationship()
+    reviewed_by: Mapped[EmployeeORM | None] = relationship()

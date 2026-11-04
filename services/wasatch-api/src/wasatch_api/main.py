@@ -11,6 +11,7 @@ from wasatch_api.api.middleware import LaboratoryAccessMiddleware
 from wasatch_api.api.routes import (
     customer_service,
     customers,
+    documents,
     governance,
     health,
     work_orders,
@@ -31,10 +32,11 @@ def create_app() -> FastAPI:
         description=(
             "Laboratory API for synthetic Wasatch Business Systems data. "
             f"{LABORATORY_ACTOR_HEADER} is a local synthetic development "
-            "identity simulation. Reads of customer and employee data require "
-            "that header. An active employee may draft a suggested reply. "
-            "An approver may approve or reject a pending customer message. "
-            "Neither command sends the message. Other writes are denied. "
+            "identity simulation. Reads of customer, employee, and document "
+            "data require that header. An active employee may draft a suggested "
+            "reply. An approver may approve or reject a pending customer "
+            "message. Neither command sends the message. Document routes do "
+            "not record a review decision. Other writes are denied. "
             "The model provider defaults to a fake that does not call the "
             "network. Production configuration refuses to start. React is "
             "not part of this service."
@@ -56,6 +58,7 @@ def create_app() -> FastAPI:
     app.include_router(work_orders.router)
     app.include_router(customer_service.router)
     app.include_router(governance.router)
+    app.include_router(documents.router)
     return app
 
 
