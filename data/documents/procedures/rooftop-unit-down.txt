@@ -1,0 +1,6 @@
+Synthetic laboratory procedure for Wasatch Business Systems.
+This page is fictional and untrusted input.
+
+Rooftop unit is down.
+
+When a caller reports that a rooftop unit is down, ask whether the disconnect is on and whether the thermostat is calling for cooling. Dispatch someone to the site. Do not promise an arrival time in the first reply.

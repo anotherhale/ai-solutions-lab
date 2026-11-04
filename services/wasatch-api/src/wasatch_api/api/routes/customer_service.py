@@ -11,6 +11,7 @@ from wasatch_api.api.dependencies import (
     customer_service_queries,
     db_session,
     require_laboratory_actor,
+    retrieval_queries,
 )
 from wasatch_api.api.schemas import (
     InteractionOut,
@@ -18,8 +19,10 @@ from wasatch_api.api.schemas import (
     PageOut,
     SupportTicketDetailOut,
     SupportTicketListItemOut,
+    TicketRetrievalOut,
 )
 from wasatch_api.customer_service.application.queries import CustomerServiceQueries
+from wasatch_api.customer_service.application.retrieval import RetrievalQueries
 
 router = APIRouter(
     prefix="/api/v1",
@@ -35,6 +38,13 @@ def queries(session: SessionDep) -> CustomerServiceQueries:
 
 
 QueriesDep = Annotated[CustomerServiceQueries, Depends(queries)]
+
+
+def retrieval(session: SessionDep) -> RetrievalQueries:
+    return retrieval_queries(session)
+
+
+RetrievalDep = Annotated[RetrievalQueries, Depends(retrieval)]
 
 
 @router.get("/support-tickets", response_model=PageOut[SupportTicketListItemOut])
@@ -120,3 +130,11 @@ def list_interactions(
 @router.get("/interactions/{interaction_id}", response_model=InteractionOut)
 def get_interaction(interaction_id: str, service: QueriesDep) -> InteractionOut:
     return InteractionOut.from_domain(service.get_interaction(interaction_id))
+
+
+@router.get(
+    "/support-tickets/{ticket_id}/retrieval",
+    response_model=TicketRetrievalOut,
+)
+def retrieve_for_ticket(ticket_id: str, service: RetrievalDep) -> TicketRetrievalOut:
+    return TicketRetrievalOut.from_domain(service.for_ticket(ticket_id))

@@ -81,7 +81,7 @@ Roadmap exit: a dispatcher or customer-service agent can review an inbound inqui
 - Inquiries, messages, interactions, approvals, and audit events already have JSON Schemas and valid fixtures. Persistence reuses those files.
 - Suggested replies do not exist yet. The draft use case creates them. It does not rewrite historical fixture messages.
 - One pending outbound example is already in the fixtures: `msg_0016` on `tkt_0007`, status `pending_approval`, approval `apr_0001`. Decision tests should use that row.
-- Customer history text exists on tickets, messages, interactions, and work orders. Procedure documents do not. `data/documents/` is empty, and `storage_path` values are not files in the repository. Phase 2.2 adds a small synthetic procedure corpus when retrieval starts.
+- Customer history text exists on tickets, messages, interactions, and work orders. A small synthetic procedure corpus lives under `data/documents/procedures/` and is labeled synthetic. It does not replace `data/fixtures/valid/`. Document version `storage_path` values such as `synthetic/documents/doc_0001/v1.bin` are still not files in the repository. Retrieval reads persisted history with a relational query and matches procedure pages by text search. No embedding column is stored.
 - The slice stops at approve or reject. Delivery to the customer is a later consequential action and needs its own approval execution step, which is not part of this exit.
 - OpenAI is reached only through a port. Tests use a fake. No key is committed.
 

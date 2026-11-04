@@ -8,6 +8,13 @@ from fastapi import Request
 from sqlalchemy.orm import Session
 
 from wasatch_api.customer_service.application.queries import CustomerServiceQueries
+from wasatch_api.customer_service.application.retrieval import RetrievalQueries
+from wasatch_api.customer_service.infrastructure.procedure_corpus import (
+    ProcedureCorpus,
+)
+from wasatch_api.customer_service.infrastructure.relational_retrieval import (
+    RelationalTextRetrieval,
+)
 from wasatch_api.customer_service.infrastructure.repository import (
     CustomerServiceRepository,
 )
@@ -40,6 +47,12 @@ def work_order_queries(session: Session) -> WorkOrderQueries:
 
 def customer_service_queries(session: Session) -> CustomerServiceQueries:
     return CustomerServiceQueries(CustomerServiceRepository(session))
+
+
+def retrieval_queries(session: Session) -> RetrievalQueries:
+    return RetrievalQueries(
+        RelationalTextRetrieval(session, ProcedureCorpus.load_default())
+    )
 
 
 def governance_queries(session: Session) -> GovernanceQueries:
