@@ -2,7 +2,7 @@
 
 FastAPI service for synthetic Wasatch Business Systems data.
 
-This is the modular-monolith slice. It does not include a React UI or stored embeddings. Reads under `/api/v1` require a laboratory actor. An active employee may draft a suggested reply. An approver may approve or reject a pending customer message. Neither command sends the message. Other writes are denied. The model provider defaults to `AI_PROVIDER=fake` and does not need an API key.
+This is the modular-monolith slice. It does not store embeddings and it does not include the React screen. That screen is `apps/wasatch-review`. Reads under `/api/v1` require a laboratory actor. An active employee may draft a suggested reply. An approver may approve or reject a pending customer message. Neither command sends the message. Other writes are denied. The model provider defaults to `AI_PROVIDER=fake` and does not need an API key.
 
 `GET /api/v1/support-tickets/{ticket_id}/retrieval` reads persisted ticket, message, interaction, and work-order text for that ticket's customer, then matches synthetic procedure pages under `data/documents/procedures/`. It does not call a model and does not store embeddings.
 

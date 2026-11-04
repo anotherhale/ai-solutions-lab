@@ -57,7 +57,7 @@ Pull requests should describe:
 - Add or update tests when behavior changes.
 - Prefer unit tests for domain and application rules.
 - Use `services/wasatch-api/tests/` for unit, integration, and API tests of the first host.
-- Use `tests/e2e/` for user-visible flows once a frontend exists.
+- Review-screen checks live in `apps/wasatch-review` and do not need a database or a provider key. They are not part of the GitHub Actions database job. `tests/e2e/` remains reserved for a later browser suite.
 - Use synthetic Wasatch Business Systems data only.
 - Do not fabricate test results. If a suite cannot be run, say so.
 
@@ -81,6 +81,7 @@ GitHub Actions runs that pytest command against PostgreSQL with pgvector. The se
 4. From `services/wasatch-api`, run `alembic upgrade head` then `wasatch-api seed`.
 5. Start the API with `uvicorn wasatch_api.main:app --reload` or `scripts/wasatch_dev.sh`.
 6. Open http://localhost:8000/docs.
+7. From `apps/wasatch-review`, run `npm install` and `npm run dev`. Open http://127.0.0.1:5173. The dev server proxies `/api` to the API on port 8000.
 
 Do not run `docker compose down -v` as part of normal shutdown; that destroys the named volume.
 

@@ -4,7 +4,7 @@ Engineering laboratory for practical AI solutions that small and midsize busines
 
 This repository began as a showcase for AI cloud solutions. It is now the home for a reusable implementation platform, a simulated Utah HVAC business, and a public consulting portfolio.
 
-A FastAPI service and local PostgreSQL environment now exist for synthetic Wasatch data. The service can draft a suggested reply through a model port. The default port is a fake and does not call a provider. React and Azure have not been implemented.
+A FastAPI service and local PostgreSQL environment now exist for synthetic Wasatch data. The service can draft a suggested reply through a model port. The default port is a fake and does not call a provider. `apps/wasatch-review` is a React and TypeScript screen that approves or rejects that reply. It does not send the message. Azure has not been implemented.
 
 ## Business Objectives
 
@@ -78,8 +78,8 @@ ai-solutions-lab/
 ├── README.md
 ├── LICENSE
 ├── docs/                     Project charter, architecture, security, ADRs
-├── apps/                     Future user-facing applications
-├── services/wasatch-api/     Read-only FastAPI host
+├── apps/wasatch-review/      React review screen for one suggested reply
+├── services/wasatch-api/     FastAPI host for synthetic Wasatch data
 ├── libs/                     Future shared libraries
 ├── infrastructure/           Docker notes and future Terraform
 ├── compose.yaml              Local PostgreSQL (pgvector) and API
@@ -88,7 +88,7 @@ ai-solutions-lab/
 └── tests/                    Reserved for later cross-service tests
 ```
 
-`apps/` and `libs/` remain reserved. Application tests live under `services/wasatch-api/tests/`.
+`libs/` remains reserved. The review screen is `apps/wasatch-review`. API tests live under `services/wasatch-api/tests/`. Review-screen tests live next to that app and do not need a provider key.
 
 ## Local Development Prerequisites
 
@@ -97,7 +97,7 @@ The following tools will be required once application work starts. They are not 
 - Git
 - Python 3.12 or later
 - Docker and Docker Compose
-- Node.js 22 LTS (for future frontend work)
+- Node.js 22.12 or later (review screen)
 - A GitHub account for pull requests
 
 Optional local environment values belong in `.env`. Copy `.env.example` and replace placeholders only. Never commit `.env` or real credentials.
@@ -127,6 +127,8 @@ wasatch-api seed
 uvicorn wasatch_api.main:app --reload
 ```
 
+The review screen proxies `/api` to that process. From `apps/wasatch-review`: `npm install` then `npm run dev`, and open http://127.0.0.1:5173. See [apps/wasatch-review/README.md](apps/wasatch-review/README.md).
+
 ## Development Status
 
 | Area | Status |
@@ -135,8 +137,9 @@ uvicorn wasatch_api.main:app --reload
 | Engineering standards | In progress |
 | Repository tooling | In progress |
 | Synthetic domain model and fixtures | Defined |
-| Read-only Wasatch API | Implemented |
-| AI application services | Not started |
+| Wasatch API | Implemented for reads, approval decisions, and suggested-reply drafts |
+| Suggested-reply review screen | Implemented in `apps/wasatch-review`. It does not send messages |
+| AI application services | Draft reply through a model port. The default provider is a fake |
 | Local Docker environment | PostgreSQL with pgvector |
 | Azure deployment | Not started |
 

@@ -24,7 +24,7 @@ The laboratory stays portable: business rules live in the application, and vendo
 | Decision | Source | Status | Effect on implementation |
 |---|---|---|---|
 | Modular monolith, hexagonal, explicit modules | ADR 0001, `AGENTS.md` | Proposed in the ADR. The first host is already implemented. | One FastAPI process. Customer and work-order packages are the pattern for later modules. |
-| Python 3.12 and FastAPI | ADR 0002 | Accepted | `services/wasatch-api` is the host. React and TypeScript wait for a user interface. |
+| Python 3.12 and FastAPI | ADR 0002 | Accepted | `services/wasatch-api` is the host. `apps/wasatch-review` is the React and TypeScript review screen. |
 | PostgreSQL and pgvector | ADR 0003 | Accepted | System of record and future embeddings share one database. The extension is installed. Embedding columns are still deferred. |
 | OpenAI behind a port | ADR 0004 | Proposed | No SDK until a use case needs it. Domain code never imports the SDK. CI must not need an API key. |
 | Docker Compose for local dependencies | ADR 0005 | Accepted | `compose.yaml` is the local topology. Redis and n8n stay out until a feature consumes them. |
@@ -72,7 +72,7 @@ Mapped scope is the customer kernel plus the field slice required by those endpo
 
 ## Phase 2.2 — customer-service vertical slice
 
-**State: in progress.** CS-1 (`047702e`), CS-2 (`7760106`), and CS-3 (`5b2ffc4`) are on `develop`. The laboratory actor header is a local synthetic development simulation (`ac26535`), and a production configuration fails startup. CI fails when the Wasatch API database tests are skipped (`d1178e8`). CS-5 retrieval is on `develop` (`a03fea9`, pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12)). CS-4 records the human approve or reject for a pending customer message and does not send it (`0785ab9`, pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13)). CS-6 drafts a suggested reply through the model port.
+**State: in progress.** CS-1 (`047702e`), CS-2 (`7760106`), and CS-3 (`5b2ffc4`) are on `develop`. The laboratory actor header is a local synthetic development simulation (`ac26535`), and a production configuration fails startup. CI fails when the Wasatch API database tests are skipped (`d1178e8`). CS-5 retrieval is on `develop` (`a03fea9`, pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12)). CS-4 records the human approve or reject for a pending customer message and does not send it (`0785ab9`, pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13)). CS-6 drafts a suggested reply through the model port (`781bcc0`, pull request [#14](https://github.com/anotherhale/ai-solutions-lab/pull/14)). CS-7 is the React review surface for that decision.
 
 Roadmap exit: a dispatcher or customer-service agent can review an inbound inquiry, inspect a suggested reply, and approve or reject it, using synthetic data.
 
@@ -94,10 +94,10 @@ Tasks and dependencies are specified in [../../ENGINEERING_BACKLOG.md](../../ENG
 3. **CS-3.** Persist roles so `is_approver` is real, and require an authenticated synthetic employee before any write. Done in `5b2ffc4`. The header adapter is local synthetic development only and is not a production authenticator.
 4. **CS-4.** Human approve or reject of `send_customer_message`, with an audit event, without marking the message sent. Done in `0785ab9`.
 5. **CS-5.** Retrieval port over persisted history plus a new synthetic procedure corpus. Done in `a03fea9`. The embedding port now exists. No vector column is filled.
-6. **CS-6.** Draft a suggested reply through the AI port and open an approval request when the text would commit the company. This change.
-7. **CS-7.** React review surface under `apps/` for that approve and reject flow.
+6. **CS-6.** Draft a suggested reply through the AI port and open an approval request when the text would commit the company. Done in `781bcc0`.
+7. **CS-7.** React review surface under `apps/` for that approve and reject flow. This change.
 
-CS-5 landed beside CS-4 after CS-1. CS-6 follows CS-4 and CS-5. CS-7 waits for CS-6.
+CS-5 landed beside CS-4 after CS-1. CS-6 is on `develop`. CS-7 is this change.
 
 ### Module shape
 
