@@ -1,23 +1,46 @@
 import { useState, type FormEvent } from "react";
 import { LABORATORY_ACTORS } from "./actors";
-import { decideSuggestedReply, loadInquiry, reviewErrorText } from "./api";
+import {
+  decideDocumentExtraction,
+  decideSuggestedReply,
+  extractionReviewErrorText,
+  loadDocumentExtraction,
+  loadInquiry,
+  reviewErrorText,
+} from "./api";
+import { canDecideExtraction, extractionFields } from "./extraction";
 import { canDecideSuggestion, inboundMessages, suggestedReply } from "./suggestion";
-import type { ActorChoice, InquiryView, ReviewDecision, TicketMessage } from "./types";
+import type {
+  ActorChoice,
+  DocumentExtraction,
+  ExtractionDecision,
+  InquiryView,
+  ReviewDecision,
+  TicketMessage,
+} from "./types";
 
 export function App() {
   const [actor, setActor] = useState<ActorChoice>("emp_0001");
   const [ticketId, setTicketId] = useState("tkt_0007");
+  const [extractionId, setExtractionId] = useState("dx_0003");
   const [inquiry, setInquiry] = useState<InquiryView | null>(null);
+  const [extraction, setExtraction] = useState<DocumentExtraction | null>(null);
   const [note, setNote] = useState("");
+  const [extractionNote, setExtractionNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingExtraction, setLoadingExtraction] = useState(false);
   const [deciding, setDeciding] = useState<ReviewDecision | null>(null);
+  const [decidingExtraction, setDecidingExtraction] =
+    useState<ExtractionDecision | null>(null);
 
   function selectActor(next: ActorChoice) {
     setActor(next);
     setInquiry(null);
+    setExtraction(null);
     setNote("");
+    setExtractionNote("");
     setError(null);
     setOutcome(null);
   }
@@ -66,20 +89,72 @@ export function App() {
     }
   }
 
+  async function openExtraction(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const id = extractionId.trim();
+    setExtraction(null);
+    setOutcome(null);
+    setExtractionNote("");
+    if (!id) {
+      setError("Enter an extraction id.");
+      return;
+    }
+    setLoadingExtraction(true);
+    setError(null);
+    try {
+      setExtraction(await loadDocumentExtraction(id, actor));
+    } catch (caught) {
+      setError(extractionReviewErrorText(caught));
+    } finally {
+      setLoadingExtraction(false);
+    }
+  }
+
+  async function recordExtractionDecision(decision: ExtractionDecision) {
+    if (!extraction || !canDecideExtraction(extraction)) {
+      return;
+    }
+    setDecidingExtraction(decision);
+    setError(null);
+    setOutcome(null);
+    try {
+      const recorded = await decideDocumentExtraction(
+        extraction.id,
+        decision,
+        extractionNote,
+        actor,
+      );
+      setExtraction(recorded);
+      const verb = decision === "accepted" ? "Accepted" : "Rejected";
+      setOutcome(`${verb}. No invoice or payment was posted.`);
+      setExtractionNote("");
+    } catch (caught) {
+      setError(extractionReviewErrorText(caught));
+    } finally {
+      setDecidingExtraction(null);
+    }
+  }
+
   const suggestion = inquiry ? suggestedReply(inquiry.ticket.messages) : null;
   const inbound = inquiry ? inboundMessages(inquiry.ticket.messages) : [];
   const decisionReady = canDecideSuggestion(suggestion);
-  const busy = loading || deciding !== null;
+  const extractionDecisionReady = canDecideExtraction(extraction);
+  const busy =
+    loading ||
+    loadingExtraction ||
+    deciding !== null ||
+    decidingExtraction !== null;
 
   return (
     <div className="page">
       <header className="masthead">
         <p className="eyebrow">Wasatch Business Systems · synthetic laboratory</p>
-        <h1>Suggested reply review</h1>
+        <h1>Human review workbench</h1>
         <p className="lede">
           Open one inbound inquiry, read the suggested reply, and approve or
-          reject it. The decision stays in the laboratory API. This screen does
-          not send the message.
+          reject it. Or inspect one extracted document payload and accept or
+          reject it. Decisions stay in the laboratory API. This screen does not
+          send messages or post financial records.
         </p>
       </header>
 
@@ -126,6 +201,29 @@ export function App() {
         </p>
       </form>
 
+      <form className="panel controls" onSubmit={openExtraction}>
+        <div className="inquiry-row">
+          <label htmlFor="extraction-id">
+            Document extraction
+            <input
+              id="extraction-id"
+              name="extraction-id"
+              value={extractionId}
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(event) => setExtractionId(event.target.value)}
+            />
+          </label>
+          <button type="submit" disabled={busy}>
+            {loadingExtraction ? "Opening…" : "Open extraction"}
+          </button>
+        </div>
+        <p className="hint">
+          Synthetic examples: dx_0003 needs review. Accepting or rejecting it
+          records a human decision only; no invoice or payment is posted.
+        </p>
+      </form>
+
       <div className="status-stack" aria-live="polite">
         {error ? (
           <p className="banner banner-alert" role="alert">
@@ -152,9 +250,22 @@ export function App() {
         </main>
       ) : null}
 
+      {extraction ? (
+        <main className="review">
+          <ExtractionPanel
+            extraction={extraction}
+            note={extractionNote}
+            decisionReady={extractionDecisionReady}
+            deciding={decidingExtraction}
+            onNote={setExtractionNote}
+            onDecide={recordExtractionDecision}
+          />
+        </main>
+      ) : null}
+
       <footer className="colophon">
         Laboratory screen for synthetic Wasatch data. No delivery system is
-        called from this page.
+        called from this page, and extraction decisions do not post money.
       </footer>
     </div>
   );
@@ -348,5 +459,102 @@ function SuggestionBody({
         </div>
       ) : null}
     </>
+  );
+}
+
+function ExtractionPanel({
+  extraction,
+  note,
+  decisionReady,
+  deciding,
+  onNote,
+  onDecide,
+}: {
+  extraction: DocumentExtraction;
+  note: string;
+  decisionReady: boolean;
+  deciding: ExtractionDecision | null;
+  onNote: (value: string) => void;
+  onDecide: (decision: ExtractionDecision) => void;
+}) {
+  return (
+    <section className="panel extraction" aria-labelledby="extraction-heading">
+      <h2 id="extraction-heading">Document extraction</h2>
+      <dl className="facts">
+        <div>
+          <dt>Extraction</dt>
+          <dd>{extraction.id}</dd>
+        </div>
+        <div>
+          <dt>Document</dt>
+          <dd>{extraction.document_id}</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd>{extraction.status}</dd>
+        </div>
+        <div>
+          <dt>Confidence</dt>
+          <dd>
+            {extraction.confidence === null ? "not scored" : extraction.confidence}
+          </dd>
+        </div>
+        <div>
+          <dt>Extractor</dt>
+          <dd>{extraction.extractor}</dd>
+        </div>
+        {extraction.reviewed_by_employee_id ? (
+          <div>
+            <dt>Reviewer</dt>
+            <dd>{extraction.reviewed_by_employee_id}</dd>
+          </div>
+        ) : null}
+        {extraction.review_notes ? (
+          <div>
+            <dt>Review note</dt>
+            <dd>{extraction.review_notes}</dd>
+          </div>
+        ) : null}
+      </dl>
+      <p className="unsent">Extracted fields are untrusted until reviewed.</p>
+      <pre className="json-fields">{extractionFields(extraction)}</pre>
+      {decisionReady ? (
+        <div className="decision">
+          <label htmlFor="extraction-decision-note">
+            Review note
+            <textarea
+              id="extraction-decision-note"
+              value={note}
+              rows={3}
+              onChange={(event) => onNote(event.target.value)}
+            />
+          </label>
+          <p className="hint">
+            The decision is stored for review. It does not post an invoice,
+            mark a payment, or trust future extraction output.
+          </p>
+          <div className="decision-actions">
+            <button
+              type="button"
+              className="approve"
+              disabled={deciding !== null}
+              onClick={() => onDecide("accepted")}
+            >
+              {deciding === "accepted" ? "Accepting…" : "Accept extraction"}
+            </button>
+            <button
+              type="button"
+              className="reject"
+              disabled={deciding !== null}
+              onClick={() => onDecide("rejected")}
+            >
+              {deciding === "rejected" ? "Rejecting…" : "Reject extraction"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <p className="empty-copy">This extraction is not awaiting review.</p>
+      )}
+    </section>
   );
 }

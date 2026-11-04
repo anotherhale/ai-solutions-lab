@@ -70,7 +70,25 @@ export type ActorChoice = "emp_0001" | "emp_0004" | "anonymous";
 
 export type ReviewDecision = "approved" | "rejected";
 
+export type ExtractionDecision = "accepted" | "rejected";
+
 export interface InquiryView {
   ticket: SupportTicket;
   customerName: string | null;
+}
+
+export interface DocumentExtraction {
+  id: string;
+  document_id: string;
+  document_version_id: string;
+  status: string;
+  extractor: string;
+  extracted_at: string;
+  created_at: string;
+  updated_at: string;
+  confidence: number | null;
+  extracted_fields: Record<string, unknown> | null;
+  reviewed_by_employee_id: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
 }

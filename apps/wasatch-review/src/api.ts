@@ -3,6 +3,8 @@ import type {
   ActorChoice,
   ApprovalRequest,
   CustomerDetail,
+  DocumentExtraction,
+  ExtractionDecision,
   InquiryView,
   ReviewDecision,
   SupportTicket,
@@ -34,6 +36,14 @@ export function decisionPath(approvalId: string): string {
   return `/api/v1/approval-requests/${encodeURIComponent(approvalId)}/decisions`;
 }
 
+export function extractionPath(extractionId: string): string {
+  return `/api/v1/document-extractions/${encodeURIComponent(extractionId)}`;
+}
+
+export function extractionDecisionPath(extractionId: string): string {
+  return `${extractionPath(extractionId)}/decisions`;
+}
+
 export function reviewErrorText(error: unknown): string {
   if (!(error instanceof ApiError)) {
     return error instanceof Error ? error.message : "The request failed.";
@@ -43,6 +53,19 @@ export function reviewErrorText(error: unknown): string {
   }
   if (error.status === 403 || error.code === "forbidden") {
     return `This actor cannot approve or reject the suggested reply. ${error.message}`;
+  }
+  return error.message;
+}
+
+export function extractionReviewErrorText(error: unknown): string {
+  if (!(error instanceof ApiError)) {
+    return error instanceof Error ? error.message : "The request failed.";
+  }
+  if (error.status === 401 || error.code === "unauthenticated") {
+    return `Unauthorized. ${error.message}`;
+  }
+  if (error.status === 403 || error.code === "forbidden") {
+    return `This actor cannot accept or reject the extraction. ${error.message}`;
   }
   return error.message;
 }
@@ -123,6 +146,29 @@ export async function decideSuggestedReply(
 ): Promise<ApprovalRequest> {
   const trimmed = note.trim();
   return requestJson<ApprovalRequest>(decisionPath(approvalId), actor, {
+    method: "POST",
+    body: JSON.stringify({
+      decision,
+      note: trimmed.length > 0 ? trimmed : null,
+    }),
+  });
+}
+
+export async function loadDocumentExtraction(
+  extractionId: string,
+  actor: ActorChoice,
+): Promise<DocumentExtraction> {
+  return requestJson<DocumentExtraction>(extractionPath(extractionId), actor);
+}
+
+export async function decideDocumentExtraction(
+  extractionId: string,
+  decision: ExtractionDecision,
+  note: string,
+  actor: ActorChoice,
+): Promise<DocumentExtraction> {
+  const trimmed = note.trim();
+  return requestJson<DocumentExtraction>(extractionDecisionPath(extractionId), actor, {
     method: "POST",
     body: JSON.stringify({
       decision,
