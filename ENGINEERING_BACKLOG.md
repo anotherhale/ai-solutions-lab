@@ -240,25 +240,28 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py` still skips a local run when PostgreSQL is down. CI fails that skip. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` rejects a run that did not execute the database tests. |
 | String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Invoice and payment JSON fixtures are not full ORM slices yet. |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
-| Starlette `TestClient` deprecation warning | Closed. `anyio>=4.8.0,<4.15` in `services/wasatch-api/pyproject.toml` until Starlette ships the `from_thread.BlockingPortal` import. |
+| Starlette `TestClient` deprecation warning | Closed. Starlette 1.10 uses `anyio.from_thread.BlockingPortal`. `anyio>=4.8.0,<5` matches that bound. The earlier `<4.15` cap applied to Starlette 0.50. |
 | No Compose image smoke test in CI | Closed. `scripts/smoke_compose.sh` runs in the **Compose API smoke** GitHub Actions job. |
 | Review-screen checks not in CI | Closed. **Wasatch review frontend** job runs Vitest, typecheck, and production build. |
 | No browser suite for review workflows | Closed. Playwright specs in `tests/e2e/` run in **Review workbench browser tests**. |
-| No dependency-audit tool | Closed. `scripts/audit_wasatch_dependencies.sh` runs `pip-audit` on the installed Wasatch API environment in CI. Starlette PYSEC ignores are temporary; see ADR 0007 and SEC-1. |
-| Starlette PYSEC advisories on the pinned FastAPI stack | Open. ADR 0007 is Proposed. Five IDs are ignored in the audit script until SEC-1 lands. |
+| No dependency-audit tool | Closed. `scripts/audit_wasatch_dependencies.sh` runs `pip-audit` on the installed Wasatch API environment in CI. |
+| Starlette PYSEC advisories on the pinned FastAPI stack | Closed by SEC-1. ADR 0007 is Accepted. The audit script does not ignore Starlette IDs. |
 | GitHub required checks on `develop` | Open for repository administrators. Agents documented the ruleset in `docs/operations/github-branch-protection.md`. Cloud tokens cannot read or set protection on this repository. |
-
-## Next
 
 ### SEC-1 — Implement ADR 0007 (FastAPI / Starlette remediation)
 
-- Status: ready
-- Depends on: ADR 0007 merged as Proposed (this change)
-- Widen the FastAPI pin to a tested release that supports Starlette 1.x (spike: 0.162.x). Pin Starlette to a patched 1.x release (for example `>=1.3.1`).
-- Confirm application lifespan hooks in `create_app` remain valid on the upgraded FastAPI/Starlette pair.
-- Re-evaluate the `anyio<4.15` pin after Starlette upgrades.
-- Remove Starlette entries from `STARLETTE_IGNORES` in `scripts/audit_wasatch_dependencies.sh` when `pip-audit` is clean.
-- Acceptance: full pytest with `WASATCH_REQUIRE_DATABASE=1`, all five **Repository Validation** jobs green, ADR 0007 marked Accepted.
+- Status: done in this change. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/29
+- Depends on: ADR 0007 (pull request [#28](https://github.com/anotherhale/ai-solutions-lab/pull/28), `8c950ce`), which recorded the plan as Proposed
+- `fastapi>=0.162.0,<0.163` and direct `starlette>=1.10.0,<1.11`. Resolved versions are FastAPI 0.162.0 and Starlette 1.10.0. The spike minimum was Starlette 1.3.1. 1.10.0 is the patched 1.x release this change audited.
+- `create_app` does not pass `on_startup`. FastAPI 0.162 keeps lifecycle handlers off Starlette's `Router`. `TestClient` enters the default lifespan and `GET /health` still returns `status` `ok`.
+- `anyio>=4.8.0,<5`. Starlette 1.10 uses `anyio.from_thread.BlockingPortal`, so the `<4.15` cap is gone.
+- `scripts/audit_wasatch_dependencies.sh` has no Starlette `--ignore-vuln` entries. `pip-audit` reports no known vulnerabilities.
+- ADR 0007 is Accepted. OpenTelemetry instrumentation stays `0.66b2`. Uvicorn stays `>=0.32.1,<0.38`.
+- Acceptance: full pytest with `WASATCH_REQUIRE_DATABASE=1` passed locally (198 passed, 0 skipped). `pip-audit` was clean. Repository Validation on the pull request is the remaining check for the five jobs. No customer delivery and no financial posting.
+
+## Next
+
+No numbered item is ready. GitHub required checks on `develop` stay an administrator task. Do not treat that row as an agent implementation item. Do not add a second Starlette upgrade or a second pip-audit change.
 
 ## Explicitly out of the next implementation
 

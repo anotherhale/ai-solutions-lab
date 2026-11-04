@@ -1,21 +1,21 @@
 # ADR 0007: Starlette security advisories and remediation plan
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-04
 
 ## Context
 
-Wasatch API depends on FastAPI, which depends on Starlette. The laboratory pins FastAPI in `services/wasatch-api/pyproject.toml` as `fastapi>=0.115.6,<0.122`. That range resolves **Starlette 0.50.0** (FastAPI 0.121.3 declares `starlette>=0.40.0,<0.51.0`).
+Wasatch API depends on FastAPI, which depends on Starlette. Before SEC-1, the laboratory pinned FastAPI in `services/wasatch-api/pyproject.toml` as `fastapi>=0.115.6,<0.122`. That range resolved **Starlette 0.50.0** (FastAPI 0.121.3 declares `starlette>=0.40.0,<0.51.0`).
 
 CI runs `scripts/audit_wasatch_dependencies.sh`, which installs `pip-audit==2.9.0` and audits the editable Wasatch API environment. Without temporary ignores, `pip-audit` reports **five PYSEC advisories** on Starlette 0.50.0 (and the same IDs on 0.52.1). Published fix versions point to the **Starlette 1.x** line (for example `1.0.1`, `1.1.0`, `1.3.0`, `1.3.1`). There are no fix releases on the 0.5x line in the advisory data CI uses.
 
-The audit script currently passes only by **ignoring those five Starlette IDs**, with a comment that the ignore list stays until an upgrade path is recorded. This ADR records that path and explicitly rejects blind dependency bumps or open-ended suppressions.
+Before SEC-1, the audit script passed only by **ignoring those five Starlette IDs**. This ADR records the upgrade path and explicitly rejects blind dependency bumps or open-ended suppressions. SEC-1 implemented that path and removed the ignores.
 
-Additional constraints:
+Additional constraints at proposal time:
 
-- **`anyio>=4.8.0,<4.15`** is pinned because Starlette’s `TestClient` still imports `anyio.abc.BlockingPortal` until a released Starlette includes the `from_thread` alias (see pyproject comment and existing pytest warning).
-- **OpenTelemetry** packages pin FastAPI instrumentation (`opentelemetry-instrumentation-fastapi==0.66b2`); a FastAPI major-line jump must be checked against instrumentation compatibility.
-- Application route modules do not pass `on_startup` to `APIRouter`. **FastAPI 0.121.3** still forwards lifecycle kwargs into Starlette’s `Router` during import. **Starlette 1.3.1** rejects those kwargs, so pairing the pinned FastAPI with Starlette 1.x fails at import time (`TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'` when loading routes).
+- **`anyio>=4.8.0,<4.15`** was pinned because Starlette 0.50 `TestClient` imported `anyio.abc.BlockingPortal`. SEC-1 widened that bound after Starlette 1.10 switched to `anyio.from_thread.BlockingPortal`. See Implementation.
+- **OpenTelemetry** packages pin FastAPI instrumentation (`opentelemetry-instrumentation-fastapi==0.66b2`). A FastAPI jump had to be checked against that instrumentation. SEC-1 kept the pin.
+- Application route modules do not pass `on_startup` to `APIRouter`. **FastAPI 0.121.3** still forwarded lifecycle kwargs into Starlette’s `Router` during import. **Starlette 1.3.1** rejects those kwargs, so pairing FastAPI 0.121 with Starlette 1.x failed at import time (`TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'`). FastAPI 0.162 keeps those handlers on its own router.
 
 Spike results (2026-11-04, synthetic database, full pytest with PostgreSQL):
 
@@ -29,9 +29,9 @@ FastAPI **0.162.0** metadata allows `starlette>=0.46.0` without an upper bound, 
 
 ## Decision
 
-1. **Do not** merge a blind FastAPI or Starlette version bump without the validation steps in the remediation plan below.
-2. **Keep** the five Starlette PYSEC ignores in `scripts/audit_wasatch_dependencies.sh` **only until** a follow-up change implements the plan and removes them; the ignore list must stay synchronized with this ADR (no additional suppressed IDs without a new ADR section).
-3. **Treat** Starlette advisory remediation as a bounded engineering task (backlog item **SEC-1**), not as part of unrelated feature work.
+1. **Do not** merge a FastAPI or Starlette version bump that has not passed full pytest and a clean `pip-audit`. The validated bump is in Implementation.
+2. **Remove** the five Starlette PYSEC ignores once the upgraded stack is audited clean. Do not add `--ignore-vuln` entries for Starlette or FastAPI without a new ADR section.
+3. **Treat** Starlette advisory remediation as a bounded engineering task (backlog item **SEC-1**), not as part of unrelated feature work. SEC-1 is that task.
 4. **Record** that pip vulnerabilities reported against the **bootstrap `pip` inside the audit virtualenv** are out of scope for application runtime; the script upgrades `pip` before audit. CI application runtime uses the version installed by `pip install` in the Wasatch API job.
 
 ## Alternatives considered
@@ -39,13 +39,28 @@ FastAPI **0.162.0** metadata allows `starlette>=0.46.0` without an upper bound, 
 - **Bump Starlette within 0.5x only.** Rejected. `pip-audit` still reports the same five IDs on 0.52.1; fixes are on 1.x.
 - **Permanently ignore Starlette in CI.** Rejected. Ignores are a temporary bridge; ADR 0007 and SEC-1 exist to remove them.
 - **Replace FastAPI with another framework.** Rejected. ADR 0002 stands; the issue is transitive HTTP stack patching, not framework choice.
-- **Immediate upgrade to FastAPI 0.162 + Starlette 1.3.1 in this change.** Rejected. Requires pyproject bound changes, anyio pin re-evaluation, OpenTelemetry smoke checks, and full CI green—explicitly deferred to SEC-1.
+- **Upgrade inside the proposal change, before an editable-pin pytest and a clean audit.** Rejected at proposal time and deferred to SEC-1. SEC-1 then installed FastAPI 0.162.0 with Starlette 1.10.0, not only the 1.3.1 spike, after those checks.
+
+## Implementation
+
+SEC-1 accepts this ADR. `services/wasatch-api/pyproject.toml` now pins:
+
+- `fastapi>=0.162.0,<0.163` (resolved **0.162.0**)
+- `starlette>=1.10.0,<1.11` (resolved **1.10.0**)
+
+FastAPI 0.162 allows `starlette>=0.46.0` with no upper bound, so Starlette is a direct dependency. The spike's minimum patched release was 1.3.1. **1.10.0** is the 1.x release this change installed and audited. `pip-audit` reports no known vulnerabilities, and the script no longer passes `--ignore-vuln`.
+
+Starlette 1.10 `TestClient` uses `anyio.from_thread.BlockingPortal`. The anyio pin is now `anyio>=4.8.0,<5`, matching Starlette's `<5` bound. The previous `<4.15` cap applied only while Starlette 0.50 imported `anyio.abc.BlockingPortal`.
+
+`create_app` does not pass `on_startup` or `on_shutdown`. FastAPI 0.162 keeps those handlers on its own router instead of forwarding them into Starlette 1.x `Router`. The default lifespan still starts: `TestClient` enters it and `GET /health` returns `status` `ok` and `service` `wasatch-api`. OpenTelemetry stays `opentelemetry-instrumentation-fastapi==0.66b2`. With the exporter unset, startup still does not construct an exporter.
+
+Laboratory actor storage writes `scope["state"]` when that value is a dict, and sets the attribute when Starlette has already placed a `State` object there. `request.state.laboratory_actor` remains visible to `require_laboratory_actor`.
 
 ## Consequences
 
-- Security posture: known Starlette CVE-class advisories remain on the pinned stack until SEC-1 completes; risk is documented and gated in CI with explicit ignores rather than silent acceptance.
-- SEC-1 implementation must: widen FastAPI pin to a tested release (for example 0.162.x), pin Starlette `>=1.3.1`, re-run `pip-audit` without Starlette ignores, run full pytest and Playwright jobs, and update this ADR to **Accepted** when merged.
-- Until SEC-1 lands, feature work must not add new `pip-audit --ignore-vuln` entries for Starlette or FastAPI.
+- The five Starlette PYSEC IDs are not ignored. A future advisory fails `scripts/audit_wasatch_dependencies.sh` until a new ADR records the response.
+- Feature work must not add `pip-audit --ignore-vuln` entries for Starlette or FastAPI.
+- Uvicorn stays on the existing `>=0.32.1,<0.38` bound. This change did not upgrade it.
 
 ## Related
 

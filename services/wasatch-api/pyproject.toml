@@ -9,7 +9,13 @@ description = "Wasatch Business Systems laboratory API for synthetic records."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.115.6,<0.122",
+    # SEC-1 / ADR 0007. FastAPI 0.162 keeps router lifecycle kwargs off
+    # Starlette 1.x. The upper bound stays on the release that was tested.
+    "fastapi>=0.162.0,<0.163",
+    # Direct pin so the resolver cannot select Starlette 0.x. FastAPI 0.162
+    # allows starlette>=0.46.0 with no upper bound. 1.10 is the patched
+    # release validated with this pin. Fixes for the five PYSEC IDs are on 1.x.
+    "starlette>=1.10.0,<1.11",
     "uvicorn[standard]>=0.32.1,<0.38",
     "sqlalchemy>=2.0.36,<2.1",
     "alembic>=1.14.0,<1.17",
@@ -26,9 +32,10 @@ dependencies = [
     "opentelemetry-sdk==1.45.2",
     "opentelemetry-exporter-otlp-proto-http==1.45.2",
     "opentelemetry-instrumentation-fastapi==0.66b2",
-    # Starlette TestClient still references anyio.abc.BlockingPortal until a
-    # released Starlette includes the from_thread alias. Pin below anyio 4.15.
-    "anyio>=4.8.0,<4.15",
+    # Starlette 1.10 TestClient uses anyio.from_thread.BlockingPortal.
+    # Match Starlette's own anyio<5 bound. The previous <4.15 cap was only
+    # for Starlette 0.50 importing anyio.abc.BlockingPortal.
+    "anyio>=4.8.0,<5",
 ]
 
 [project.optional-dependencies]

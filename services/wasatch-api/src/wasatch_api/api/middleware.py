@@ -59,9 +59,7 @@ class LaboratoryAccessMiddleware:
             await _drain(receive)
             await _reject(send, 403, "forbidden", WRITE_DENIED_MESSAGE)
             return
-        state = scope.setdefault("state", {})
-        if isinstance(state, dict):
-            state["laboratory_actor"] = decision.actor
+        _remember_actor(scope, decision.actor)
         await self.app(scope, receive, send)
 
     def _decide(self, scope: Scope, path: str) -> AccessDecision:
@@ -78,6 +76,22 @@ class LaboratoryAccessMiddleware:
             )
         finally:
             session.close()
+
+
+def _remember_actor(scope: Scope, actor: object) -> None:
+    """Store the actor on the ASGI scope.
+
+    Starlette 1.x keeps ``scope["state"]`` as a dict and wraps it for
+    ``request.state``. A State object, if one is already present, still
+    accepts the attribute. Either form must be visible to
+    ``require_laboratory_actor``.
+    """
+
+    state = scope.setdefault("state", {})
+    if isinstance(state, dict):
+        state["laboratory_actor"] = actor
+        return
+    state.laboratory_actor = actor
 
 
 def _header(scope: Scope) -> str | None:
