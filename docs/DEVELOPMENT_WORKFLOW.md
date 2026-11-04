@@ -43,7 +43,7 @@ Guidelines:
 4. Run local validation.
 5. Open a pull request against `develop`. Do not push directly to `develop` or `main`. Do not force-push either branch.
 6. Request review. Address findings without expanding scope.
-7. Merge only when CI is green and the Definition of Done is met.
+7. Merge only when CI is green and the Definition of Done is met. GitHub does not enforce that by default; see [operations/github-branch-protection.md](operations/github-branch-protection.md) for recommended rulesets on `develop`.
 
 Pull requests should describe:
 

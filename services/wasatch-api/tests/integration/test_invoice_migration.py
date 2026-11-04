@@ -68,6 +68,10 @@ def test_invoice_revision_upgrades_and_downgrades(seeded_engine: Engine) -> None
         assert _version(seeded_engine) == "0007"
         names = set(inspect(seeded_engine).get_table_names())
         assert "invoices" not in names
+        downgraded_fks = inspect(seeded_engine).get_foreign_keys("work_orders")
+        assert not any(
+            fk.get("name") == "fk_work_orders_invoice" for fk in downgraded_fks
+        )
         command.upgrade(config, "0008")
         assert _version(seeded_engine) == "0008"
         assert "invoices" in set(inspect(seeded_engine).get_table_names())

@@ -44,6 +44,8 @@ Merge method on `develop` is squash, and only after that gate. Agents do not mer
 
 Direct pushes to `develop` or `main` are not the contribution path. CI runs on pull requests and on pushes to `main` and `develop`. Do not remove or relax existing jobs.
 
+GitHub only blocks merges when branch rulesets or required status checks are configured. Without them, merges can land while **Repository Validation** is still queued. Repository administrators should apply the rules in [../operations/github-branch-protection.md](../operations/github-branch-protection.md). Agents must not merge until required checks are green even when GitHub would allow a merge.
+
 ## One change at a time
 
 Inspect open pull requests before editing.

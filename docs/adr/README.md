@@ -60,3 +60,4 @@ Optional sections such as related ADRs or rollback notes may be added when they 
 | [0004](0004-openai-provider-abstraction.md) | OpenAI provider abstraction | Accepted |
 | [0005](0005-docker-compose-local-development.md) | Docker Compose local development | Accepted |
 | [0006](0006-laboratory-actor-development-only.md) | Laboratory actor adapter is development-only | Accepted |
+| [0007](0007-starlette-security-remediation.md) | Starlette security advisories and remediation plan | Proposed |
