@@ -6,7 +6,13 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from wasatch_api.shared.errors import InvalidParameterError, NotFoundError
+from wasatch_api.shared.errors import (
+    AuthorizationDenied,
+    InvalidParameterError,
+    NotFoundError,
+    ProviderConfigurationError,
+    UnauthenticatedError,
+)
 
 
 def error_body(code: str, message: str) -> dict:
@@ -24,6 +30,27 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         return JSONResponse(
             status_code=422, content=error_body("invalid_parameter", str(exc))
+        )
+
+    @app.exception_handler(UnauthenticatedError)
+    async def unauthenticated(
+        _request: Request, exc: UnauthenticatedError
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=401, content=error_body("unauthenticated", str(exc))
+        )
+
+    @app.exception_handler(AuthorizationDenied)
+    async def forbidden(_request: Request, exc: AuthorizationDenied) -> JSONResponse:
+        return JSONResponse(status_code=403, content=error_body("forbidden", str(exc)))
+
+    @app.exception_handler(ProviderConfigurationError)
+    async def provider_configuration(
+        _request: Request, exc: ProviderConfigurationError
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=503,
+            content=error_body("provider_unavailable", str(exc)),
         )
 
     @app.exception_handler(RequestValidationError)

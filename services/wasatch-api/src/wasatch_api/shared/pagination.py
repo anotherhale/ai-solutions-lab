@@ -24,6 +24,61 @@ WORK_ORDER_STATUSES = frozenset(
         "reopened",
     }
 )
+SUPPORT_TICKET_STATUSES = frozenset(
+    {
+        "opened",
+        "triaged",
+        "assigned",
+        "awaiting_customer",
+        "resolved",
+        "closed",
+        "reopened",
+    }
+)
+MESSAGE_STATUSES = frozenset(
+    {"draft", "pending_approval", "sent", "failed", "discarded"}
+)
+APPROVAL_STATUSES = frozenset(
+    {"pending", "approved", "rejected", "executed", "cancelled"}
+)
+APPROVAL_ACTION_TYPES = frozenset(
+    {
+        "send_customer_message",
+        "void_invoice",
+        "issue_invoice",
+        "cancel_work_order",
+        "change_schedule",
+        "export_records",
+        "price_override",
+    }
+)
+AUDIT_OUTCOMES = frozenset({"succeeded", "failed", "pending"})
+DOCUMENT_STATUSES = frozenset(
+    {
+        "uploaded",
+        "awaiting_extraction",
+        "extracted",
+        "needs_review",
+        "reviewed",
+        "archived",
+    }
+)
+DOCUMENT_TYPES = frozenset(
+    {
+        "invoice_scan",
+        "work_order_photo",
+        "contract",
+        "vendor_bill",
+        "equipment_manual",
+        "correspondence",
+        "other",
+    }
+)
+DOCUMENT_SOURCES = frozenset({"email", "upload", "scan", "generated"})
+EXTRACTION_STATUSES = frozenset(
+    {"pending", "succeeded", "failed", "needs_review", "accepted", "rejected"}
+)
+EXTRACTORS = frozenset({"human", "model", "rules"})
 
 
 @dataclass(frozen=True)
@@ -60,6 +115,86 @@ def validate_work_order_status(status: str | None) -> str | None:
     if status not in WORK_ORDER_STATUSES:
         raise InvalidParameterError(f"unsupported work order status: {status}")
     return status
+
+
+def validate_support_ticket_status(status: str | None) -> str | None:
+    if status is None:
+        return None
+    if status not in SUPPORT_TICKET_STATUSES:
+        raise InvalidParameterError(f"unsupported support ticket status: {status}")
+    return status
+
+
+def validate_message_status(status: str | None) -> str | None:
+    if status is None:
+        return None
+    if status not in MESSAGE_STATUSES:
+        raise InvalidParameterError(f"unsupported message status: {status}")
+    return status
+
+
+def validate_approval_status(status: str | None) -> str | None:
+    if status is None:
+        return None
+    if status not in APPROVAL_STATUSES:
+        raise InvalidParameterError(f"unsupported approval status: {status}")
+    return status
+
+
+def validate_approval_action_type(action_type: str | None) -> str | None:
+    if action_type is None:
+        return None
+    if action_type not in APPROVAL_ACTION_TYPES:
+        raise InvalidParameterError(f"unsupported approval action: {action_type}")
+    return action_type
+
+
+def validate_audit_outcome(outcome: str | None) -> str | None:
+    if outcome is None:
+        return None
+    if outcome not in AUDIT_OUTCOMES:
+        raise InvalidParameterError(f"unsupported audit outcome: {outcome}")
+    return outcome
+
+
+def validate_document_status(status: str | None) -> str | None:
+    if status is None:
+        return None
+    if status not in DOCUMENT_STATUSES:
+        raise InvalidParameterError(f"unsupported document status: {status}")
+    return status
+
+
+def validate_document_type(document_type: str | None) -> str | None:
+    if document_type is None:
+        return None
+    if document_type not in DOCUMENT_TYPES:
+        raise InvalidParameterError(f"unsupported document type: {document_type}")
+    return document_type
+
+
+def validate_document_source(source: str | None) -> str | None:
+    if source is None:
+        return None
+    if source not in DOCUMENT_SOURCES:
+        raise InvalidParameterError(f"unsupported document source: {source}")
+    return source
+
+
+def validate_extraction_status(status: str | None) -> str | None:
+    if status is None:
+        return None
+    if status not in EXTRACTION_STATUSES:
+        raise InvalidParameterError(f"unsupported extraction status: {status}")
+    return status
+
+
+def validate_extractor(extractor: str | None) -> str | None:
+    if extractor is None:
+        return None
+    if extractor not in EXTRACTORS:
+        raise InvalidParameterError(f"unsupported extractor: {extractor}")
+    return extractor
 
 
 def escape_like(term: str) -> str:

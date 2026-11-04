@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
@@ -17,16 +18,18 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Table,
     Text,
     UniqueConstraint,
     Uuid,
 )
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from wasatch_api.shared.database.base import Base
+from wasatch_api.shared.database.vector import PROCEDURE_EMBEDDING_WIDTH, Vector
 
 work_order_assignments = Table(
     "work_order_assignments",
@@ -159,6 +162,21 @@ class ServiceLocationORM(Base):
     equipment: Mapped[list[EquipmentORM]] = relationship(back_populates="location")
 
 
+class InvoiceORM(Base):
+    __tablename__ = "invoices"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("customers.id", ondelete="RESTRICT"), index=True
+    )
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    customer: Mapped[CustomerORM] = relationship()
+
+
 class EmployeeORM(Base):
     __tablename__ = "employees"
 
@@ -169,8 +187,16 @@ class EmployeeORM(Base):
     last_name: Mapped[str] = mapped_column(String(128))
     email: Mapped[str] = mapped_column(String(255), unique=True)
     phone: Mapped[str | None] = mapped_column(String(32))
-    role_id: Mapped[str | None] = mapped_column(String(16))
-    team_id: Mapped[str | None] = mapped_column(String(16))
+    role_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("roles.id", name="fk_employees_role", ondelete="RESTRICT"),
+        index=True,
+    )
+    team_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("teams.id", name="fk_employees_team", ondelete="SET NULL"),
+        index=True,
+    )
     department: Mapped[str] = mapped_column(String(32), index=True)
     job_title: Mapped[str] = mapped_column(String(128))
     status: Mapped[str] = mapped_column(String(32), index=True)
@@ -178,6 +204,57 @@ class EmployeeORM(Base):
     certifications: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    role: Mapped[RoleORM | None] = relationship(back_populates="employees")
+    team: Mapped[TeamORM | None] = relationship(
+        back_populates="members",
+        foreign_keys=[team_id],
+    )
+
+
+class RoleORM(Base):
+    """Job classification. is_approver lives here, not on the employee."""
+
+    __tablename__ = "roles"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    name: Mapped[str] = mapped_column(String(255))
+    department: Mapped[str] = mapped_column(String(32), index=True)
+    is_approver: Mapped[bool] = mapped_column(Boolean)
+    description: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    employees: Mapped[list[EmployeeORM]] = relationship(back_populates="role")
+
+
+class TeamORM(Base):
+    __tablename__ = "teams"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    name: Mapped[str] = mapped_column(String(255))
+    department: Mapped[str] = mapped_column(String(32), index=True)
+    service_area: Mapped[str | None] = mapped_column(String(255))
+    lead_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            use_alter=True,
+            name="fk_teams_lead_employee",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    lead: Mapped[EmployeeORM | None] = relationship(foreign_keys=[lead_employee_id])
+    members: Mapped[list[EmployeeORM]] = relationship(
+        back_populates="team",
+        foreign_keys="EmployeeORM.team_id",
+    )
 
 
 class EquipmentORM(Base):
@@ -221,7 +298,16 @@ class WorkOrderORM(Base):
     service_location_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("service_locations.id", ondelete="RESTRICT"), index=True
     )
-    support_ticket_id: Mapped[str | None] = mapped_column(String(16))
+    support_ticket_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "support_tickets.id",
+            use_alter=True,
+            name="fk_work_orders_support_ticket",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
     status: Mapped[str] = mapped_column(String(32), index=True)
     priority: Mapped[str] = mapped_column(String(32))
     work_type: Mapped[str] = mapped_column(String(32))
@@ -234,7 +320,11 @@ class WorkOrderORM(Base):
     scheduled_for: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completion_notes: Mapped[str | None] = mapped_column(Text)
-    invoice_id: Mapped[str | None] = mapped_column(String(16))
+    invoice_id: Mapped[str | None] = mapped_column(
+        String(16),
+        ForeignKey("invoices.business_id", ondelete="SET NULL"),
+        index=True,
+    )
     cancelled_reason: Mapped[str | None] = mapped_column(Text)
     reopen_reason: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
@@ -243,6 +333,14 @@ class WorkOrderORM(Base):
     customer: Mapped[CustomerORM] = relationship()
     service_location: Mapped[ServiceLocationORM] = relationship()
     requested_by: Mapped[ContactORM | None] = relationship()
+    invoice: Mapped[InvoiceORM | None] = relationship(
+        foreign_keys=[invoice_id],
+        primaryjoin="WorkOrderORM.invoice_id == InvoiceORM.business_id",
+    )
+    support_ticket: Mapped[SupportTicketORM | None] = relationship(
+        "SupportTicketORM",
+        foreign_keys=[support_ticket_id],
+    )
     assigned_employees: Mapped[list[EmployeeORM]] = relationship(
         secondary=work_order_assignments
     )
@@ -312,4 +410,494 @@ class AppointmentORM(Base):
     replaces_appointment: Mapped[AppointmentORM | None] = relationship(
         remote_side="AppointmentORM.id",
         foreign_keys=[replaces_appointment_id],
+    )
+
+
+class SupportTicketORM(Base):
+    __tablename__ = "support_tickets"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("customers.id", ondelete="RESTRICT"), index=True
+    )
+    contact_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("contacts.id", ondelete="SET NULL")
+    )
+    service_location_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("service_locations.id", ondelete="SET NULL"), index=True
+    )
+    work_order_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("work_orders.id", ondelete="SET NULL"), index=True
+    )
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    priority: Mapped[str] = mapped_column(String(32))
+    channel: Mapped[str] = mapped_column(String(32))
+    subject: Mapped[str] = mapped_column(String(255))
+    assigned_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="SET NULL"), index=True
+    )
+    opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    related_document_ids: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    customer: Mapped[CustomerORM] = relationship()
+    contact: Mapped[ContactORM | None] = relationship()
+    service_location: Mapped[ServiceLocationORM | None] = relationship()
+    work_order: Mapped[WorkOrderORM | None] = relationship(foreign_keys=[work_order_id])
+    assigned_employee: Mapped[EmployeeORM | None] = relationship()
+    messages: Mapped[list[MessageORM]] = relationship(
+        back_populates="support_ticket",
+        order_by="MessageORM.sent_at",
+    )
+
+
+class MessageORM(Base):
+    __tablename__ = "messages"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    support_ticket_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("support_tickets.id", ondelete="CASCADE"), index=True
+    )
+    direction: Mapped[str] = mapped_column(String(32))
+    channel: Mapped[str] = mapped_column(String(32))
+    body: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    author_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="SET NULL")
+    )
+    author_contact_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("contacts.id", ondelete="SET NULL")
+    )
+    requires_approval: Mapped[bool] = mapped_column(Boolean, default=False)
+    approval_request_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "approval_requests.id",
+            name="fk_messages_approval_request",
+            ondelete="RESTRICT",
+        ),
+        index=True,
+    )
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    support_ticket: Mapped[SupportTicketORM] = relationship(back_populates="messages")
+    author_employee: Mapped[EmployeeORM | None] = relationship()
+    author_contact: Mapped[ContactORM | None] = relationship()
+    approval_request: Mapped[ApprovalRequestORM | None] = relationship(
+        "ApprovalRequestORM",
+        foreign_keys=[approval_request_id],
+    )
+
+
+class InteractionORM(Base):
+    __tablename__ = "interactions"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("customers.id", ondelete="RESTRICT"), index=True
+    )
+    contact_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("contacts.id", ondelete="SET NULL")
+    )
+    support_ticket_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("support_tickets.id", ondelete="SET NULL"), index=True
+    )
+    work_order_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("work_orders.id", ondelete="SET NULL"), index=True
+    )
+    channel: Mapped[str] = mapped_column(String(32))
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    summary: Mapped[str] = mapped_column(Text)
+    employee_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="RESTRICT"), index=True
+    )
+    outcome: Mapped[str] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    customer: Mapped[CustomerORM] = relationship()
+    contact: Mapped[ContactORM | None] = relationship()
+    support_ticket: Mapped[SupportTicketORM | None] = relationship()
+    work_order: Mapped[WorkOrderORM | None] = relationship()
+    employee: Mapped[EmployeeORM] = relationship()
+
+
+class ApprovalRequestORM(Base):
+    __tablename__ = "approval_requests"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    action_type: Mapped[str] = mapped_column(String(32), index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    requested_by_employee_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="RESTRICT"), index=True
+    )
+    reviewer_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="SET NULL"), index=True
+    )
+    subject_type: Mapped[str] = mapped_column(String(32))
+    subject_id: Mapped[str] = mapped_column(String(16))
+    rationale: Mapped[str] = mapped_column(Text)
+    decision_notes: Mapped[str | None] = mapped_column(Text)
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    executed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    requested_by: Mapped[EmployeeORM] = relationship(
+        foreign_keys=[requested_by_employee_id]
+    )
+    reviewer: Mapped[EmployeeORM | None] = relationship(
+        foreign_keys=[reviewer_employee_id]
+    )
+    decision_history: Mapped[list[ApprovalDecisionORM]] = relationship(
+        back_populates="approval_request",
+        cascade="all, delete-orphan",
+        order_by="ApprovalDecisionORM.position",
+    )
+
+
+class ApprovalDecisionORM(Base):
+    """One append-only transition on an approval request. Not an audit event."""
+
+    __tablename__ = "approval_decision_history"
+    __table_args__ = (
+        UniqueConstraint(
+            "approval_request_id",
+            "position",
+            name="uq_approval_decision_position",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    approval_request_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("approval_requests.id", ondelete="CASCADE"), index=True
+    )
+    position: Mapped[int] = mapped_column(Integer)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    actor_employee_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="RESTRICT")
+    )
+    from_status: Mapped[str] = mapped_column(String(32))
+    to_status: Mapped[str] = mapped_column(String(32))
+    note: Mapped[str | None] = mapped_column(Text)
+
+    approval_request: Mapped[ApprovalRequestORM] = relationship(
+        back_populates="decision_history"
+    )
+    actor: Mapped[EmployeeORM] = relationship()
+
+
+class AuditEventORM(Base):
+    """Insert-only audit row. Callers do not update or delete it."""
+
+    __tablename__ = "audit_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    actor_type: Mapped[str] = mapped_column(String(32))
+    actor_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="RESTRICT"), index=True
+    )
+    action: Mapped[str] = mapped_column(String(128))
+    subject_type: Mapped[str] = mapped_column(String(32))
+    subject_id: Mapped[str] = mapped_column(String(16))
+    outcome: Mapped[str] = mapped_column(String(32), index=True)
+    approval_request_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "approval_requests.id",
+            name="fk_audit_events_approval_request",
+            ondelete="RESTRICT",
+        ),
+        index=True,
+    )
+    details: Mapped[dict | None] = mapped_column(JSONB)
+
+    actor_employee: Mapped[EmployeeORM | None] = relationship()
+    approval_request: Mapped[ApprovalRequestORM | None] = relationship()
+
+
+class DocumentORM(Base):
+    """Source file metadata. Bytes stay outside this table.
+
+    This table has no embedding column. Procedure-page vectors live on
+    ``procedure_page_embeddings``.
+    """
+
+    __tablename__ = "documents"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    title: Mapped[str] = mapped_column(String(255))
+    document_type: Mapped[str] = mapped_column(String(32), index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    source: Mapped[str] = mapped_column(String(32), index=True)
+    mime_type: Mapped[str] = mapped_column(String(128))
+    untrusted: Mapped[bool] = mapped_column(Boolean)
+    customer_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("customers.id", name="fk_documents_customer", ondelete="SET NULL"),
+        index=True,
+    )
+    service_location_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "service_locations.id",
+            name="fk_documents_service_location",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    work_order_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "work_orders.id",
+            name="fk_documents_work_order",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    invoice_id: Mapped[str | None] = mapped_column(String(16))
+    current_version_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "document_versions.id",
+            use_alter=True,
+            name="fk_documents_current_version",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    uploaded_by_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            name="fk_documents_uploaded_by",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    customer: Mapped[CustomerORM | None] = relationship()
+    service_location: Mapped[ServiceLocationORM | None] = relationship()
+    work_order: Mapped[WorkOrderORM | None] = relationship()
+    uploaded_by: Mapped[EmployeeORM | None] = relationship(
+        foreign_keys=[uploaded_by_employee_id]
+    )
+    current_version: Mapped[DocumentVersionORM | None] = relationship(
+        foreign_keys=[current_version_id]
+    )
+    versions: Mapped[list[DocumentVersionORM]] = relationship(
+        back_populates="document",
+        foreign_keys="DocumentVersionORM.document_id",
+        order_by="DocumentVersionORM.version_number",
+    )
+    extractions: Mapped[list[DocumentExtractionORM]] = relationship(
+        back_populates="document",
+        foreign_keys="DocumentExtractionORM.document_id",
+        order_by="DocumentExtractionORM.business_id",
+    )
+
+
+class DocumentVersionORM(Base):
+    """Immutable snapshot pointer. ``storage_path`` is not a file in this repo."""
+
+    __tablename__ = "document_versions"
+    __table_args__ = (
+        UniqueConstraint(
+            "document_id",
+            "version_number",
+            name="uq_document_versions_number",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "documents.id",
+            name="fk_document_versions_document",
+            ondelete="CASCADE",
+        ),
+        index=True,
+    )
+    version_number: Mapped[int] = mapped_column(Integer)
+    storage_path: Mapped[str] = mapped_column(String(255))
+    checksum_sha256: Mapped[str] = mapped_column(String(64))
+    byte_size: Mapped[int | None] = mapped_column(Integer)
+    created_by_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            name="fk_document_versions_created_by",
+            ondelete="SET NULL",
+        ),
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    document: Mapped[DocumentORM] = relationship(
+        back_populates="versions",
+        foreign_keys=[document_id],
+    )
+    created_by: Mapped[EmployeeORM | None] = relationship()
+
+
+class DocumentExtractionORM(Base):
+    """Extracted fields. A review decision updates status and reviewer columns.
+
+    The decision does not post a payment or change an invoice. There is no
+    embedding column. Untrusted extractions are not copied into
+    ``procedure_page_embeddings``.
+    """
+
+    __tablename__ = "document_extractions"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "documents.id",
+            name="fk_document_extractions_document",
+            ondelete="CASCADE",
+        ),
+        index=True,
+    )
+    document_version_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "document_versions.id",
+            name="fk_document_extractions_version",
+            ondelete="CASCADE",
+        ),
+        index=True,
+    )
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    extractor: Mapped[str] = mapped_column(String(16), index=True)
+    confidence: Mapped[Decimal | None] = mapped_column(Numeric(4, 3))
+    extracted_fields: Mapped[dict | None] = mapped_column(JSONB)
+    reviewed_by_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            name="fk_document_extractions_reviewed_by",
+            ondelete="SET NULL",
+        ),
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    review_notes: Mapped[str | None] = mapped_column(Text)
+    extracted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    document: Mapped[DocumentORM] = relationship(
+        back_populates="extractions",
+        foreign_keys=[document_id],
+    )
+    document_version: Mapped[DocumentVersionORM] = relationship()
+    reviewed_by: Mapped[EmployeeORM | None] = relationship()
+
+
+class ProcedurePageEmbeddingORM(Base):
+    """Synthetic procedure page text. Not a document version and not an extraction.
+
+    ``embedding`` is sized to the laboratory port. The fake port is that
+    default. The vector is not a trusted semantic model.
+    """
+
+    __tablename__ = "procedure_page_embeddings"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    procedure_id: Mapped[str] = mapped_column(String(16), unique=True)
+    embedding_model: Mapped[str] = mapped_column(String(64))
+    embedding: Mapped[tuple[float, ...]] = mapped_column(
+        Vector(PROCEDURE_EMBEDDING_WIDTH)
+    )
+    token_count: Mapped[int] = mapped_column(Integer)
+    embedded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class FollowUpVisitORM(Base):
+    """Visit opened from an approved customer message.
+
+    ``unscheduled`` has no technician and no appointment. Confirm and cancel
+    update this row only. They do not change the message, book a window, or
+    post finance. There is no vector column.
+    """
+
+    __tablename__ = "follow_up_visits"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    approval_request_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "approval_requests.id",
+            name="fk_follow_up_visits_approval_request",
+            ondelete="RESTRICT",
+        ),
+        unique=True,
+    )
+    message_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "messages.id",
+            name="fk_follow_up_visits_message",
+            ondelete="RESTRICT",
+        ),
+        index=True,
+    )
+    support_ticket_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "support_tickets.id",
+            name="fk_follow_up_visits_support_ticket",
+            ondelete="RESTRICT",
+        ),
+        index=True,
+    )
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    opened_by_employee_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            name="fk_follow_up_visits_opened_by",
+            ondelete="RESTRICT",
+        ),
+    )
+    opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    decided_by_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            name="fk_follow_up_visits_decided_by",
+            ondelete="RESTRICT",
+        ),
+    )
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    decision_note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    approval_request: Mapped[ApprovalRequestORM] = relationship()
+    message: Mapped[MessageORM] = relationship()
+    support_ticket: Mapped[SupportTicketORM] = relationship()
+    opened_by: Mapped[EmployeeORM] = relationship(foreign_keys=[opened_by_employee_id])
+    decided_by: Mapped[EmployeeORM | None] = relationship(
+        foreign_keys=[decided_by_employee_id]
     )

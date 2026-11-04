@@ -5,25 +5,45 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "wasatch-api"
 version = "0.1.0"
-description = "Read-only Wasatch Business Systems laboratory API."
+description = "Wasatch Business Systems laboratory API for synthetic records."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.115.6,<0.122",
+    # SEC-1 / ADR 0007. FastAPI 0.162 keeps router lifecycle kwargs off
+    # Starlette 1.x. The upper bound stays on the release that was tested.
+    "fastapi>=0.162.0,<0.163",
+    # Direct pin so the resolver cannot select Starlette 0.x. FastAPI 0.162
+    # allows starlette>=0.46.0 with no upper bound. 1.10 is the patched
+    # release validated with this pin. Fixes for the five PYSEC IDs are on 1.x.
+    "starlette>=1.10.0,<1.11",
     "uvicorn[standard]>=0.32.1,<0.38",
     "sqlalchemy>=2.0.36,<2.1",
     "alembic>=1.14.0,<1.17",
     "psycopg[binary]>=3.2.3,<3.3",
     "pydantic>=2.10.3,<2.12",
     "pydantic-settings>=2.7.0,<2.10",
+    # Official client for the OpenAI chat and embedding adapter. The default
+    # provider is the in-process fake. Tests and CI do not need an API key.
+    "openai>=3.45.0,<4",
+    # Host traces. The API, SDK, and OTLP/HTTP exporter are wired from the
+    # composition root. Export runs only when OTEL_EXPORTER_OTLP_ENDPOINT is
+    # set. Pins are the 1.45.2 / 0.66b2 release pair.
+    "opentelemetry-api==1.45.2",
+    "opentelemetry-sdk==1.45.2",
+    "opentelemetry-exporter-otlp-proto-http==1.45.2",
+    "opentelemetry-instrumentation-fastapi==0.66b2",
+    # Starlette 1.10 TestClient uses anyio.from_thread.BlockingPortal.
+    # Match Starlette's own anyio<5 bound. The previous <4.15 cap was only
+    # for Starlette 0.50 importing anyio.abc.BlockingPortal.
+    "anyio>=4.8.0,<5",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.3.4,<9",
+    "pytest>=8.3.4,<10",
     "httpx>=0.28.1,<0.29",
     "jsonschema>=4.23,<5",
-    "ruff>=0.8,<1",
+    "ruff==0.17.3",
 ]
 
 [project.scripts]

@@ -1,34 +1,32 @@
 # Architecture
 
-This document describes the system architecture for AI Solutions Lab. A read-only FastAPI slice and local PostgreSQL environment now exist. React, AI providers, Redis, n8n, and Azure are still future work.
+This document describes the system architecture for AI Solutions Lab. A FastAPI slice and local PostgreSQL environment now exist. The host can draft a suggested reply through a model port. `apps/wasatch-review` records approve or reject for that reply and does not send it. Redis, n8n, and Azure are still future work.
 
 ## Initial System Architecture
 
 The deployable system is a modular monolith. The implemented slice today is FastAPI plus PostgreSQL:
 
-- A React + TypeScript presentation layer (**future**)
-- A Python + FastAPI application host (**implemented**, read-only)
-- PostgreSQL with pgvector for relational data and later embeddings (**local Compose**)
+- A React + TypeScript review screen (**implemented** in `apps/wasatch-review`; approve or reject only, no delivery)
+- A Python + FastAPI application host (**implemented**)
+- PostgreSQL with pgvector for relational data and procedure-page embeddings (**local Compose**; `procedure_page_embeddings.embedding`, fake port, not a trusted model)
 - Redis for cache and short-lived coordination (**not in this slice**)
 - n8n for workflow automation at the edges (**future**)
-- OpenAI as the first AI provider, reached only through an application port (**future**)
-- OpenTelemetry for traces, metrics, and logs (**future**)
+- OpenAI as the first AI provider, reached only through an application port (**adapter implemented; default provider is a fake and does not call the network**)
+- OpenTelemetry traces on the Wasatch API host (**spans export only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set**; Compose has no collector; metrics and log export are not wired)
 - Docker Compose for local PostgreSQL and the API container
 - Azure and Terraform for later cloud environments (**not deployed**)
 
 ```mermaid
 flowchart LR
-    User[User] --> Web["React TypeScript UI (future)"]
-    User --> Human["Human Approval Queue (future)"]
-    Web --> API[FastAPI Modular Monolith]
-    Human --> API
+    User[User] --> Review["Wasatch review screen"]
+    Review --> API[FastAPI Modular Monolith]
     User --> API
 
     subgraph Monolith["Application Host"]
         Queries[Customer and Work Order Queries]
         Domain[Wasatch Domain Model]
         Persist[Persistence Adapters]
-        AIPorts["AI Ports (future)"]
+        AIPorts["AI Ports"]
         Queries --> Domain
         Queries --> Persist
         Persist --> Domain
@@ -36,10 +34,10 @@ flowchart LR
 
     API --> Queries
     Persist --> PG[(PostgreSQL / pgvector)]
-    AIPorts -.-> OpenAI["OpenAI Adapter (future)"]
+    AIPorts -.-> OpenAI["OpenAI Adapter (configuration)"]
 ```
 
-Customer-service, document, workflow, knowledge, sales, and BI modules remain planned packages. The current host exposes health, customer, service-location, and work-order read APIs only.
+Customer-service reads, governance reads, ticket retrieval, and suggested-reply drafts are in the host. The review screen calls that API and does not deliver the message. The host stores synthetic procedure-page embeddings in PostgreSQL and does not deliver customer messages. Those vectors are not a trusted model. Document version bytes are not stored. Workflow automation, knowledge search beyond the synthetic procedure corpus, sales, and BI remain planned. The default model port is an in-process fake. The OpenAI adapter runs only when configuration selects it and a non-placeholder key is present.
 
 ## Architectural Principles
 
@@ -68,19 +66,19 @@ Shared kernels, if any, belong in `libs/` only after duplication becomes real. F
 
 ### Monorepo tooling
 
-Nx is **not** installed. The repository has no applications or shared build graph that would benefit from it. Revisit Nx when multiple apps and libraries need coordinated builds, generators, or task caching. Record that decision in an ADR if the choice changes.
+Nx is **not** installed. `apps/wasatch-review` is one Vite application and does not share a build graph with the API. Revisit Nx when multiple apps and libraries need coordinated builds, generators, or task caching. Record that decision in an ADR if the choice changes.
 
 Specialized services in Java, Scala, or Rust are allowed only with a written justification. They are not part of the initial host.
 
 ## AI Provider Abstraction Strategy
 
-The application layer will define ports for:
+The application layer defines ports for:
 
-- Chat completion and tool use
+- Chat completion (tool calls are not used by the draft reply)
 - Embeddings
-- Moderation or safety checks when required
+- The commitment check that decides whether a reply needs approval. That rule is domain policy, not a provider moderation call.
 
-OpenAI is the first adapter. Domain objects must not import OpenAI clients, model names as business rules, or prompt strings scattered across modules. Model selection, retries, and token accounting belong in infrastructure or a dedicated AI application service.
+OpenAI is the first adapter. Domain objects do not import the OpenAI client. Model names, retries, and token accounting stay in the infrastructure adapter. The Wasatch draft prompt lives in the draft use case so every provider sees the same instructions.
 
 This keeps the laboratory able to compare providers later without rewriting Wasatch use cases.
 
@@ -106,8 +104,8 @@ All laboratory records are synthetic. Production-like schemas should still assum
 
 ## Security Model
 
-- Secrets stay in environment variables locally and in a managed secret store on Azure.
-- Authentication and least-privilege authorization will be required before any module exposes customer or employee data.
+- Local secrets stay in an uncommitted `.env`. Managed secrets apply only after a cloud deployment exists. That deployment does not exist. See [operations/secrets.md](operations/secrets.md).
+- `/api/v1` reads require an active synthetic employee. `X-Laboratory-Actor` is a local development simulation (`APP_ENV` of `local`, `development`, or `test`). Production configuration fails startup. A production authenticator is not implemented. See [SECURITY.md](SECURITY.md) and [ADR 0006](adr/0006-laboratory-actor-development-only.md).
 - Consequential actions persist an audit event: actor, action, subject, rationale, and approval state.
 - Prompt injection, document injection, and unsafe tool calls are expected failure modes. See [SECURITY.md](SECURITY.md).
 
@@ -116,7 +114,7 @@ All laboratory records are synthetic. Production-like schemas should still assum
 | Environment | Strategy | Status |
 |---|---|---|
 | Local | Docker Compose for PostgreSQL with pgvector; FastAPI on the host or in Compose | Implemented for the read-only slice |
-| Continuous integration | GitHub Actions for formatting, linting, fixture validation, and API tests | No cloud credentials required |
+| Continuous integration | GitHub Actions for formatting, linting, fixture validation, and API tests against PostgreSQL. A skipped integration or API test fails the job. | No cloud credentials required |
 | Cloud | Microsoft Azure, provisioned with Terraform | Not deployed |
 
 Do not introduce Kubernetes or additional runtime clusters unless an ADR records a requirement that the modular monolith cannot meet.
@@ -135,3 +133,4 @@ Do not introduce Kubernetes or additional runtime clusters unless an ADR records
 - [adr/0003-postgresql-pgvector.md](adr/0003-postgresql-pgvector.md)
 - [adr/0004-openai-provider-abstraction.md](adr/0004-openai-provider-abstraction.md)
 - [adr/0005-docker-compose-local-development.md](adr/0005-docker-compose-local-development.md)
+- [adr/0006-laboratory-actor-development-only.md](adr/0006-laboratory-actor-development-only.md)

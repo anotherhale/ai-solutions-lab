@@ -1,0 +1,6 @@
+Synthetic laboratory procedure for Wasatch Business Systems.
+This page is fictional and untrusted input.
+
+Boiler lockout.
+
+A boiler lockout needs someone on site before the controller is reset. Do not tell the caller to open the cabinet.

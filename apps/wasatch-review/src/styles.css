@@ -1,0 +1,300 @@
+:root {
+  color: #1b2430;
+  background: #f3efe4;
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+  line-height: 1.45;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+.masthead h1 {
+  margin: 4px 0 8px;
+  font-family: Palatino, "Palatino Linotype", "Iowan Old Style", Georgia, serif;
+  font-size: 2.4rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.eyebrow,
+.hint,
+.muted,
+.colophon,
+.message-meta {
+  color: #5c6570;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lede {
+  max-width: 68ch;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.panel {
+  background: #fffdf8;
+  border: 1px solid #d7d0c3;
+  border-radius: 14px;
+  padding: 18px 18px 16px;
+}
+
+.controls {
+  margin-top: 22px;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  font-weight: 650;
+  margin-bottom: 8px;
+}
+
+.actor-choices {
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 800px) {
+  .actor-choices {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.actor-choice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid #d7d0c3;
+  border-radius: 10px;
+  background: #faf7f1;
+}
+
+.actor-choice span {
+  display: grid;
+  min-width: 0;
+}
+
+.inquiry-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-top: 16px;
+}
+
+.inquiry-row label,
+.decision label {
+  display: grid;
+  gap: 6px;
+  font-weight: 650;
+  flex: 1 1 240px;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #c9c0b0;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  background: #8d3d2f;
+  color: #fffdf8;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #1b2430;
+  outline-offset: 2px;
+}
+
+.hint {
+  margin: 10px 0 0;
+  font-size: 0.92rem;
+}
+
+.status-stack {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.banner {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+
+.banner-alert {
+  background: #f8e8e4;
+  border: 1px solid #8d3d2f;
+}
+
+.banner-recorded {
+  background: #e5f2ea;
+  border: 1px solid #1f6b4a;
+}
+
+.review {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (min-width: 860px) {
+  .review {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.review h2,
+.empty-state h3 {
+  margin: 0 0 8px;
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+}
+
+.subject {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+}
+
+.facts {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.facts div {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 8px;
+}
+
+.facts dt {
+  color: #5c6570;
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.messages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.message-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+}
+
+.message-body {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.json-fields {
+  max-height: 280px;
+  overflow: auto;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 1px solid #d7d0c3;
+  border-radius: 10px;
+  background: #faf7f1;
+  color: #1b2430;
+  font: 0.9rem/1.5 "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  white-space: pre-wrap;
+}
+
+blockquote.message-body {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-left: 4px solid #8d3d2f;
+  background: #faf7f1;
+}
+
+.empty-state,
+.empty-copy {
+  margin: 0;
+}
+
+.empty-state {
+  padding: 8px 0 4px;
+}
+
+.unsent {
+  margin: 0 0 12px;
+  font-weight: 650;
+}
+
+.decision-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+button.approve {
+  background: #1f6b4a;
+}
+
+button.reject {
+  background: #fffdf8;
+  color: #8d3d2f;
+  box-shadow: inset 0 0 0 1.5px #8d3d2f;
+}
+
+.colophon {
+  margin: 22px 0 0;
+  font-size: 0.88rem;
+}

@@ -1,5 +1,7 @@
 # Apps
 
-Reserved for user-facing applications such as the React + TypeScript laboratory UI.
+User-facing applications for the laboratory.
 
-No application scaffolding has been added yet. Add an app here when Phase 2 work needs a frontend.
+`wasatch-review` is the React and TypeScript screen for one synthetic Wasatch Business Systems inquiry. A reviewer reads the suggested reply and approves or rejects it. The screen does not send the message. Nx is not used.
+
+See [wasatch-review/README.md](wasatch-review/README.md).

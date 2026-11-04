@@ -15,6 +15,9 @@ ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_ROOT = ROOT / "data" / "schemas" / "v1"
 VALID_DIR = ROOT / "data" / "fixtures" / "valid"
 QUALITY_DIR = ROOT / "data" / "fixtures" / "quality-issues"
+PROCEDURES_DIR = ROOT / "data" / "documents" / "procedures"
+PROCEDURE_LABEL = "Synthetic laboratory procedure for Wasatch Business Systems."
+PROCEDURE_CORPUS = "wasatch-procedures"
 AS_OF = date(2026, 11, 3)
 
 FIXTURE_FILES = {
@@ -487,6 +490,60 @@ def check_unique_business_keys(
     unique("equipment", "asset_tag")
 
 
+def check_procedure_corpus(errors: list[str]) -> None:
+    """The procedure catalog is synthetic and is not a replacement fixture set."""
+
+    catalog_path = PROCEDURES_DIR / "catalog.json"
+    if not catalog_path.is_file():
+        error(
+            errors, "Missing procedure catalog: data/documents/procedures/catalog.json"
+        )
+        return
+    if VALID_DIR in catalog_path.parents:
+        error(errors, "procedure catalog must not live under data/fixtures/valid")
+    payload = json.loads(catalog_path.read_text(encoding="utf-8"))
+    if payload.get("synthetic") is not True:
+        error(errors, "procedure catalog must set synthetic to true")
+    if payload.get("corpus") != PROCEDURE_CORPUS:
+        error(errors, f"procedure catalog corpus must be {PROCEDURE_CORPUS}")
+    pages = payload.get("pages")
+    if not isinstance(pages, list) or not pages:
+        error(errors, "procedure catalog pages must be a non-empty array")
+        return
+    seen: set[str] = set()
+    for page in pages:
+        if not isinstance(page, dict):
+            error(errors, "procedure page must be an object")
+            continue
+        page_id = page.get("id")
+        relative = page.get("path")
+        if not _procedure_id(page_id):
+            error(errors, f"procedure page id is invalid: {page_id}")
+        elif page_id in seen:
+            error(errors, f"duplicate procedure page id {page_id}")
+        else:
+            seen.add(page_id)
+        if not isinstance(relative, str) or Path(relative).name != relative:
+            error(errors, f"procedure path must be a file name: {relative}")
+            continue
+        file_path = PROCEDURES_DIR / relative
+        if not file_path.is_file():
+            error(errors, f"missing procedure page {relative}")
+            continue
+        lines = file_path.read_text(encoding="utf-8").lstrip("\ufeff").splitlines()
+        if not lines or lines[0].strip() != PROCEDURE_LABEL:
+            error(errors, f"{relative} must be labeled synthetic")
+
+
+def _procedure_id(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 9
+        and value.startswith("proc_")
+        and value[5:].isdigit()
+    )
+
+
 def main() -> int:
     errors: list[str] = []
     if not VALID_DIR.is_dir():
@@ -504,6 +561,7 @@ def main() -> int:
     check_documents(fixtures, by_id, errors)
     check_approvals_and_messages(fixtures, errors)
     check_quality_issue_separation(errors)
+    check_procedure_corpus(errors)
 
     if errors:
         print("Wasatch domain validation failed:")

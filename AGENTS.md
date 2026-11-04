@@ -14,7 +14,7 @@ Do not implement production client work, live customer data, or unrelated produc
 
 ## Current Status
 
-Documentation, domain contracts, synthetic fixtures, a local PostgreSQL environment, and a read-only FastAPI slice exist. AI assistants, embeddings, React UI, write APIs, and cloud environments have not been implemented and must not be described as if they have.
+Documentation, domain contracts, synthetic fixtures, a local PostgreSQL environment, and a FastAPI slice exist. The API can read synthetic operations, record an approval decision, and draft a suggested reply. The default model port is a fake and does not call a provider. `apps/wasatch-review` is a React and TypeScript screen for that decision. It does not send customer messages. Synthetic procedure-page embeddings are stored in PostgreSQL (`procedure_page_embeddings.embedding`). They are procedure text from the fake port, not a trusted model, and not document bytes. Outbound delivery and cloud environments have not been implemented and must not be described as if they have.
 
 Inspect the working tree and relevant documents before making changes. Preserve useful existing content.
 
@@ -97,7 +97,7 @@ Do not install Nx unless the monorepo complexity clearly outweighs the tool's co
 
 ## Local Wasatch slice
 
-Docker Compose Postgres and the read-only API are the runnable slice. Compose defaults match the application defaults (`wasatch` / `replace-me` on localhost), so a root `.env` is optional. Leave `WASATCH_FIXTURES_DIR` unset. A blank value is loaded as the current directory and seed will not find `data/fixtures/valid`.
+Docker Compose Postgres, the FastAPI service, and the review screen are the runnable slice. Compose defaults match the application defaults (`wasatch` / `replace-me` on localhost), so a root `.env` is optional. Leave `WASATCH_FIXTURES_DIR` unset. A blank value is loaded as the current directory and seed will not find `data/fixtures/valid`.
 
 From `services/wasatch-api`, `pytest` uses that Postgres and creates the `wasatch_test` database. On a Cloud Agent workstation the start command launches Docker, Postgres, migrations, seed, and the API on port 8000. That workstation is not an Azure deployment.
 

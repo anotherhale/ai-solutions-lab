@@ -2,7 +2,7 @@
 
 Local Compose is defined at the repository root as `compose.yaml` so `docker compose up` works from a clone.
 
-This directory remains the place for additional container notes. Redis and n8n are not started yet.
+This directory remains the place for additional container notes. Compose does not run a collector, Redis, or n8n. The API exports spans only when the process has `OTEL_EXPORTER_OTLP_ENDPOINT` set. The Compose file does not set that variable.
 
 ```bash
 docker compose up -d postgres            # or docker-compose

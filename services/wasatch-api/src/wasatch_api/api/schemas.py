@@ -2,8 +2,20 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
+from wasatch_api.customer_service.domain.entities import (
+    Interaction,
+    Message,
+    SupportTicket,
+)
+from wasatch_api.customer_service.domain.retrieval import (
+    HistoryPassage,
+    ProcedurePage,
+    RetrievalResult,
+)
 from wasatch_api.customers.domain.entities import (
     Address,
     Contact,
@@ -11,6 +23,16 @@ from wasatch_api.customers.domain.entities import (
     CustomerSummary,
     ServiceLocation,
     ServiceLocationDetail,
+)
+from wasatch_api.documents.domain.entities import (
+    Document,
+    DocumentExtraction,
+    DocumentVersion,
+)
+from wasatch_api.governance.domain.entities import (
+    ApprovalDecision,
+    ApprovalRequest,
+    AuditEvent,
 )
 from wasatch_api.shared.time import dump_date, dump_datetime
 from wasatch_api.work_orders.domain.entities import (
@@ -20,6 +42,7 @@ from wasatch_api.work_orders.domain.entities import (
     WorkOrder,
     WorkOrderTask,
 )
+from wasatch_api.workflows.domain.entities import FollowUpVisit
 
 
 class AddressOut(BaseModel):
@@ -386,6 +409,514 @@ class WorkOrderDetailOut(BaseModel):
             tasks=[WorkOrderTaskOut.from_domain(item) for item in work_order.tasks],
             appointments=[
                 AppointmentOut.from_domain(item) for item in work_order.appointments
+            ],
+        )
+
+
+class ExtractionDecisionIn(BaseModel):
+    """Human accept or reject. This request does not post an invoice."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    decision: Literal["accepted", "rejected"]
+    note: str | None = None
+
+
+class ApprovalDecisionIn(BaseModel):
+    """Human approve or reject. This request does not send the message."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    decision: Literal["approved", "rejected"]
+    note: str | None = None
+
+
+class FollowUpVisitDecisionIn(BaseModel):
+    """Open, confirm, or cancel a follow-up. This request does not send it."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    decision: Literal["open", "confirm", "cancel"]
+    note: str | None = None
+
+
+class FollowUpVisitOut(BaseModel):
+    """Unscheduled until confirm or cancel. No technician and no appointment."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    approval_request_id: str
+    message_id: str
+    support_ticket_id: str
+    status: str
+    opened_by_employee_id: str
+    opened_at: str
+    created_at: str
+    updated_at: str
+    decided_by_employee_id: str | None = None
+    decided_at: str | None = None
+    note: str | None = None
+
+    @classmethod
+    def from_domain(cls, visit: FollowUpVisit) -> FollowUpVisitOut:
+        return cls(
+            id=visit.id,
+            approval_request_id=visit.approval_request_id,
+            message_id=visit.message_id,
+            support_ticket_id=visit.support_ticket_id,
+            status=visit.status,
+            opened_by_employee_id=visit.opened_by_employee_id,
+            opened_at=dump_datetime(visit.opened_at),
+            created_at=dump_datetime(visit.created_at),
+            updated_at=dump_datetime(visit.updated_at),
+            decided_by_employee_id=visit.decided_by_employee_id,
+            decided_at=dump_datetime(visit.decided_at) if visit.decided_at else None,
+            note=visit.note,
+        )
+
+
+class ApprovalDecisionOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    at: str
+    actor_employee_id: str
+    from_status: str
+    to_status: str
+    note: str | None = None
+
+    @classmethod
+    def from_domain(cls, decision: ApprovalDecision) -> ApprovalDecisionOut:
+        return cls(
+            at=dump_datetime(decision.at),
+            actor_employee_id=decision.actor_employee_id,
+            from_status=decision.from_status,
+            to_status=decision.to_status,
+            note=decision.note,
+        )
+
+
+class ApprovalRequestOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    action_type: str
+    status: str
+    requested_by_employee_id: str
+    subject_type: str
+    subject_id: str
+    rationale: str
+    requested_at: str
+    created_at: str
+    updated_at: str
+    decision_history: list[ApprovalDecisionOut] = Field(default_factory=list)
+    reviewer_employee_id: str | None = None
+    decision_notes: str | None = None
+    decided_at: str | None = None
+    executed_at: str | None = None
+
+    @classmethod
+    def from_domain(cls, approval: ApprovalRequest) -> ApprovalRequestOut:
+        return cls(
+            id=approval.id,
+            action_type=approval.action_type,
+            status=approval.status,
+            requested_by_employee_id=approval.requested_by_employee_id,
+            reviewer_employee_id=approval.reviewer_employee_id,
+            subject_type=approval.subject_type,
+            subject_id=approval.subject_id,
+            rationale=approval.rationale,
+            decision_notes=approval.decision_notes,
+            requested_at=dump_datetime(approval.requested_at),
+            decided_at=dump_datetime(approval.decided_at)
+            if approval.decided_at
+            else None,
+            executed_at=(
+                dump_datetime(approval.executed_at) if approval.executed_at else None
+            ),
+            decision_history=[
+                ApprovalDecisionOut.from_domain(item)
+                for item in approval.decision_history
+            ],
+            created_at=dump_datetime(approval.created_at),
+            updated_at=dump_datetime(approval.updated_at),
+        )
+
+
+class AuditEventOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    occurred_at: str
+    actor_type: str
+    action: str
+    subject_type: str
+    subject_id: str
+    outcome: str
+    actor_employee_id: str | None = None
+    approval_request_id: str | None = None
+    details: dict | None = None
+
+    @classmethod
+    def from_domain(cls, event: AuditEvent) -> AuditEventOut:
+        return cls(
+            id=event.id,
+            occurred_at=dump_datetime(event.occurred_at),
+            actor_type=event.actor_type,
+            actor_employee_id=event.actor_employee_id,
+            action=event.action,
+            subject_type=event.subject_type,
+            subject_id=event.subject_id,
+            outcome=event.outcome,
+            approval_request_id=event.approval_request_id,
+            details=event.details,
+        )
+
+
+class MessageOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    support_ticket_id: str
+    direction: str
+    channel: str
+    body: str
+    status: str
+    sent_at: str
+    created_at: str
+    updated_at: str
+    author_employee_id: str | None = None
+    author_contact_id: str | None = None
+    requires_approval: bool = False
+    approval_request_id: str | None = None
+    approval_request: ApprovalRequestOut | None = None
+
+    @classmethod
+    def from_domain(cls, message: Message) -> MessageOut:
+        return cls(
+            id=message.id,
+            support_ticket_id=message.support_ticket_id,
+            direction=message.direction,
+            channel=message.channel,
+            body=message.body,
+            status=message.status,
+            sent_at=dump_datetime(message.sent_at),
+            created_at=dump_datetime(message.created_at),
+            updated_at=dump_datetime(message.updated_at),
+            author_employee_id=message.author_employee_id,
+            author_contact_id=message.author_contact_id,
+            requires_approval=message.requires_approval,
+            approval_request_id=message.approval_request_id,
+            approval_request=(
+                ApprovalRequestOut.from_domain(message.approval_request)
+                if message.approval_request
+                else None
+            ),
+        )
+
+
+class SupportTicketListItemOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    customer_id: str
+    status: str
+    priority: str
+    channel: str
+    subject: str
+    opened_at: str
+    service_location_id: str | None = None
+    assigned_employee_id: str | None = None
+
+    @classmethod
+    def from_domain(cls, ticket: SupportTicket) -> SupportTicketListItemOut:
+        return cls(
+            id=ticket.id,
+            customer_id=ticket.customer_id,
+            status=ticket.status,
+            priority=ticket.priority,
+            channel=ticket.channel,
+            subject=ticket.subject,
+            opened_at=dump_datetime(ticket.opened_at),
+            service_location_id=ticket.service_location_id,
+            assigned_employee_id=ticket.assigned_employee_id,
+        )
+
+
+class SupportTicketDetailOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    customer_id: str
+    status: str
+    priority: str
+    channel: str
+    subject: str
+    opened_at: str
+    created_at: str
+    updated_at: str
+    contact_id: str | None = None
+    service_location_id: str | None = None
+    work_order_id: str | None = None
+    assigned_employee_id: str | None = None
+    resolved_at: str | None = None
+    closed_at: str | None = None
+    related_document_ids: list[str] = Field(default_factory=list)
+    messages: list[MessageOut] = Field(default_factory=list)
+
+    @classmethod
+    def from_domain(cls, ticket: SupportTicket) -> SupportTicketDetailOut:
+        return cls(
+            id=ticket.id,
+            customer_id=ticket.customer_id,
+            status=ticket.status,
+            priority=ticket.priority,
+            channel=ticket.channel,
+            subject=ticket.subject,
+            opened_at=dump_datetime(ticket.opened_at),
+            created_at=dump_datetime(ticket.created_at),
+            updated_at=dump_datetime(ticket.updated_at),
+            contact_id=ticket.contact_id,
+            service_location_id=ticket.service_location_id,
+            work_order_id=ticket.work_order_id,
+            assigned_employee_id=ticket.assigned_employee_id,
+            resolved_at=dump_datetime(ticket.resolved_at)
+            if ticket.resolved_at
+            else None,
+            closed_at=dump_datetime(ticket.closed_at) if ticket.closed_at else None,
+            related_document_ids=list(ticket.related_document_ids),
+            messages=[MessageOut.from_domain(item) for item in ticket.messages],
+        )
+
+
+class InteractionOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    customer_id: str
+    channel: str
+    occurred_at: str
+    summary: str
+    employee_id: str
+    outcome: str
+    created_at: str
+    updated_at: str
+    contact_id: str | None = None
+    support_ticket_id: str | None = None
+    work_order_id: str | None = None
+
+    @classmethod
+    def from_domain(cls, interaction: Interaction) -> InteractionOut:
+        return cls(
+            id=interaction.id,
+            customer_id=interaction.customer_id,
+            channel=interaction.channel,
+            occurred_at=dump_datetime(interaction.occurred_at),
+            summary=interaction.summary,
+            employee_id=interaction.employee_id,
+            outcome=interaction.outcome,
+            created_at=dump_datetime(interaction.created_at),
+            updated_at=dump_datetime(interaction.updated_at),
+            contact_id=interaction.contact_id,
+            support_ticket_id=interaction.support_ticket_id,
+            work_order_id=interaction.work_order_id,
+        )
+
+
+class HistoryPassageOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source: str
+    source_id: str
+    text: str
+
+    @classmethod
+    def from_domain(cls, passage: HistoryPassage) -> HistoryPassageOut:
+        return cls(
+            source=passage.source,
+            source_id=passage.source_id,
+            text=passage.text,
+        )
+
+
+class ProcedurePageOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    title: str
+    path: str
+    text: str
+    synthetic: Literal[True]
+
+    @classmethod
+    def from_domain(cls, page: ProcedurePage) -> ProcedurePageOut:
+        return cls(
+            id=page.id,
+            title=page.title,
+            path=page.path,
+            text=page.text,
+            synthetic=page.synthetic,
+        )
+
+
+class TicketRetrievalOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    support_ticket_id: str
+    customer_id: str
+    history: list[HistoryPassageOut]
+    procedures: list[ProcedurePageOut]
+
+    @classmethod
+    def from_domain(cls, result: RetrievalResult) -> TicketRetrievalOut:
+        return cls(
+            support_ticket_id=result.support_ticket_id,
+            customer_id=result.customer_id,
+            history=[HistoryPassageOut.from_domain(item) for item in result.history],
+            procedures=[
+                ProcedurePageOut.from_domain(item) for item in result.procedures
+            ],
+        )
+
+
+class DocumentVersionOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    document_id: str
+    version_number: int
+    storage_path: str
+    checksum_sha256: str
+    created_at: str
+    byte_size: int | None = None
+    created_by_employee_id: str | None = None
+
+    @classmethod
+    def from_domain(cls, version: DocumentVersion) -> DocumentVersionOut:
+        return cls(
+            id=version.id,
+            document_id=version.document_id,
+            version_number=version.version_number,
+            storage_path=version.storage_path,
+            checksum_sha256=version.checksum_sha256,
+            byte_size=version.byte_size,
+            created_by_employee_id=version.created_by_employee_id,
+            created_at=dump_datetime(version.created_at),
+        )
+
+
+class DocumentExtractionOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    document_id: str
+    document_version_id: str
+    status: str
+    extractor: str
+    extracted_at: str
+    created_at: str
+    updated_at: str
+    confidence: float | None = None
+    extracted_fields: dict | None = None
+    reviewed_by_employee_id: str | None = None
+    reviewed_at: str | None = None
+    review_notes: str | None = None
+
+    @classmethod
+    def from_domain(cls, extraction: DocumentExtraction) -> DocumentExtractionOut:
+        return cls(
+            id=extraction.id,
+            document_id=extraction.document_id,
+            document_version_id=extraction.document_version_id,
+            status=extraction.status,
+            extractor=extraction.extractor,
+            confidence=extraction.confidence,
+            extracted_fields=extraction.extracted_fields,
+            reviewed_by_employee_id=extraction.reviewed_by_employee_id,
+            reviewed_at=dump_datetime(extraction.reviewed_at)
+            if extraction.reviewed_at
+            else None,
+            review_notes=extraction.review_notes,
+            extracted_at=dump_datetime(extraction.extracted_at),
+            created_at=dump_datetime(extraction.created_at),
+            updated_at=dump_datetime(extraction.updated_at),
+        )
+
+
+class DocumentListItemOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    title: str
+    document_type: str
+    status: str
+    source: str
+    mime_type: str
+    untrusted: bool
+    customer_id: str | None = None
+    current_version_id: str | None = None
+
+    @classmethod
+    def from_domain(cls, document: Document) -> DocumentListItemOut:
+        return cls(
+            id=document.id,
+            title=document.title,
+            document_type=document.document_type,
+            status=document.status,
+            source=document.source,
+            mime_type=document.mime_type,
+            untrusted=document.untrusted,
+            customer_id=document.customer_id,
+            current_version_id=document.current_version_id,
+        )
+
+
+class DocumentDetailOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    title: str
+    document_type: str
+    status: str
+    source: str
+    mime_type: str
+    untrusted: bool
+    created_at: str
+    updated_at: str
+    customer_id: str | None = None
+    service_location_id: str | None = None
+    work_order_id: str | None = None
+    invoice_id: str | None = None
+    current_version_id: str | None = None
+    uploaded_by_employee_id: str | None = None
+    notes: str | None = None
+    versions: list[DocumentVersionOut] = Field(default_factory=list)
+    extractions: list[DocumentExtractionOut] = Field(default_factory=list)
+
+    @classmethod
+    def from_domain(cls, document: Document) -> DocumentDetailOut:
+        return cls(
+            id=document.id,
+            title=document.title,
+            document_type=document.document_type,
+            status=document.status,
+            source=document.source,
+            mime_type=document.mime_type,
+            untrusted=document.untrusted,
+            customer_id=document.customer_id,
+            service_location_id=document.service_location_id,
+            work_order_id=document.work_order_id,
+            invoice_id=document.invoice_id,
+            current_version_id=document.current_version_id,
+            uploaded_by_employee_id=document.uploaded_by_employee_id,
+            notes=document.notes,
+            created_at=dump_datetime(document.created_at),
+            updated_at=dump_datetime(document.updated_at),
+            versions=[
+                DocumentVersionOut.from_domain(item) for item in document.versions
+            ],
+            extractions=[
+                DocumentExtractionOut.from_domain(item) for item in document.extractions
             ],
         )
 

@@ -4,7 +4,7 @@ Engineering laboratory for practical AI solutions that small and midsize busines
 
 This repository began as a showcase for AI cloud solutions. It is now the home for a reusable implementation platform, a simulated Utah HVAC business, and a public consulting portfolio.
 
-A read-only FastAPI service and local PostgreSQL environment now exist for synthetic Wasatch data. React, AI assistants, and Azure have not been implemented.
+A FastAPI service and local PostgreSQL environment now exist for synthetic Wasatch data. The service can draft a suggested reply through a model port and can read persisted document, version, and extraction fixtures. The default port is a fake and does not call a provider. `apps/wasatch-review` is a React and TypeScript screen that approves or rejects that reply and accepts or rejects one document extraction. It does not send the message or post financial records. Azure has not been implemented.
 
 ## Business Objectives
 
@@ -77,18 +77,18 @@ ai-solutions-lab/
 ├── AGENTS.md
 ├── README.md
 ├── LICENSE
-├── docs/                     Project charter, architecture, security, ADRs
-├── apps/                     Future user-facing applications
-├── services/wasatch-api/     Read-only FastAPI host
+├── docs/                     Charter, architecture, security, operations notes, ADRs
+├── apps/wasatch-review/      React review screen for bounded human decisions
+├── services/wasatch-api/     FastAPI host for synthetic Wasatch data
 ├── libs/                     Future shared libraries
-├── infrastructure/           Docker notes and future Terraform
+├── infrastructure/           Docker notes; Terraform placeholder, no workspace
 ├── compose.yaml              Local PostgreSQL (pgvector) and API
 ├── data/                     Schemas, synthetic fixtures, and documents
 ├── scripts/                  Repository maintenance and validation
 └── tests/                    Reserved for later cross-service tests
 ```
 
-`apps/` and `libs/` remain reserved. Application tests live under `services/wasatch-api/tests/`.
+`libs/` remains reserved. The review screen is `apps/wasatch-review`. API tests live under `services/wasatch-api/tests/`. Review-screen tests live next to that app and do not need a provider key.
 
 ## Local Development Prerequisites
 
@@ -97,7 +97,7 @@ The following tools will be required once application work starts. They are not 
 - Git
 - Python 3.12 or later
 - Docker and Docker Compose
-- Node.js 22 LTS (for future frontend work)
+- Node.js 22.12 or later (review screen)
 - A GitHub account for pull requests
 
 Optional local environment values belong in `.env`. Copy `.env.example` and replace placeholders only. Never commit `.env` or real credentials.
@@ -105,7 +105,7 @@ Optional local environment values belong in `.env`. Copy `.env.example` and repl
 ### Repository validation
 
 ```bash
-python3 -m pip install ruff
+python3 -m pip install 'ruff==0.17.3'
 ruff format --check .
 ruff check .
 python3 scripts/validate_repo.py
@@ -127,6 +127,8 @@ wasatch-api seed
 uvicorn wasatch_api.main:app --reload
 ```
 
+The review screen proxies `/api` to that process. From `apps/wasatch-review`: `npm install` then `npm run dev`, and open http://127.0.0.1:5173. See [apps/wasatch-review/README.md](apps/wasatch-review/README.md).
+
 ## Development Status
 
 | Area | Status |
@@ -135,12 +137,22 @@ uvicorn wasatch_api.main:app --reload
 | Engineering standards | In progress |
 | Repository tooling | In progress |
 | Synthetic domain model and fixtures | Defined |
-| Read-only Wasatch API | Implemented |
-| AI application services | Not started |
+| Wasatch API | On `develop`: customer-service reads, retrieval, draft replies, human approval, document reads, extraction review, procedure-page embeddings, the follow-up visit, and host traces. `main` is not the deployed product |
+| Suggested-reply and extraction review screen | Implemented in `apps/wasatch-review`. It records approve/reject for replies and accept/reject for one extraction; it does not send messages or post money |
+| AI application services | Draft replies and embeddings use the fake provider by default. The placeholder OpenAI key fails before a client is constructed. CI does not call a model |
 | Local Docker environment | PostgreSQL with pgvector |
 | Azure deployment | Not started |
+| Case study | PORT-1. Documentation only. See the link below. It does not add a running system |
 
 The 90-day plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering workflow is in [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md). Security principles are in [docs/SECURITY.md](docs/SECURITY.md).
+
+Verified status, ordered work, the implementation plan, and the agent operating model:
+
+- [PROJECT_STATUS.md](PROJECT_STATUS.md)
+- [ENGINEERING_BACKLOG.md](ENGINEERING_BACKLOG.md)
+- [docs/architecture/IMPLEMENTATION_PLAN.md](docs/architecture/IMPLEMENTATION_PLAN.md)
+- [docs/architecture/AGENT_OPERATING_MODEL.md](docs/architecture/AGENT_OPERATING_MODEL.md)
+- [docs/case-studies/wasatch-laboratory-slice.md](docs/case-studies/wasatch-laboratory-slice.md)
 
 ## License
 

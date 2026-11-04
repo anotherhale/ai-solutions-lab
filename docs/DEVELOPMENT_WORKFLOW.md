@@ -4,7 +4,7 @@ This workflow applies to human contributors and AI coding agents. Persistent age
 
 ## Branch Naming
 
-Create branches from an updated default branch. Do not commit directly to `main`.
+Create branches from an updated `develop`. `develop` is the integration branch. `main` is the production branch. Do not commit directly to `develop` or `main`.
 
 | Prefix | Use |
 |---|---|
@@ -32,18 +32,18 @@ Guidelines:
 
 - Explain why the change exists, not only what files moved.
 - Keep secrets out of history. Never commit `.env` or credentials.
-- Do not rewrite published history or force-push to `main`.
+- Do not rewrite published history. Do not force-push `develop` or `main`.
 - Prefer several logical commits over one mixed commit when the work has distinct purposes.
 
 ## Pull Request Workflow
 
 1. Inspect the current branch and working tree before editing.
-2. Create a feature branch if the default branch is clean.
+2. Create a feature branch from `develop` if the working tree is clean.
 3. Make the smallest change that satisfies the request.
 4. Run local validation.
-5. Open a pull request against `main`. Do not push directly to the default branch.
+5. Open a pull request against `develop`. Do not push directly to `develop` or `main`. Do not force-push either branch.
 6. Request review. Address findings without expanding scope.
-7. Merge only when CI is green and the Definition of Done is met.
+7. Merge only when CI is green and the Definition of Done is met. GitHub does not enforce that by default; see [operations/github-branch-protection.md](operations/github-branch-protection.md) for recommended rulesets on `develop`.
 
 Pull requests should describe:
 
@@ -57,7 +57,8 @@ Pull requests should describe:
 - Add or update tests when behavior changes.
 - Prefer unit tests for domain and application rules.
 - Use `services/wasatch-api/tests/` for unit, integration, and API tests of the first host.
-- Use `tests/e2e/` for user-visible flows once a frontend exists.
+- Review-screen unit checks live in `apps/wasatch-review` and do not need a database or a provider key. GitHub Actions runs `npm test`, `npm run typecheck`, and `npm run build` in that app.
+- Browser workflows live in `tests/e2e/` (Playwright). They need PostgreSQL and the host-run API; CI runs them in the **Review workbench browser tests** job.
 - Use synthetic Wasatch Business Systems data only.
 - Do not fabricate test results. If a suite cannot be run, say so.
 
@@ -71,14 +72,16 @@ python3 scripts/validate_wasatch_domain.py
 cd services/wasatch-api && pytest
 ```
 
+GitHub Actions runs that pytest command against PostgreSQL with pgvector. The session applies Alembic migrations and loads `data/fixtures/valid/`. Integration and API tests are required on that job: a skip fails the run. Locally, pytest still skips those tests when PostgreSQL is not running.
+
 ## First application (local)
 
-1. Copy `.env.example` to `.env` and keep the Compose placeholders, or set your own.
-2. Start PostgreSQL: `docker compose up -d postgres`.
-3. Create `services/wasatch-api/.venv` with Python 3.12 and `pip install -e 'services/wasatch-api[dev]'`.
-4. From `services/wasatch-api`, run `alembic upgrade head` then `wasatch-api seed`.
-5. Start the API with `uvicorn wasatch_api.main:app --reload` or `scripts/wasatch_dev.sh`.
-6. Open http://localhost:8000/docs.
+1. Run `scripts/bootstrap_laboratory.sh` once, or manually: copy `.env.example` to `.env`, start PostgreSQL, create the API venv, and `npm ci` in `apps/wasatch-review`.
+2. Start the API with `scripts/wasatch_dev.sh` (reload) or `scripts/run_wasatch_api_host.sh` (CI-style, no reload).
+3. Open http://localhost:8000/docs.
+4. From `apps/wasatch-review`, run `npm run dev` and open http://127.0.0.1:5173. The dev server proxies `/api` to port 8000.
+5. Optional: `cd tests/e2e && npm test` after `npx playwright install chromium`.
+6. Optional: `scripts/smoke_compose.sh` verifies the Compose API image and startup path.
 
 Do not run `docker compose down -v` as part of normal shutdown; that destroys the named volume.
 

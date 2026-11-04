@@ -10,6 +10,54 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
+# The header adapter is a development identity simulation. These are the only
+# environments where it may run. There is no production authenticator.
+LOCAL_SYNTHETIC_ENVIRONMENTS = frozenset({"local", "development", "test"})
+PRODUCTION_ENVIRONMENTS = frozenset({"production", "prod"})
+
+
+class UnsafeProductionConfiguration(RuntimeError):
+    """The process must not serve traffic with this environment."""
+
+
+def normalize_app_env(app_env: str) -> str:
+    return app_env.strip().lower()
+
+
+def laboratory_actor_adapter_allowed(app_env: str) -> bool:
+    """True only for local synthetic development."""
+
+    return normalize_app_env(app_env) in LOCAL_SYNTHETIC_ENVIRONMENTS
+
+
+def reject_unsafe_production_configuration(app_env: str) -> None:
+    """Refuse to start when the laboratory header would be unsafe.
+
+    ``production`` and ``prod`` are production configurations. The header is
+    not a production authenticator, and leaving business reads open is also
+    unsafe, so startup fails. Any other environment outside local synthetic
+    development fails for the same reason: no second authenticator exists.
+    """
+
+    if laboratory_actor_adapter_allowed(app_env):
+        return
+    env = normalize_app_env(app_env)
+    if env in PRODUCTION_ENVIRONMENTS:
+        raise UnsafeProductionConfiguration(
+            "Refusing to start: APP_ENV is a production configuration. "
+            "The X-Laboratory-Actor header is a local synthetic development "
+            "identity simulation, not a production authenticator. "
+            "No password system and no identity provider is configured."
+        )
+    allowed = ", ".join(sorted(LOCAL_SYNTHETIC_ENVIRONMENTS))
+    raise UnsafeProductionConfiguration(
+        "Refusing to start: APP_ENV "
+        f"{app_env!r} is outside local synthetic development ({allowed}). "
+        "The laboratory actor adapter stays inactive, and business API reads "
+        "cannot be left unauthenticated. No password system and no identity "
+        "provider is configured."
+    )
+
 
 class Settings(BaseSettings):
     """Local and CI settings. Secrets must come from the environment."""
@@ -35,6 +83,10 @@ class Settings(BaseSettings):
         default=None, validation_alias="WASATCH_FIXTURES_DIR"
     )
     cors_origins: str = ""
+    ai_provider: str = "fake"
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    openai_embedding_model: str = "text-embedding-3-small"
 
     @property
     def sqlalchemy_url(self) -> str:

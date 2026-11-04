@@ -1,0 +1,22 @@
+{
+  "synthetic": true,
+  "corpus": "wasatch-procedures",
+  "description": "Synthetic Wasatch Business Systems procedure pages for laboratory retrieval. These files do not replace data/fixtures/valid/. Document version storage paths such as synthetic/documents/doc_0001/v1.bin are still not files in this repository.",
+  "pages": [
+    {
+      "id": "proc_0001",
+      "title": "Rooftop unit is down",
+      "path": "rooftop-unit-down.txt"
+    },
+    {
+      "id": "proc_0002",
+      "title": "Boiler lockout",
+      "path": "boiler-lockout.txt"
+    },
+    {
+      "id": "proc_0003",
+      "title": "Filter replacement",
+      "path": "filter-replacement.txt"
+    }
+  ]
+}
