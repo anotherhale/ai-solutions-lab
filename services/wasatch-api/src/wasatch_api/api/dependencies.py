@@ -26,6 +26,8 @@ from wasatch_api.customers.infrastructure.repository import CustomerRepository
 from wasatch_api.documents.application.decisions import DocumentExtractionDecisions
 from wasatch_api.documents.application.queries import DocumentQueries
 from wasatch_api.documents.infrastructure.repository import DocumentRepository
+from wasatch_api.finance.application.queries import InvoiceQueries
+from wasatch_api.finance.infrastructure.repository import InvoiceRepository
 from wasatch_api.governance.application.decisions import CustomerMessageDecisions
 from wasatch_api.governance.application.queries import GovernanceQueries
 from wasatch_api.governance.infrastructure.repository import GovernanceRepository
@@ -62,6 +64,10 @@ def customer_queries(session: Session) -> CustomerQueries:
 
 def work_order_queries(session: Session) -> WorkOrderQueries:
     return WorkOrderQueries(WorkOrderRepository(session))
+
+
+def finance_queries(session: Session) -> InvoiceQueries:
+    return InvoiceQueries(InvoiceRepository(session))
 
 
 def customer_service_queries(session: Session) -> CustomerServiceQueries:

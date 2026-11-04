@@ -12,6 +12,7 @@ from wasatch_api.api.routes import (
     customer_service,
     customers,
     documents,
+    finance,
     governance,
     health,
     work_orders,
@@ -68,6 +69,7 @@ def create_app() -> FastAPI:
     app.include_router(customer_service.router)
     app.include_router(governance.router)
     app.include_router(documents.router)
+    app.include_router(finance.router)
     app.include_router(workflows.router)
     configure_telemetry(app)
     return app
