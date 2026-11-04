@@ -250,7 +250,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### SEC-1 — Implement ADR 0007 (FastAPI / Starlette remediation)
 
-- Status: done in this change
+- Status: done in this change. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/29
 - Depends on: ADR 0007 (pull request [#28](https://github.com/anotherhale/ai-solutions-lab/pull/28), `8c950ce`), which recorded the plan as Proposed
 - `fastapi>=0.162.0,<0.163` and direct `starlette>=1.10.0,<1.11`. Resolved versions are FastAPI 0.162.0 and Starlette 1.10.0. The spike minimum was Starlette 1.3.1. 1.10.0 is the patched 1.x release this change audited.
 - `create_app` does not pass `on_startup`. FastAPI 0.162 keeps lifecycle handlers off Starlette's `Router`. `TestClient` enters the default lifespan and `GET /health` still returns `status` `ok`.
