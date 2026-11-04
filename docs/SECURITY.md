@@ -27,6 +27,8 @@ No production environment has been deployed. The absence of running services doe
 
 The laboratory API applies those rules inside the monolith. A local caller presents a synthetic employee business id in the `X-Laboratory-Actor` header. That header is a development-only identity simulation. `emp_0001` is an approver. `emp_0004` is not. There is no password. The adapter loads the active employee and the role's `is_approver` flag. It is not an Azure identity provider or a purchased identity service.
 
+An approver may accept or reject a document extraction that is awaiting review. That command records the decision and an audit event. It does not post a payment, change an invoice total, or mark an invoice posted. Low-confidence extractions and extractions with a financial effect stay untrusted until that decision. A read, a seed, and a background job do not accept them.
+
 The adapter runs only when `APP_ENV` is `local`, `development`, or `test`. `APP_ENV=production` and `APP_ENV=prod` are production configurations. Startup raises `UnsafeProductionConfiguration` and does not serve traffic. The header is not activated. Any other environment fails the same way, because business reads must stay authenticated and no second authenticator exists.
 
 Reads under `/api/v1` require an active laboratory actor. Writes are denied unless a command explicitly allows the actor. The workforce application service enforces those rules, including the approver role. An approval decision requires `is_approver` on the role. Team membership is not that authority. The customer-message command records approve or reject for that approver, appends an audit event, and does not send the message.

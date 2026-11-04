@@ -1,6 +1,7 @@
-"""Read-only document, version, and extraction routes.
+"""Document, version, and extraction routes.
 
-There is no write route and no human-review decision.
+The extraction decision is the only write. It records accept or reject for
+an approver. It does not post a payment or change an invoice.
 """
 
 from __future__ import annotations
@@ -12,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from wasatch_api.api.dependencies import (
     db_session,
+    document_extraction_decisions,
     document_queries,
     require_laboratory_actor,
 )
@@ -20,9 +22,12 @@ from wasatch_api.api.schemas import (
     DocumentExtractionOut,
     DocumentListItemOut,
     DocumentVersionOut,
+    ExtractionDecisionIn,
     PageOut,
 )
+from wasatch_api.documents.application.decisions import DocumentExtractionDecisions
 from wasatch_api.documents.application.queries import DocumentQueries
+from wasatch_api.workforce.domain.entities import LaboratoryActor
 
 router = APIRouter(
     prefix="/api/v1",
@@ -38,6 +43,14 @@ def queries(session: SessionDep) -> DocumentQueries:
 
 
 QueriesDep = Annotated[DocumentQueries, Depends(queries)]
+ActorDep = Annotated[LaboratoryActor, Depends(require_laboratory_actor)]
+
+
+def decisions(session: SessionDep) -> DocumentExtractionDecisions:
+    return document_extraction_decisions(session)
+
+
+DecisionsDep = Annotated[DocumentExtractionDecisions, Depends(decisions)]
 
 
 @router.get("/documents", response_model=PageOut[DocumentListItemOut])
@@ -130,3 +143,24 @@ def get_document_extraction(
     return DocumentExtractionOut.from_domain(
         service.get_document_extraction(extraction_id)
     )
+
+
+@router.post(
+    "/document-extractions/{extraction_id}/decisions",
+    response_model=DocumentExtractionOut,
+)
+def decide_document_extraction(
+    extraction_id: str,
+    body: ExtractionDecisionIn,
+    actor: ActorDep,
+    service: DecisionsDep,
+) -> DocumentExtractionOut:
+    """Accept or reject an extraction awaiting review.
+
+    The invoice and payment records are left unchanged.
+    """
+
+    recorded = service.decide(
+        actor, extraction_id, decision=body.decision, note=body.note
+    )
+    return DocumentExtractionOut.from_domain(recorded)

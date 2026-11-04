@@ -26,6 +26,7 @@ _BUSINESS_ID = re.compile(r"[a-z]+_\d+")
 _CUSTOMER_MESSAGE_DECISION = re.compile(
     r"^/api/v1/approval-requests/[a-z]+_\d+/decisions$"
 )
+_EXTRACTION_REVIEW = re.compile(r"^/api/v1/document-extractions/[a-z]+_\d+/decisions$")
 _SUGGESTED_REPLY = re.compile(r"^/api/v1/support-tickets/[a-z]+_\d+/draft-replies$")
 
 
@@ -73,6 +74,15 @@ def customer_message_decision_command(method: str, path: str) -> bool:
     )
 
 
+def extraction_review_command(method: str, path: str) -> bool:
+    """True only for the human accept-or-reject of one extraction.
+
+    The command does not post a payment or change an invoice.
+    """
+
+    return method.upper() == "POST" and _EXTRACTION_REVIEW.fullmatch(path) is not None
+
+
 def suggested_reply_command(method: str, path: str) -> bool:
     """True only for drafting a suggested reply.
 
@@ -89,8 +99,8 @@ class LaboratoryAccessService:
     The header adapter only resolves a synthetic employee, and only in local
     development. This service decides anonymous access, default-deny writes,
     and approver authority. ``authorize_approval`` does not record a decision,
-    set a reviewer, or change a message. The governance command does that
-    after this service allows the actor.
+    set a reviewer, change a message, or post an invoice. The command that
+    was allowed does that after this service allows the actor.
     """
 
     def __init__(self, authenticator: EmployeeAuthenticator) -> None:
@@ -104,8 +114,10 @@ class LaboratoryAccessService:
             actor = None
         if suggested_reply_command(method, path):
             return self._decide_suggested_reply(actor, method, path)
-        if customer_message_decision_command(method, path):
-            return self._decide_customer_message_decision(actor, method, path)
+        if customer_message_decision_command(method, path) or extraction_review_command(
+            method, path
+        ):
+            return self._decide_approver_command(actor, method, path)
         return decide_http_access(actor, method, path)
 
     def authorize_approval(self, actor: LaboratoryActor) -> None:
@@ -120,7 +132,7 @@ class LaboratoryAccessService:
             return AccessDecision("unauthenticated", action, subject)
         return AccessDecision("allowed", action, subject, actor)
 
-    def _decide_customer_message_decision(
+    def _decide_approver_command(
         self, actor: LaboratoryActor | None, method: str, path: str
     ) -> AccessDecision:
         action = f"{method.upper()} {path}"

@@ -23,6 +23,7 @@ from wasatch_api.customer_service.infrastructure.repository import (
 )
 from wasatch_api.customers.application.queries import CustomerQueries
 from wasatch_api.customers.infrastructure.repository import CustomerRepository
+from wasatch_api.documents.application.decisions import DocumentExtractionDecisions
 from wasatch_api.documents.application.queries import DocumentQueries
 from wasatch_api.documents.infrastructure.repository import DocumentRepository
 from wasatch_api.governance.application.decisions import CustomerMessageDecisions
@@ -85,6 +86,14 @@ def document_queries(session: Session) -> DocumentQueries:
     return DocumentQueries(DocumentRepository(session))
 
 
+def document_extraction_decisions(session: Session) -> DocumentExtractionDecisions:
+    settings = get_settings()
+    access = LaboratoryAccessService(
+        LocalEmployeeAuthenticator(EmployeeDirectory(session), app_env=settings.app_env)
+    )
+    return DocumentExtractionDecisions(DocumentRepository(session), access)
+
+
 def customer_message_decisions(session: Session) -> CustomerMessageDecisions:
     settings = get_settings()
     access = LaboratoryAccessService(
@@ -96,9 +105,9 @@ def customer_message_decisions(session: Session) -> CustomerMessageDecisions:
 def require_laboratory_actor(request: Request) -> LaboratoryActor:
     """Return the active synthetic employee for this request.
 
-    The application service enforces that rule. The customer-message decision
-    takes this actor as the person acting. The header adapter does not grant
-    a role by itself.
+    The application service enforces that rule. The customer-message and
+    extraction-review decisions take this actor as the person acting. The
+    header adapter does not grant a role by itself.
     """
 
     actor = getattr(request.state, "laboratory_actor", None)

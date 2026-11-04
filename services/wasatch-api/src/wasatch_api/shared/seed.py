@@ -13,6 +13,7 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from wasatch_api.documents.domain.review import unattended_status
 from wasatch_api.shared.database.models import (
     AppointmentORM,
     ApprovalDecisionORM,
@@ -698,8 +699,20 @@ def seed_valid_fixtures(
             version_ids, record.get("current_version_id"), "document version"
         )
 
+    document_invoice_ids = {
+        record["id"]: record.get("invoice_id") for record in document_records
+    }
     for record in _load_records(fixtures_dir, "document_extractions.json"):
         confidence = record.get("confidence")
+        fields = record.get("extracted_fields")
+        # Seed copies the fixture status. It does not accept a low-confidence
+        # or financial extraction that the fixture left undecided.
+        status = unattended_status(
+            record["status"],
+            confidence=None if confidence is None else Decimal(str(confidence)),
+            extracted_fields=fields if isinstance(fields, dict) else None,
+            document_invoice_id=document_invoice_ids.get(record["document_id"]),
+        )
         action = _upsert(
             session,
             DocumentExtractionORM,
@@ -713,7 +726,7 @@ def seed_valid_fixtures(
                     record["document_version_id"],
                     "document version",
                 ),
-                "status": record["status"],
+                "status": status,
                 "extractor": record["extractor"],
                 "confidence": None if confidence is None else Decimal(str(confidence)),
                 "extracted_fields": record.get("extracted_fields"),

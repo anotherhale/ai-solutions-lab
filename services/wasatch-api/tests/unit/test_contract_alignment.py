@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from wasatch_api.documents.application.decisions import EXTRACTION_REVIEW_DECISIONS
 from wasatch_api.governance.application.decisions import CUSTOMER_MESSAGE_DECISIONS
 from wasatch_api.shared.pagination import (
     APPROVAL_ACTION_TYPES,
@@ -53,3 +54,6 @@ def test_api_status_filters_match_json_schema() -> None:
     assert CUSTOMER_MESSAGE_DECISIONS < APPROVAL_STATUSES
     assert "executed" not in CUSTOMER_MESSAGE_DECISIONS
     assert "sent" not in CUSTOMER_MESSAGE_DECISIONS
+    assert EXTRACTION_REVIEW_DECISIONS == frozenset({"accepted", "rejected"})
+    assert EXTRACTION_REVIEW_DECISIONS <= EXTRACTION_STATUSES
+    assert "posted" not in EXTRACTION_REVIEW_DECISIONS

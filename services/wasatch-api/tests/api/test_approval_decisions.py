@@ -13,7 +13,8 @@ MESSAGE_BODY = "We can be on site Thursday at 08:00 if you approve overtime."
 DECISION_PATH = "/api/v1/approval-requests/apr_0001/decisions"
 OPENAPI_DECISION = "/api/v1/approval-requests/{approval_id}/decisions"
 OPENAPI_DRAFT = "/api/v1/support-tickets/{ticket_id}/draft-replies"
-OPENAPI_WRITES = {OPENAPI_DECISION, OPENAPI_DRAFT}
+OPENAPI_EXTRACTION = "/api/v1/document-extractions/{extraction_id}/decisions"
+OPENAPI_WRITES = {OPENAPI_DECISION, OPENAPI_DRAFT, OPENAPI_EXTRACTION}
 
 
 def _message_without_approval(payload: dict) -> dict:

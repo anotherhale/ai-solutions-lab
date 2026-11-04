@@ -140,13 +140,26 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 - The screen shows synthetic data and does not offer a send control.
 - Acceptance: the roadmap exit for Phase 2 is demonstrable against the local API. Browser verification covers the approve and reject paths, an empty suggestion state, and an unauthorized actor.
 
+### DOC-P3 — Human review of document extractions
+
+- Status: done in this change
+- Depends on: document fixture persistence (Alembic `0005`, pull request [#16](https://github.com/anotherhale/ai-solutions-lab/pull/16), `78877e6`) and the CS-4 approval command
+- `POST /api/v1/document-extractions/{extraction_id}/decisions` lets an approver accept or reject an extraction that is awaiting review (`needs_review`, `pending`, `succeeded`, or `failed`)
+- The command stores status, reviewer, `reviewed_at`, and optional `review_notes`, and inserts an audit event
+- Confidence below 0.8, a missing confidence score, `needs_review`, an invoice or money key in `extracted_fields`, or a document linked to an invoice stays untrusted until that decision
+- A read, a seed, and a background job do not accept those rows. This service has no background job and does not call a model
+- Accepting or rejecting does not post a payment, change an invoice total, or mark an invoice posted
+- Embeddings are not part of this slice. No vector column is added. Alembic `0005` already stores the review columns
+- Acceptance: `emp_0001` can accept `dx_0003` and reject `dx_0009` while invoice and payment fixtures stay unchanged. `emp_0004` is denied. An anonymous caller receives 401
+
 ## After the customer-service slice
 
 These follow [docs/ROADMAP.md](docs/ROADMAP.md). Dates in that roadmap are planning windows, not commitments. Do not start them by pulling infrastructure forward.
 
 | ID | Phase | Work | Depends on |
 |---|---|---|---|
-| DOC-P3 | 3 | Human review for low-confidence and financial extractions. Embeddings in the existing PostgreSQL instance when a task fills the embedding port. Fixture persistence and read routes are a separate first slice. | CS-7 is done. Review still needs its own decision workflow. Version rows are still path strings. |
+| DOC-P3 | 3 | Human review for low-confidence and financial extractions. | Done in this change. See the DOC-P3 section. Embeddings are not this item. |
+| EMB-1 | 3 | Embeddings in the existing PostgreSQL instance when a task fills the embedding port. | Not started. No vector column. The embedding port is not used to fill one. Version rows are still path strings. |
 | WF-1 | 4 | One multi-step Wasatch workflow with human approval and an audit trail. n8n only for an edge automation that the monolith does not own as the system of record. | CS-4 and the document review path if the workflow uses documents |
 | OPS-1 | 5 | OpenTelemetry on the running host, Terraform for a non-production Azure environment, runbooks, backup notes, and secret-management notes. | A module worth operating. No production customer deployment. |
 | PORT-1 | 6 | One case study that states what was simulated and what was measured. | A finished laboratory slice with honest limits |
