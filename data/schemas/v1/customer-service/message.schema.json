@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/customer-service/message.schema.json",
+  "title": "Message",
+  "description": "Ticket communication. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "support_ticket_id",
+    "direction",
+    "channel",
+    "body",
+    "status",
+    "sent_at",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/message_id" },
+    "support_ticket_id": { "$ref": "../common.schema.json#/$defs/ticket_id" },
+    "direction": {
+      "type": "string",
+      "enum": ["inbound", "outbound", "internal"]
+    },
+    "channel": { "$ref": "../common.schema.json#/$defs/channel" },
+    "body": { "type": "string", "minLength": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "pending_approval", "sent", "failed", "discarded"]
+    },
+    "author_employee_id": { "$ref": "../common.schema.json#/$defs/employee_id" },
+    "author_contact_id": { "$ref": "../common.schema.json#/$defs/contact_id" },
+    "requires_approval": { "type": "boolean" },
+    "approval_request_id": {
+      "$ref": "../common.schema.json#/$defs/approval_id"
+    },
+    "sent_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

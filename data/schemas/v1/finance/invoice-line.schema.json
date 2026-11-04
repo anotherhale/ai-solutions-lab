@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/finance/invoice-line.schema.json",
+  "title": "InvoiceLine",
+  "description": "Billable row on an invoice. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "invoice_id",
+    "description",
+    "quantity",
+    "unit_price",
+    "line_total",
+    "line_type",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/invoice_line_id" },
+    "invoice_id": { "$ref": "../common.schema.json#/$defs/invoice_id" },
+    "work_order_id": { "$ref": "../common.schema.json#/$defs/work_order_id" },
+    "description": { "type": "string", "minLength": 1 },
+    "quantity": { "type": "number", "exclusiveMinimum": 0 },
+    "unit_price": { "$ref": "../common.schema.json#/$defs/money" },
+    "line_total": { "$ref": "../common.schema.json#/$defs/money" },
+    "line_type": {
+      "type": "string",
+      "enum": [
+        "labor",
+        "parts",
+        "travel",
+        "equipment",
+        "adjustment",
+        "agreement"
+      ]
+    },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

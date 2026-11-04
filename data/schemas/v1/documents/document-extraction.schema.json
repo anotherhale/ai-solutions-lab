@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/documents/document-extraction.schema.json",
+  "title": "DocumentExtraction",
+  "description": "Structured fields taken from a document version. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "document_id",
+    "document_version_id",
+    "status",
+    "extractor",
+    "extracted_at",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/extraction_id" },
+    "document_id": { "$ref": "../common.schema.json#/$defs/document_id" },
+    "document_version_id": {
+      "$ref": "../common.schema.json#/$defs/document_version_id"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "succeeded",
+        "failed",
+        "needs_review",
+        "accepted",
+        "rejected"
+      ]
+    },
+    "extractor": { "type": "string", "enum": ["human", "model", "rules"] },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "extracted_fields": {
+      "type": "object",
+      "description": "Open map of extracted values. Treat as untrusted until accepted."
+    },
+    "reviewed_by_employee_id": {
+      "$ref": "../common.schema.json#/$defs/employee_id"
+    },
+    "reviewed_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "review_notes": { "type": "string" },
+    "extracted_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

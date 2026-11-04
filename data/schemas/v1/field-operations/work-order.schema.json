@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/field-operations/work-order.schema.json",
+  "title": "WorkOrder",
+  "description": "Field work record. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "customer_id",
+    "service_location_id",
+    "status",
+    "priority",
+    "work_type",
+    "summary",
+    "opened_at",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/work_order_id" },
+    "customer_id": { "$ref": "../common.schema.json#/$defs/customer_id" },
+    "service_location_id": { "$ref": "../common.schema.json#/$defs/location_id" },
+    "support_ticket_id": { "$ref": "../common.schema.json#/$defs/ticket_id" },
+    "status": {
+      "type": "string",
+      "enum": [
+        "created",
+        "scheduled",
+        "assigned",
+        "in_progress",
+        "awaiting_parts",
+        "completed",
+        "invoiced",
+        "cancelled",
+        "reopened"
+      ]
+    },
+    "priority": { "$ref": "../common.schema.json#/$defs/priority" },
+    "work_type": {
+      "type": "string",
+      "enum": [
+        "maintenance",
+        "repair",
+        "install",
+        "inspection",
+        "callback",
+        "after_hours"
+      ]
+    },
+    "summary": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "requested_by_contact_id": {
+      "$ref": "../common.schema.json#/$defs/contact_id"
+    },
+    "assigned_employee_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "../common.schema.json#/$defs/employee_id" }
+    },
+    "equipment_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "../common.schema.json#/$defs/equipment_id" }
+    },
+    "opened_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "scheduled_for": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "completed_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "completion_notes": { "type": "string" },
+    "invoice_id": { "$ref": "../common.schema.json#/$defs/invoice_id" },
+    "cancelled_reason": { "type": "string" },
+    "reopen_reason": { "type": "string" },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

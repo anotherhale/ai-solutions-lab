@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/customers/service-location.schema.json",
+  "title": "ServiceLocation",
+  "description": "Physical site owned by one customer. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "customer_id",
+    "name",
+    "address",
+    "site_type",
+    "timezone",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/location_id" },
+    "customer_id": { "$ref": "../common.schema.json#/$defs/customer_id" },
+    "name": { "type": "string", "minLength": 1 },
+    "address": { "$ref": "../common.schema.json#/$defs/address" },
+    "site_type": {
+      "type": "string",
+      "enum": [
+        "office",
+        "retail",
+        "warehouse",
+        "medical",
+        "school",
+        "municipal",
+        "mixed"
+      ]
+    },
+    "timezone": { "type": "string", "const": "America/Denver" },
+    "access_notes": { "type": "string" },
+    "square_footage": { "type": "integer", "minimum": 1 },
+    "status": { "type": "string", "enum": ["active", "inactive"] },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

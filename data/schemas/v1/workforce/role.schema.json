@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/workforce/role.schema.json",
+  "title": "Role",
+  "description": "Job classification and approval authority. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "department",
+    "is_approver",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/role_id" },
+    "name": { "type": "string", "minLength": 1 },
+    "department": { "$ref": "../common.schema.json#/$defs/department" },
+    "is_approver": {
+      "type": "boolean",
+      "description": "Whether holders may decide consequential approvals."
+    },
+    "description": { "type": "string" },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

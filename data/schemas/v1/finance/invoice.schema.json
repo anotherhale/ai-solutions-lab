@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/finance/invoice.schema.json",
+  "title": "Invoice",
+  "description": "Request for payment. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "customer_id",
+    "status",
+    "subtotal",
+    "tax",
+    "adjustments",
+    "total",
+    "amount_paid",
+    "balance",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/invoice_id" },
+    "customer_id": { "$ref": "../common.schema.json#/$defs/customer_id" },
+    "work_order_id": { "$ref": "../common.schema.json#/$defs/work_order_id" },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "issued",
+        "partially_paid",
+        "paid",
+        "overdue",
+        "voided"
+      ]
+    },
+    "issued_on": { "$ref": "../common.schema.json#/$defs/iso_date" },
+    "due_on": { "$ref": "../common.schema.json#/$defs/iso_date" },
+    "voided_on": { "$ref": "../common.schema.json#/$defs/iso_date" },
+    "void_reason": { "type": "string" },
+    "subtotal": { "$ref": "../common.schema.json#/$defs/money" },
+    "tax": { "$ref": "../common.schema.json#/$defs/money" },
+    "adjustments": { "$ref": "../common.schema.json#/$defs/money" },
+    "total": { "$ref": "../common.schema.json#/$defs/money" },
+    "amount_paid": { "$ref": "../common.schema.json#/$defs/money" },
+    "balance": { "$ref": "../common.schema.json#/$defs/money" },
+    "notes": { "type": "string" },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

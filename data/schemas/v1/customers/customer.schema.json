@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/customers/customer.schema.json",
+  "title": "Customer",
+  "description": "Commercial account. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "legal_name",
+    "account_number",
+    "status",
+    "customer_type",
+    "billing_address",
+    "payment_terms",
+    "service_agreement",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../common.schema.json#/$defs/customer_id",
+      "description": "Stable customer identifier."
+    },
+    "legal_name": { "type": "string", "minLength": 1 },
+    "trade_name": { "type": "string" },
+    "account_number": {
+      "type": "string",
+      "pattern": "^WBS-[0-9]{5}$",
+      "description": "Human-visible account number, unique in the dataset."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "inactive", "prospect", "suspended"]
+    },
+    "customer_type": {
+      "type": "string",
+      "enum": [
+        "property_manager",
+        "commercial_owner",
+        "municipal",
+        "healthcare",
+        "education",
+        "industrial"
+      ]
+    },
+    "billing_address": { "$ref": "../common.schema.json#/$defs/address" },
+    "billing_email": { "$ref": "../common.schema.json#/$defs/email" },
+    "billing_phone": { "$ref": "../common.schema.json#/$defs/phone" },
+    "payment_terms": {
+      "type": "string",
+      "enum": ["due_on_receipt", "net_15", "net_30", "net_45"]
+    },
+    "service_agreement": {
+      "type": "string",
+      "enum": ["none", "seasonal", "full_coverage"]
+    },
+    "agreement_expires_on": { "$ref": "../common.schema.json#/$defs/iso_date" },
+    "primary_contact_id": { "$ref": "../common.schema.json#/$defs/contact_id" },
+    "notes": { "type": "string" },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

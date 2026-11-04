@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/field-operations/equipment.schema.json",
+  "title": "Equipment",
+  "description": "Maintainable HVAC or facilities asset. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "customer_id",
+    "service_location_id",
+    "asset_tag",
+    "name",
+    "equipment_type",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/equipment_id" },
+    "customer_id": { "$ref": "../common.schema.json#/$defs/customer_id" },
+    "service_location_id": { "$ref": "../common.schema.json#/$defs/location_id" },
+    "asset_tag": {
+      "type": "string",
+      "pattern": "^AST-[0-9]{4}$"
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "equipment_type": {
+      "type": "string",
+      "enum": [
+        "rooftop_unit",
+        "split_system",
+        "chiller",
+        "boiler",
+        "heat_pump",
+        "air_handler",
+        "exhaust_fan",
+        "controls",
+        "other"
+      ]
+    },
+    "manufacturer": { "type": "string" },
+    "model": { "type": "string" },
+    "serial_number": { "type": "string" },
+    "installed_on": { "$ref": "../common.schema.json#/$defs/iso_date" },
+    "warranty_expires_on": { "$ref": "../common.schema.json#/$defs/iso_date" },
+    "last_service_on": { "$ref": "../common.schema.json#/$defs/iso_date" },
+    "next_maintenance_on": { "$ref": "../common.schema.json#/$defs/iso_date" },
+    "status": {
+      "type": "string",
+      "enum": ["in_service", "needs_repair", "pending_install", "retired"]
+    },
+    "notes": { "type": "string" },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

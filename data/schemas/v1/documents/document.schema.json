@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/documents/document.schema.json",
+  "title": "Document",
+  "description": "Untrusted source file related to laboratory operations. Synthetic only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "document_type",
+    "status",
+    "source",
+    "mime_type",
+    "untrusted",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/document_id" },
+    "title": { "type": "string", "minLength": 1 },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "invoice_scan",
+        "work_order_photo",
+        "contract",
+        "vendor_bill",
+        "equipment_manual",
+        "correspondence",
+        "other"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "uploaded",
+        "awaiting_extraction",
+        "extracted",
+        "needs_review",
+        "reviewed",
+        "archived"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "enum": ["email", "upload", "scan", "generated"]
+    },
+    "mime_type": { "type": "string", "minLength": 1 },
+    "untrusted": {
+      "type": "boolean",
+      "description": "True when the document originated outside controlled generation."
+    },
+    "customer_id": { "$ref": "../common.schema.json#/$defs/customer_id" },
+    "service_location_id": { "$ref": "../common.schema.json#/$defs/location_id" },
+    "work_order_id": { "$ref": "../common.schema.json#/$defs/work_order_id" },
+    "invoice_id": { "$ref": "../common.schema.json#/$defs/invoice_id" },
+    "current_version_id": {
+      "$ref": "../common.schema.json#/$defs/document_version_id"
+    },
+    "uploaded_by_employee_id": {
+      "$ref": "../common.schema.json#/$defs/employee_id"
+    },
+    "notes": { "type": "string" },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

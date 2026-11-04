@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/customer-service/support-ticket.schema.json",
+  "title": "SupportTicket",
+  "description": "Inbound customer issue. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "customer_id",
+    "status",
+    "priority",
+    "channel",
+    "subject",
+    "opened_at",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/ticket_id" },
+    "customer_id": { "$ref": "../common.schema.json#/$defs/customer_id" },
+    "contact_id": { "$ref": "../common.schema.json#/$defs/contact_id" },
+    "service_location_id": { "$ref": "../common.schema.json#/$defs/location_id" },
+    "work_order_id": { "$ref": "../common.schema.json#/$defs/work_order_id" },
+    "status": {
+      "type": "string",
+      "enum": [
+        "opened",
+        "triaged",
+        "assigned",
+        "awaiting_customer",
+        "resolved",
+        "closed",
+        "reopened"
+      ]
+    },
+    "priority": { "$ref": "../common.schema.json#/$defs/priority" },
+    "channel": { "$ref": "../common.schema.json#/$defs/channel" },
+    "subject": { "type": "string", "minLength": 1 },
+    "assigned_employee_id": {
+      "$ref": "../common.schema.json#/$defs/employee_id"
+    },
+    "opened_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "resolved_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "closed_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "related_document_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "../common.schema.json#/$defs/document_id" }
+    },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

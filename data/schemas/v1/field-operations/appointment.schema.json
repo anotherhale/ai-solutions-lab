@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/field-operations/appointment.schema.json",
+  "title": "Appointment",
+  "description": "Scheduled on-site window. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "work_order_id",
+    "service_location_id",
+    "assigned_employee_id",
+    "status",
+    "start_at",
+    "end_at",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/appointment_id" },
+    "work_order_id": { "$ref": "../common.schema.json#/$defs/work_order_id" },
+    "service_location_id": { "$ref": "../common.schema.json#/$defs/location_id" },
+    "assigned_employee_id": {
+      "$ref": "../common.schema.json#/$defs/employee_id"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "no_show",
+        "rescheduled"
+      ]
+    },
+    "start_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "end_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "notes": { "type": "string" },
+    "cancellation_reason": { "type": "string" },
+    "replaces_appointment_id": {
+      "$ref": "../common.schema.json#/$defs/appointment_id"
+    },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

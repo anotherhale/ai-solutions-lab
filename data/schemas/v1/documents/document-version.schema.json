@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/documents/document-version.schema.json",
+  "title": "DocumentVersion",
+  "description": "Immutable snapshot of a document. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "document_id",
+    "version_number",
+    "storage_path",
+    "checksum_sha256",
+    "created_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/document_version_id" },
+    "document_id": { "$ref": "../common.schema.json#/$defs/document_id" },
+    "version_number": { "type": "integer", "minimum": 1 },
+    "storage_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Synthetic relative path; no cloud object exists yet."
+    },
+    "checksum_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "byte_size": { "type": "integer", "minimum": 1 },
+    "created_by_employee_id": {
+      "$ref": "../common.schema.json#/$defs/employee_id"
+    },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}

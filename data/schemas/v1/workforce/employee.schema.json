@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-solutions-lab.local/schemas/v1/workforce/employee.schema.json",
+  "title": "Employee",
+  "description": "Wasatch Business Systems worker. Synthetic laboratory data only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "employee_number",
+    "first_name",
+    "last_name",
+    "email",
+    "role_id",
+    "department",
+    "job_title",
+    "status",
+    "hire_date",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "$ref": "../common.schema.json#/$defs/employee_id" },
+    "employee_number": {
+      "type": "string",
+      "pattern": "^E-[0-9]{4}$"
+    },
+    "first_name": { "type": "string", "minLength": 1 },
+    "last_name": { "type": "string", "minLength": 1 },
+    "email": { "$ref": "../common.schema.json#/$defs/email" },
+    "phone": { "$ref": "../common.schema.json#/$defs/phone" },
+    "role_id": { "$ref": "../common.schema.json#/$defs/role_id" },
+    "team_id": { "$ref": "../common.schema.json#/$defs/team_id" },
+    "department": { "$ref": "../common.schema.json#/$defs/department" },
+    "job_title": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "enum": ["active", "leave", "terminated"] },
+    "hire_date": { "$ref": "../common.schema.json#/$defs/iso_date" },
+    "certifications": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["EPA_608", "OSHA_10", "OSHA_30", "NATE", "FIRST_AID"]
+      }
+    },
+    "created_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" },
+    "updated_at": { "$ref": "../common.schema.json#/$defs/iso_datetime" }
+  }
+}
