@@ -48,9 +48,7 @@ def _result_from_persisted_event(
         SlackDeliveryStatus.FAILED,
     )
     slack_error = (
-        event.slack.delivery_error
-        if status == SlackDeliveryStatus.FAILED
-        else None
+        event.slack.delivery_error if status == SlackDeliveryStatus.FAILED else None
     )
     return RecordResult(
         event=event,
