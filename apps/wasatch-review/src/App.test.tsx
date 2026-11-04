@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { LABORATORY_ACTOR_HEADER } from "./actors";
-import type { SupportTicket } from "./types";
+import type { DocumentExtraction, SupportTicket } from "./types";
 
 const SUGGESTED_BODY = "We can be on site Thursday at 08:00 if you approve overtime.";
 
@@ -76,6 +76,30 @@ function ticket(overrides: Partial<SupportTicket> = {}): SupportTicket {
         },
       },
     ],
+    ...overrides,
+  };
+}
+
+function extraction(
+  overrides: Partial<DocumentExtraction> = {},
+): DocumentExtraction {
+  return {
+    id: "dx_0003",
+    document_id: "doc_0003",
+    document_version_id: "dv_0003",
+    status: "needs_review",
+    extractor: "model",
+    confidence: 0.7,
+    extracted_fields: {
+      vendor_name: "Synthetic Vendor",
+      invoice_number: "V-0003",
+    },
+    extracted_at: "2026-06-02T13:00:00Z",
+    created_at: "2026-06-02T13:00:00Z",
+    updated_at: "2026-06-02T13:00:00Z",
+    reviewed_by_employee_id: null,
+    reviewed_at: null,
+    review_notes: null,
     ...overrides,
   };
 }
@@ -268,4 +292,66 @@ describe("review screen", () => {
     expect(actorOn(post?.[1])).toBe("emp_0004");
     expect(screen.getByText(SUGGESTED_BODY)).toBeInTheDocument();
   });
+
+  it.each(["accepted", "rejected"] as const)(
+    "records %s for a document extraction without posting money",
+    async (decision) => {
+      const pending = extraction();
+      const decided = extraction({
+        status: decision,
+        reviewed_by_employee_id: "emp_0001",
+        reviewed_at: "2026-06-08T10:00:00Z",
+        review_notes:
+          decision === "accepted"
+            ? "Vendor and invoice number match."
+            : "Amounts do not match.",
+      });
+      const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          return jsonResponse(decided);
+        }
+        const seenDecision = fetchMock.mock.calls.some(
+          (call) => call[1]?.method === "POST",
+        );
+        return jsonResponse(seenDecision ? decided : pending);
+      });
+      vi.stubGlobal("fetch", fetchMock);
+      const user = userEvent.setup();
+      render(<App />);
+
+      await user.click(screen.getByRole("button", { name: "Open extraction" }));
+      expect(await screen.findByText(/invoice_number/)).toHaveTextContent("V-0003");
+      await user.type(
+        screen.getByLabelText("Review note"),
+        decision === "accepted"
+          ? "Vendor and invoice number match."
+          : "Amounts do not match.",
+      );
+      await user.click(
+        screen.getByRole("button", {
+          name: decision === "accepted" ? "Accept extraction" : "Reject extraction",
+        }),
+      );
+
+      const verb = decision === "accepted" ? "Accepted" : "Rejected";
+      expect(
+        await screen.findByText(`${verb}. No invoice or payment was posted.`),
+      ).toBeInTheDocument();
+      const post = fetchMock.mock.calls.find((call) => call[1]?.method === "POST");
+      expect(String(post?.[0])).toBe(
+        "/api/v1/document-extractions/dx_0003/decisions",
+      );
+      expect(actorOn(post?.[1])).toBe("emp_0001");
+      expect(JSON.parse(String(post?.[1]?.body))).toEqual({
+        decision,
+        note:
+          decision === "accepted"
+            ? "Vendor and invoice number match."
+            : "Amounts do not match.",
+      });
+      expect(calledUrls().some((url) => /invoices|payments|post/i.test(url))).toBe(
+        false,
+      );
+    },
+  );
 });

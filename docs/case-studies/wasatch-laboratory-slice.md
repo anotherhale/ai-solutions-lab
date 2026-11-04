@@ -56,7 +56,7 @@ Each row is already on `develop` at the commit above. Pull request numbers are t
 | Retrieval | `GET /api/v1/support-tickets/{ticket_id}/retrieval` | One customer's history and matching procedure pages. No model call. Pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12). |
 | Draft replies | `POST /api/v1/support-tickets/{ticket_id}/draft-replies` | The message is not marked sent. Pull request [#14](https://github.com/anotherhale/ai-solutions-lab/pull/14). |
 | Human approval | `POST /api/v1/approval-requests/{approval_id}/decisions` | Does not send the message. Pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13). |
-| Review screen | `apps/wasatch-review` | Approve or reject. No send control. Pull request [#15](https://github.com/anotherhale/ai-solutions-lab/pull/15). |
+| Review screen | `apps/wasatch-review` | Approve or reject a reply; accept or reject one extraction. No send or financial-posting control. Pull request [#15](https://github.com/anotherhale/ai-solutions-lab/pull/15), extended by DOC-UI-1. |
 | Document reads | `GET /api/v1/documents`, document versions, and document extractions | Version paths are not files. Pull request [#16](https://github.com/anotherhale/ai-solutions-lab/pull/16). |
 | Extraction review | `POST /api/v1/document-extractions/{extraction_id}/decisions` | Does not post an invoice or a payment. Pull request [#17](https://github.com/anotherhale/ai-solutions-lab/pull/17). |
 | Procedure-page embeddings | `procedure_page_embeddings.embedding`, type `vector(8)` | Fake port. Not a trusted semantic model. Pull request [#18](https://github.com/anotherhale/ai-solutions-lab/pull/18). |
@@ -179,7 +179,7 @@ Only the results already written in `PROJECT_STATUS.md`. This case study adds no
 - Dispatch of a technician. Confirming a follow-up does not do that by itself, and it does not create an appointment.
 - Posting an invoice or a payment from extraction review or from the follow-up command.
 - File ingest, a document classifier, or a trusted embedding model.
-- A second user interface. The only screen is `apps/wasatch-review`.
+- A second user interface. The only app is `apps/wasatch-review`.
 - A model credential, a collector endpoint, or a cloud credential in GitHub Actions.
 
 ## What could transfer, and what does not

@@ -4,7 +4,7 @@ Engineering laboratory for practical AI solutions that small and midsize busines
 
 This repository began as a showcase for AI cloud solutions. It is now the home for a reusable implementation platform, a simulated Utah HVAC business, and a public consulting portfolio.
 
-A FastAPI service and local PostgreSQL environment now exist for synthetic Wasatch data. The service can draft a suggested reply through a model port and can read persisted document, version, and extraction fixtures. The default port is a fake and does not call a provider. `apps/wasatch-review` is a React and TypeScript screen that approves or rejects that reply. It does not send the message. Document extraction review is not implemented. Azure has not been implemented.
+A FastAPI service and local PostgreSQL environment now exist for synthetic Wasatch data. The service can draft a suggested reply through a model port and can read persisted document, version, and extraction fixtures. The default port is a fake and does not call a provider. `apps/wasatch-review` is a React and TypeScript screen that approves or rejects that reply and accepts or rejects one document extraction. It does not send the message or post financial records. Azure has not been implemented.
 
 ## Business Objectives
 
@@ -78,7 +78,7 @@ ai-solutions-lab/
 ├── README.md
 ├── LICENSE
 ├── docs/                     Charter, architecture, security, operations notes, ADRs
-├── apps/wasatch-review/      React review screen for one suggested reply
+├── apps/wasatch-review/      React review screen for bounded human decisions
 ├── services/wasatch-api/     FastAPI host for synthetic Wasatch data
 ├── libs/                     Future shared libraries
 ├── infrastructure/           Docker notes; Terraform placeholder, no workspace
@@ -138,7 +138,7 @@ The review screen proxies `/api` to that process. From `apps/wasatch-review`: `n
 | Repository tooling | In progress |
 | Synthetic domain model and fixtures | Defined |
 | Wasatch API | On `develop`: customer-service reads, retrieval, draft replies, human approval, document reads, extraction review, procedure-page embeddings, the follow-up visit, and host traces. `main` is not the deployed product |
-| Suggested-reply review screen | Implemented in `apps/wasatch-review`. It records approve or reject and does not send messages |
+| Suggested-reply and extraction review screen | Implemented in `apps/wasatch-review`. It records approve/reject for replies and accept/reject for one extraction; it does not send messages or post money |
 | AI application services | Draft replies and embeddings use the fake provider by default. The placeholder OpenAI key fails before a client is constructed. CI does not call a model |
 | Local Docker environment | PostgreSQL with pgvector |
 | Azure deployment | Not started |

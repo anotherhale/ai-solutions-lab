@@ -204,6 +204,15 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 - Application behavior, tests, and the CI database gate are unchanged
 - Acceptance: a reader can finish the study without taking the laboratory actor header, the fake provider, an approval, a follow-up confirmation, or a trace span as a production result
 
+### DOC-UI-1 — Extraction review surface
+
+- Status: done in this change
+- Depends on: document extraction review (`6e92af9`) and the existing review screen (`13826ed`)
+- `apps/wasatch-review` can open one synthetic extraction such as `dx_0003`, show the untrusted extracted fields, and let an approver accept or reject it.
+- The decision route is `/api/v1/document-extractions/{extraction_id}/decisions`.
+- The page does not post an invoice, change a payment, trust future extraction output, call a model, send a customer message, or add a new app.
+- Acceptance: `emp_0001` can accept or reject `dx_0003` from the review screen. The request body carries only the decision and note, and no invoice, payment, delivery, or provider URL is called.
+
 ## After the customer-service slice
 
 These follow [docs/ROADMAP.md](docs/ROADMAP.md). Dates in that roadmap are planning windows, not commitments. Do not start them by pulling infrastructure forward.
