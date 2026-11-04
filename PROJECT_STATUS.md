@@ -92,7 +92,10 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | WF-1 follow-up visit | Done. Pull request [#19](https://github.com/anotherhale/ai-solutions-lab/pull/19) merged as `1b22eac`. Alembic revision `0007` stores `follow_up_visits`. `POST /api/v1/approval-requests/{approval_id}/follow-up-visits` is the command. Two human steps: an approver approves a pending `send_customer_message`, then a dispatcher (`role_0004`, including `emp_0004`) confirms or cancels the visit. The visit can be opened only from that approved request and stays `unscheduled` until the dispatcher decides. The approval does not open the visit, does not dispatch a technician, and does not mark `msg_0016` sent. Each transition inserts an audit event. Audit stays insert-only. Confirm and cancel do not post a payment, change an invoice total, mark an invoice posted, send a message, assign a technician, or create an appointment. No vector column. No n8n, Redis, Kafka, queue, or new service. No React screen. The review screen has no send control. `X-Laboratory-Actor` stays local, development, and test only. The case study is PORT-1 ([docs/case-studies/wasatch-laboratory-slice.md](docs/case-studies/wasatch-laboratory-slice.md)). |
 | OPS-1 laboratory host traces | Done. Pull request [#20](https://github.com/anotherhale/ai-solutions-lab/pull/20) merged as `1be4181`. `create_app` records OpenTelemetry spans through `wasatch_api.observability`. Domain and application code does not import the SDK. Spans export over OTLP/HTTP only when `OTEL_EXPORTER_OTLP_ENDPOINT` is a non-empty URL. An unset or blank value does not construct an exporter and does not open a socket. Compose and GitHub Actions do not gain a collector, Redis, n8n, or a cloud account. Direct dependencies are pinned: `opentelemetry-api==1.45.2`, `opentelemetry-sdk==1.45.2`, `opentelemetry-exporter-otlp-proto-http==1.45.2`, `opentelemetry-instrumentation-fastapi==0.66b2`. `infrastructure/terraform/` has no module, backend, subscription id, tenant id, or credential. Backup expectations and secret notes are in `docs/operations/`. Local secrets stay in an uncommitted `.env`. GitHub Actions stays credential-free. Managed secrets apply only after a cloud deployment exists. That deployment does not exist. No ADR. The case study is PORT-1 ([docs/case-studies/wasatch-laboratory-slice.md](docs/case-studies/wasatch-laboratory-slice.md)). |
 | PORT-1 laboratory case study | This change. Documentation only. The study is [docs/case-studies/wasatch-laboratory-slice.md](docs/case-studies/wasatch-laboratory-slice.md), indexed from [docs/case-studies/README.md](docs/case-studies/README.md). It states what is on `develop`, what was simulated, and which measurements are already recorded in this file. It does not add a route, a provider call, a collector, an Azure environment, a Terraform module, n8n, Redis, or a new measurement. Application behavior, tests, and the CI database gate are unchanged. `main` is not described as a deployed product. |
-| Document extraction review screen | This change. `apps/wasatch-review` can open one synthetic extraction such as `dx_0003` and let an approver accept or reject it through `/api/v1/document-extractions/{extraction_id}/decisions`. The page records review state only. It does not post an invoice, change a payment, or call a model. |
+| Document extraction review screen | Done. Pull request [#22](https://github.com/anotherhale/ai-solutions-lab/pull/22). `apps/wasatch-review` opens synthetic extractions for approver decisions. |
+| Work order invoice foreign key | Done. Pull request [#26](https://github.com/anotherhale/ai-solutions-lab/pull/26) merged as `e25fb91`. Alembic revision `0008` adds `invoices` and `work_orders.invoice_id` → `invoices.business_id`. |
+| pip-audit in CI | Done. Pull request [#27](https://github.com/anotherhale/ai-solutions-lab/pull/27) merged as `13836b8`. **Wasatch API tests** job runs `scripts/audit_wasatch_dependencies.sh`. |
+| Branch protection documentation and ADR 0007 | This change. `docs/operations/github-branch-protection.md`, migration matrix README, and ADR 0007. No GitHub ruleset API changes (integration lacks admin access). |
 
 Seeded document counts: 30 documents, 31 document versions, and 18 extractions. `doc_0004` has two versions and current version `dv_0031`. Needs-review extractions are `dx_0003`, `dx_0009`, and `dx_0015`. Seeded governance counts: 10 approval requests, 11 decision-history rows, and 50 audit events. `msg_0016` (`pending_approval`, `requires_approval` true) references `apr_0001`. Audit rows are insert-only: revision `0003` installs a trigger that rejects `UPDATE` and `DELETE`. The customer-message decision, the extraction-review decision, and each follow-up transition insert one new audit row and do not update or delete audit events. A second seed skips existing audit rows. Seed copies fixture extraction status and does not accept a low-confidence or financial row.
 
@@ -107,17 +110,17 @@ These items are absent. Later documents must not describe them as running:
 - An external identity provider, purchased identity service, password system, or production credential. The local laboratory authenticator is a development-only header simulation. Production configuration fails startup instead of activating that header.
 - A trace collector, metrics export, and log export. Compose does not run a collector. Span export stays off unless `OTEL_EXPORTER_OTLP_ENDPOINT` is set.
 - Redis, n8n, Azure, and Terraform resources (`infrastructure/terraform/` has no workspace, no module, and no credential)
-- Persistence for invoices and payments. The extraction review does not post a payment or change an invoice
+- Full finance ORM and routes. Revision `0008` persists `invoices` and links `work_orders.invoice_id` with a foreign key. `invoice_lines` and `payments` are not persisted tables. The extraction review does not post a payment or change an invoice total
 - File bytes for documents (`data/documents/procedures/` holds procedure pages for retrieval; version rows still point at synthetic `storage_path` values only)
 
-ADR status in `docs/adr/README.md`: 0001, 0002, 0003, 0004, and 0005 are Accepted. ADR 0001 was accepted in pull request [#5](https://github.com/anotherhale/ai-solutions-lab/pull/5) (`c18ad80`): `services/wasatch-api` is the host, one process, and the customer and work-order modules are the first packages. ADR 0004 is Accepted: chat and embedding ports are in the application layer, and the OpenAI client stays in the infrastructure adapter.
+ADR status in `docs/adr/README.md`: 0001–0006 are Accepted. ADR 0007 (Starlette security remediation plan) is Proposed in this change set. ADR 0001 was accepted in pull request [#5](https://github.com/anotherhale/ai-solutions-lab/pull/5) (`c18ad80`): `services/wasatch-api` is the host, one process, and the customer and work-order modules are the first packages. ADR 0004 is Accepted: chat and embedding ports are in the application layer, and the OpenAI client stays in the infrastructure adapter.
 
 ## Phase 2.1.1 residuals
 
 These are gaps inside an implemented slice. They are not a reason to recreate the database, models, or fixtures.
 
 - HTTP contract coverage is `tests/api/test_openapi_contract.py` plus `tests/api/openapi_contract_catalog.py` for the full slice path/method catalog, write routes, decision enums, and runtime error envelopes. `tests/unit/test_contract_alignment.py` still aligns status enums with JSON Schema. Response bodies are not validated against the full JSON Schemas.
-- Tests run Alembic `upgrade` to `head`. Revision `0001` downgrade is still untested. Revisions `0002`, `0003`, `0004`, `0005`, `0006`, and `0007` include upgrade and downgrade tests on the synthetic database.
+- Tests run Alembic `upgrade` to `head`. Revisions `0001`–`0008` each have an integration upgrade/downgrade test; see `services/wasatch-api/tests/integration/README.md`.
 - `tests/conftest.py` skips the suite when PostgreSQL cannot be reached. A local run without the database can skip rather than fail. CI does not rely on that skip: pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` fails the job when the database tests were skipped. The skip predicate was not removed.
 - `/api/v1` reads require an active synthetic employee presented in `X-Laboratory-Actor`. That header is a local laboratory adapter. It runs only when `APP_ENV` is `local`, `development`, or `test`. `APP_ENV=production` and `APP_ENV=prod` fail startup. Health probes stay open. An active employee may `POST /api/v1/support-tickets/{ticket_id}/draft-replies`. An approver may `POST /api/v1/approval-requests/{approval_id}/decisions` for a pending customer message, and may `POST /api/v1/document-extractions/{extraction_id}/decisions` for an extraction that is awaiting review. A dispatcher (`role_0004`) may `POST /api/v1/approval-requests/{approval_id}/follow-up-visits` to open, confirm, or cancel a follow-up visit. Neither customer-message command marks the message `sent`. The extraction decision does not post a payment or change an invoice. The follow-up command does not either, and it does not assign a technician. Every other authenticated write returns 403, and an anonymous write returns 401. The pytest skip predicate in `tests/conftest.py` is unchanged. That file now clears `OTEL_EXPORTER_OTLP_ENDPOINT` and `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` before importing the app, so the suite does not export spans.
 - `APP_LOG_LEVEL` configures structured logs of actor, action, subject, and outcome. Message bodies and secrets are omitted. Spans are recorded in process. They are exported only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set. Request headers are not copied onto spans.
@@ -420,3 +423,31 @@ From the repository root, after the case study and these status edits were on di
 | `python3 scripts/validate_wasatch_domain.py` | `Wasatch domain fixtures validated.` Counts include customer 15, employee 15, document 30, document_version 31, document_extraction 18. | 0 |
 
 The formatted-file count is 212. The host-trace session recorded 211. The new file is `docs/case-studies/wasatch-laboratory-slice.md`. Pytest was not re-run. The latest recorded API result remains "Verification for host traces" (`188 passed, 0 failed, 0 skipped`).
+
+## GitHub Actions on `develop` after pull requests #26 and #27
+
+Checked 2026-11-04 (Mountain Time). Integration branch tip: `13836b8` (merge of pull request #27).
+
+| Push commit | Pull request | Workflow run | Status when observed |
+|---|---|---|---|
+| `e25fb91` | [#26](https://github.com/anotherhale/ai-solutions-lab/pull/26) work order invoice FK | [41864434843](https://github.com/anotherhale/ai-solutions-lab/actions/runs/41864434843) | `queued` — all five jobs waiting for runners |
+| `13836b8` | [#27](https://github.com/anotherhale/ai-solutions-lab/pull/27) pip-audit in CI | [41864750539](https://github.com/anotherhale/ai-solutions-lab/actions/runs/41864750539) | `queued` — same |
+| `00b0fd6` | earlier merge (#24 HTTP contract) | [41861264021](https://github.com/anotherhale/ai-solutions-lab/actions/runs/41861264021) | `completed` / **success** |
+
+The cloud-agent token could not re-run workflows (`Resource not accessible by integration`) or read branch protection (HTTP 403). `GET /repos/.../rulesets` returned `[]` with that token, so required status checks on `develop` could not be verified from CI; see `docs/operations/github-branch-protection.md` for administrator steps.
+
+Merges while checks were queued are consistent with **no enforced required checks** plus merge permission, not with green CI. Agents must wait for green **Repository Validation** before enabling squash auto-merge.
+
+## Verification for governance, migration matrix, and ADR 0007
+
+Run from repository root and `services/wasatch-api` with Compose PostgreSQL (`pgvector/pgvector:pg16`). Parent branch before this change: `develop` at `13836b8`.
+
+| Command | Result | Exit |
+|---|---|---|
+| `WASATCH_REQUIRE_DATABASE=1 .venv/bin/pytest tests/integration/test_invoice_migration.py --tb=short` | 2 passed | 0 |
+| `WASATCH_REQUIRE_DATABASE=1 .venv/bin/pytest --tb=line -rfEs` | 195 passed, 0 skipped | 0 |
+| `scripts/audit_wasatch_dependencies.sh` | No known vulnerabilities found, 5 ignored (Starlette PYSEC IDs per ADR 0007) | 0 |
+| `ruff format --check .` | All files formatted | 0 |
+| `ruff check .` | All checks passed | 0 |
+| `python3 scripts/validate_repo.py` | Repository conventions validated | 0 |
+| `python3 scripts/validate_wasatch_domain.py` | Wasatch domain fixtures validated | 0 |

@@ -236,7 +236,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Unauthenticated reads of synthetic customer and employee data | Closed by CS-3. `/api/v1` reads require the `X-Laboratory-Actor` header. |
 | No structured logs | Closed by CS-3. `APP_LOG_LEVEL` configures JSON logs of actor, action, subject, and outcome. Message bodies and secrets are omitted. |
 | Thin HTTP contract tests | Closed. `tests/api/test_openapi_contract.py` and `openapi_contract_catalog.py` assert the full slice path/method catalog, write-route methods, decision enums, and runtime error envelopes. `tests/unit/test_contract_alignment.py` still aligns JSON Schema status enums. |
-| Downgrade is untested | Closed for revisions `0001`–`0007`. Each has an integration upgrade/downgrade test under `services/wasatch-api/tests/integration/`, including `test_initial_migration.py` for revision `0001`. |
+| Downgrade is untested | Closed for revisions `0001`–`0008`. Matrix in `services/wasatch-api/tests/integration/README.md`. Each revision has an integration upgrade/downgrade test, including `test_initial_migration.py` for revision `0001` and `test_invoice_migration.py` for revision `0008`. |
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py` still skips a local run when PostgreSQL is down. CI fails that skip. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` rejects a run that did not execute the database tests. |
 | String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Invoice and payment JSON fixtures are not full ORM slices yet. |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
@@ -244,7 +244,21 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | No Compose image smoke test in CI | Closed. `scripts/smoke_compose.sh` runs in the **Compose API smoke** GitHub Actions job. |
 | Review-screen checks not in CI | Closed. **Wasatch review frontend** job runs Vitest, typecheck, and production build. |
 | No browser suite for review workflows | Closed. Playwright specs in `tests/e2e/` run in **Review workbench browser tests**. |
-| No dependency-audit tool | Closed. `scripts/audit_wasatch_dependencies.sh` runs `pip-audit` on the installed Wasatch API environment in CI. Documented Starlette ignores remain until the FastAPI stack upgrade path is recorded. |
+| No dependency-audit tool | Closed. `scripts/audit_wasatch_dependencies.sh` runs `pip-audit` on the installed Wasatch API environment in CI. Starlette PYSEC ignores are temporary; see ADR 0007 and SEC-1. |
+| Starlette PYSEC advisories on the pinned FastAPI stack | Open. ADR 0007 is Proposed. Five IDs are ignored in the audit script until SEC-1 lands. |
+| GitHub required checks on `develop` | Open for repository administrators. Agents documented the ruleset in `docs/operations/github-branch-protection.md`. Cloud tokens cannot read or set protection on this repository. |
+
+## Next
+
+### SEC-1 — Implement ADR 0007 (FastAPI / Starlette remediation)
+
+- Status: ready
+- Depends on: ADR 0007 merged as Proposed (this change)
+- Widen the FastAPI pin to a tested release that supports Starlette 1.x (spike: 0.162.x). Pin Starlette to a patched 1.x release (for example `>=1.3.1`).
+- Replace `APIRouter(..., on_startup=...)` with application lifespan hooks.
+- Re-evaluate the `anyio<4.15` pin after Starlette upgrades.
+- Remove Starlette entries from `STARLETTE_IGNORES` in `scripts/audit_wasatch_dependencies.sh` when `pip-audit` is clean.
+- Acceptance: full pytest with `WASATCH_REQUIRE_DATABASE=1`, all five **Repository Validation** jobs green, ADR 0007 marked Accepted.
 
 ## Explicitly out of the next implementation
 
