@@ -1,5 +1,7 @@
 # Architecture Notes
 
-Detailed diagrams, module maps, and sequence notes belong here as implementation proceeds.
+- System architecture: [../ARCHITECTURE.md](../ARCHITECTURE.md)
+- Data contracts: [DATA_CONTRACTS.md](DATA_CONTRACTS.md)
+- Domain model: [../business/WASATCH_DOMAIN_MODEL.md](../business/WASATCH_DOMAIN_MODEL.md)
 
-The current system architecture is documented in [../ARCHITECTURE.md](../ARCHITECTURE.md). No runtime modules exist yet.
+No runtime modules exist yet.

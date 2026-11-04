@@ -14,7 +14,7 @@ Do not implement production client work, live customer data, or unrelated produc
 
 ## Current Status
 
-The repository is in its foundation phase. Documentation, engineering standards, and development tooling exist. Application services, APIs, databases, and cloud environments have not been implemented and must not be described as if they have.
+The repository is in its foundation phase. Documentation, engineering standards, development tooling, domain contracts, and synthetic fixtures exist. Application services, APIs, databases, and cloud environments have not been implemented and must not be described as if they have.
 
 Inspect the working tree and relevant documents before making changes. Preserve useful existing content.
 

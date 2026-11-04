@@ -61,12 +61,13 @@ Pull requests should describe:
 - Use synthetic Wasatch Business Systems data only.
 - Do not fabricate test results. If a suite cannot be run, say so.
 
-Current foundation work has no application test suite. Repository validation is the required check until application code exists.
+Current foundation work has no application test suite. Repository and domain-fixture validation are the required checks until application code exists.
 
 ```bash
 ruff format --check .
 ruff check .
 python3 scripts/validate_repo.py
+python3 scripts/validate_wasatch_domain.py
 ```
 
 ## Definition of Done

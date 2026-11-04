@@ -145,6 +145,8 @@ Do not introduce Kubernetes or additional runtime clusters unless an ADR records
 ## Related Documents
 
 - [PROJECT_CHARTER.md](PROJECT_CHARTER.md)
+- [architecture/DATA_CONTRACTS.md](architecture/DATA_CONTRACTS.md)
+- [business/WASATCH_DOMAIN_MODEL.md](business/WASATCH_DOMAIN_MODEL.md)
 - [ROADMAP.md](ROADMAP.md)
 - [adr/README.md](adr/README.md)
 - [adr/0001-modular-monolith-architecture.md](adr/0001-modular-monolith-architecture.md)

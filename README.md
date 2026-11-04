@@ -24,7 +24,7 @@ All laboratory work uses **Wasatch Business Systems**, a fictional commercial HV
 | Customers | Approximately 450 |
 | Functions | Sales, customer service, field operations, dispatch and scheduling, accounting and finance, human resources, and management |
 
-All business data in this repository is synthetic. See [docs/business/WASATCH_BUSINESS_PROFILE.md](docs/business/WASATCH_BUSINESS_PROFILE.md).
+All business data in this repository is synthetic. See [docs/business/WASATCH_BUSINESS_PROFILE.md](docs/business/WASATCH_BUSINESS_PROFILE.md), [docs/business/WASATCH_DOMAIN_MODEL.md](docs/business/WASATCH_DOMAIN_MODEL.md), and `data/fixtures/`.
 
 ## Planned AI Solutions
 
@@ -108,6 +108,7 @@ python3 -m pip install ruff
 ruff format --check .
 ruff check .
 python3 scripts/validate_repo.py
+python3 scripts/validate_wasatch_domain.py
 ```
 
 ## Development Status
@@ -117,6 +118,7 @@ python3 scripts/validate_repo.py
 | Project documentation | In progress |
 | Engineering standards | In progress |
 | Repository tooling | In progress |
+| Synthetic domain model and fixtures | Defined |
 | Simulated business APIs | Not started |
 | AI application services | Not started |
 | Local Docker environment | Not started |

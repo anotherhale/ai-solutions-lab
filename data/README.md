@@ -4,8 +4,10 @@ Synthetic laboratory data only.
 
 | Directory | Purpose |
 |---|---|
-| `seed/` | Reference records used to initialize a local database |
-| `fixtures/` | Test-oriented synthetic records |
-| `documents/` | Sample invoices, work orders, and other untrusted document inputs |
+| `schemas/v1/` | JSON Schema Draft 2020-12 contracts |
+| `fixtures/valid/` | Internally consistent sample dataset |
+| `fixtures/quality-issues/` | Deliberate defects, not valid business data |
+| `seed/` | Reserved for future database seed files derived from fixtures |
+| `documents/` | Reserved for sample file bytes used in document processing |
 
-Do not add real customer, employee, or financial files. Seed data will be introduced when application modules need it.
+Do not add real customer, employee, or financial files. See [../docs/architecture/DATA_CONTRACTS.md](../docs/architecture/DATA_CONTRACTS.md).

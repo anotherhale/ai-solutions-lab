@@ -11,7 +11,7 @@ The simulated subject remains **Wasatch Business Systems**. All business data is
 - Establish documentation, ADRs, repository conventions, and CI validation.
 - Define the Wasatch Business Systems operating profile.
 - Prepare reserved directories for apps, services, libraries, data, and infrastructure.
-- Design synthetic data shapes for customers, employees, work orders, and documents without building APIs yet.
+- Design synthetic data shapes for customers, employees, work orders, and documents without building APIs yet. Domain contracts and fixtures now exist under `data/schemas/v1/` and `data/fixtures/`.
 
 **Exit criteria:** A new contributor can explain the purpose, architecture, and working agreements from the repository alone.
 

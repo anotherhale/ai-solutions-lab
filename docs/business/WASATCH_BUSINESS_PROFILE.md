@@ -100,4 +100,4 @@ AI work for this company must:
 - Preserve department boundaries while sharing a single modular monolith
 - Produce artifacts that can later be explained in consulting case studies
 
-Detailed process maps and synthetic datasets will be added under `data/` in later phases. They do not exist yet.
+The laboratory domain model, workflows, JSON Schema contracts, and a synthetic fixture slice live in `docs/business/`, `docs/architecture/DATA_CONTRACTS.md`, `data/schemas/v1/`, and `data/fixtures/`. Those records are a reviewable subset of this profile, not the full 65-person / 450-customer company.
