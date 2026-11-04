@@ -1,0 +1,376 @@
+{
+  "synthetic": true,
+  "entity": "service_location",
+  "schema": "customers/service-location.schema.json",
+  "records": [
+    {
+      "id": "loc_0001",
+      "customer_id": "cust_0001",
+      "name": "Pioneer Plaza Tower",
+      "address": {
+        "line1": "48 W 300 S",
+        "city": "Salt Lake City",
+        "state": "UT",
+        "postal_code": "84101",
+        "country": "US"
+      },
+      "site_type": "office",
+      "timezone": "America/Denver",
+      "square_footage": 180000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z",
+      "access_notes": "Dock 2 after 18:00"
+    },
+    {
+      "id": "loc_0002",
+      "customer_id": "cust_0001",
+      "name": "Pioneer Plaza Annex",
+      "address": {
+        "line1": "52 W 300 S",
+        "city": "Salt Lake City",
+        "state": "UT",
+        "postal_code": "84101",
+        "country": "US"
+      },
+      "site_type": "mixed",
+      "timezone": "America/Denver",
+      "square_footage": 42000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z"
+    },
+    {
+      "id": "loc_0003",
+      "customer_id": "cust_0002",
+      "name": "Granite Peak Warehouse",
+      "address": {
+        "line1": "2155 S 3270 W",
+        "city": "West Valley City",
+        "state": "UT",
+        "postal_code": "84119",
+        "country": "US"
+      },
+      "site_type": "warehouse",
+      "timezone": "America/Denver",
+      "square_footage": 220000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z",
+      "access_notes": "Call before rooftop access"
+    },
+    {
+      "id": "loc_0004",
+      "customer_id": "cust_0003",
+      "name": "Red Rock Dental Sandy",
+      "address": {
+        "line1": "9340 S 700 E",
+        "city": "Sandy",
+        "state": "UT",
+        "postal_code": "84070",
+        "country": "US"
+      },
+      "site_type": "medical",
+      "timezone": "America/Denver",
+      "square_footage": 12000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z",
+      "access_notes": "Quiet hours 08:00-12:00"
+    },
+    {
+      "id": "loc_0005",
+      "customer_id": "cust_0003",
+      "name": "Red Rock Dental Draper",
+      "address": {
+        "line1": "1192 E 12300 S",
+        "city": "Draper",
+        "state": "UT",
+        "postal_code": "84020",
+        "country": "US"
+      },
+      "site_type": "medical",
+      "timezone": "America/Denver",
+      "square_footage": 9000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z"
+    },
+    {
+      "id": "loc_0006",
+      "customer_id": "cust_0004",
+      "name": "Cottonwood Commons North",
+      "address": {
+        "line1": "2121 E 4800 S",
+        "city": "Holladay",
+        "state": "UT",
+        "postal_code": "84117",
+        "country": "US"
+      },
+      "site_type": "office",
+      "timezone": "America/Denver",
+      "square_footage": 64000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z"
+    },
+    {
+      "id": "loc_0007",
+      "customer_id": "cust_0004",
+      "name": "Cottonwood Commons South",
+      "address": {
+        "line1": "2145 E 4800 S",
+        "city": "Holladay",
+        "state": "UT",
+        "postal_code": "84117",
+        "country": "US"
+      },
+      "site_type": "office",
+      "timezone": "America/Denver",
+      "square_footage": 51000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z",
+      "access_notes": "Loading dock on west side"
+    },
+    {
+      "id": "loc_0008",
+      "customer_id": "cust_0005",
+      "name": "Wasatch View Shops",
+      "address": {
+        "line1": "3300 S 1300 E",
+        "city": "Millcreek",
+        "state": "UT",
+        "postal_code": "84106",
+        "country": "US"
+      },
+      "site_type": "retail",
+      "timezone": "America/Denver",
+      "square_footage": 28000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z"
+    },
+    {
+      "id": "loc_0009",
+      "customer_id": "cust_0006",
+      "name": "Jordan River Charter Main",
+      "address": {
+        "line1": "10550 S 2200 W",
+        "city": "South Jordan",
+        "state": "UT",
+        "postal_code": "84095",
+        "country": "US"
+      },
+      "site_type": "school",
+      "timezone": "America/Denver",
+      "square_footage": 78000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z",
+      "access_notes": "Check in at office"
+    },
+    {
+      "id": "loc_0010",
+      "customer_id": "cust_0007",
+      "name": "North Bench City Hall",
+      "address": {
+        "line1": "150 N Main St",
+        "city": "Bountiful",
+        "state": "UT",
+        "postal_code": "84010",
+        "country": "US"
+      },
+      "site_type": "municipal",
+      "timezone": "America/Denver",
+      "square_footage": 36000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z"
+    },
+    {
+      "id": "loc_0011",
+      "customer_id": "cust_0007",
+      "name": "North Bench Public Works Yard",
+      "address": {
+        "line1": "80 E 400 N",
+        "city": "Bountiful",
+        "state": "UT",
+        "postal_code": "84010",
+        "country": "US"
+      },
+      "site_type": "municipal",
+      "timezone": "America/Denver",
+      "square_footage": 18000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z",
+      "access_notes": "Gate code on file"
+    },
+    {
+      "id": "loc_0012",
+      "customer_id": "cust_0008",
+      "name": "Lakeside Medical Pavilion",
+      "address": {
+        "line1": "444 W Shepard Ln",
+        "city": "Farmington",
+        "state": "UT",
+        "postal_code": "84025",
+        "country": "US"
+      },
+      "site_type": "medical",
+      "timezone": "America/Denver",
+      "square_footage": 47000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z",
+      "access_notes": "Infection-control rules"
+    },
+    {
+      "id": "loc_0013",
+      "customer_id": "cust_0009",
+      "name": "Sugar House Maker Works",
+      "address": {
+        "line1": "2212 S 1100 E",
+        "city": "Salt Lake City",
+        "state": "UT",
+        "postal_code": "84106",
+        "country": "US"
+      },
+      "site_type": "warehouse",
+      "timezone": "America/Denver",
+      "square_footage": 16000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z"
+    },
+    {
+      "id": "loc_0014",
+      "customer_id": "cust_0010",
+      "name": "East Millcreek Plaza",
+      "address": {
+        "line1": "3165 E 3300 S",
+        "city": "Millcreek",
+        "state": "UT",
+        "postal_code": "84109",
+        "country": "US"
+      },
+      "site_type": "office",
+      "timezone": "America/Denver",
+      "square_footage": 39000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z"
+    },
+    {
+      "id": "loc_0015",
+      "customer_id": "cust_0011",
+      "name": "Oquirrh Distribution Center",
+      "address": {
+        "line1": "8120 W 2100 S",
+        "city": "Magna",
+        "state": "UT",
+        "postal_code": "84044",
+        "country": "US"
+      },
+      "site_type": "warehouse",
+      "timezone": "America/Denver",
+      "square_footage": 310000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z",
+      "access_notes": "PPE required"
+    },
+    {
+      "id": "loc_0016",
+      "customer_id": "cust_0012",
+      "name": "Exchange Place Shops",
+      "address": {
+        "line1": "10 W Exchange Pl",
+        "city": "Salt Lake City",
+        "state": "UT",
+        "postal_code": "84111",
+        "country": "US"
+      },
+      "site_type": "retail",
+      "timezone": "America/Denver",
+      "square_footage": 22000,
+      "status": "inactive",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z"
+    },
+    {
+      "id": "loc_0017",
+      "customer_id": "cust_0013",
+      "name": "Draper Canyon Building A",
+      "address": {
+        "line1": "12899 S Minuteman Dr",
+        "city": "Draper",
+        "state": "UT",
+        "postal_code": "84020",
+        "country": "US"
+      },
+      "site_type": "office",
+      "timezone": "America/Denver",
+      "square_footage": 88000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z"
+    },
+    {
+      "id": "loc_0018",
+      "customer_id": "cust_0013",
+      "name": "Draper Canyon Building B",
+      "address": {
+        "line1": "12925 S Minuteman Dr",
+        "city": "Draper",
+        "state": "UT",
+        "postal_code": "84020",
+        "country": "US"
+      },
+      "site_type": "office",
+      "timezone": "America/Denver",
+      "square_footage": 76000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z",
+      "access_notes": "Visitor parking south lot"
+    },
+    {
+      "id": "loc_0019",
+      "customer_id": "cust_0014",
+      "name": "Ogden River Light Industrial",
+      "address": {
+        "line1": "1450 W 2550 S",
+        "city": "Ogden",
+        "state": "UT",
+        "postal_code": "84401",
+        "country": "US"
+      },
+      "site_type": "warehouse",
+      "timezone": "America/Denver",
+      "square_footage": 54000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z"
+    },
+    {
+      "id": "loc_0020",
+      "customer_id": "cust_0015",
+      "name": "Provo Center Street Offices",
+      "address": {
+        "line1": "80 N University Ave",
+        "city": "Provo",
+        "state": "UT",
+        "postal_code": "84601",
+        "country": "US"
+      },
+      "site_type": "office",
+      "timezone": "America/Denver",
+      "square_footage": 21000,
+      "status": "active",
+      "created_at": "2026-01-10T16:00:00Z",
+      "updated_at": "2026-01-10T16:00:00Z"
+    }
+  ]
+}

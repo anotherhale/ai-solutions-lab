@@ -1,0 +1,707 @@
+{
+  "synthetic": true,
+  "entity": "invoice_line",
+  "schema": "finance/invoice-line.schema.json",
+  "records": [
+    {
+      "id": "il_0001",
+      "invoice_id": "inv_0001",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0020"
+    },
+    {
+      "id": "il_0002",
+      "invoice_id": "inv_0001",
+      "description": "Replacement contactor",
+      "quantity": 1,
+      "unit_price": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_type": "parts",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0020"
+    },
+    {
+      "id": "il_0003",
+      "invoice_id": "inv_0002",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0021"
+    },
+    {
+      "id": "il_0004",
+      "invoice_id": "inv_0002",
+      "description": "Replacement contactor",
+      "quantity": 1,
+      "unit_price": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_type": "parts",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0021"
+    },
+    {
+      "id": "il_0005",
+      "invoice_id": "inv_0003",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0022"
+    },
+    {
+      "id": "il_0006",
+      "invoice_id": "inv_0004",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0023"
+    },
+    {
+      "id": "il_0007",
+      "invoice_id": "inv_0005",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0028"
+    },
+    {
+      "id": "il_0008",
+      "invoice_id": "inv_0005",
+      "description": "Replacement contactor",
+      "quantity": 1,
+      "unit_price": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_type": "parts",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0028"
+    },
+    {
+      "id": "il_0009",
+      "invoice_id": "inv_0006",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0029"
+    },
+    {
+      "id": "il_0010",
+      "invoice_id": "inv_0007",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0030"
+    },
+    {
+      "id": "il_0011",
+      "invoice_id": "inv_0008",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0031"
+    },
+    {
+      "id": "il_0012",
+      "invoice_id": "inv_0009",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0032"
+    },
+    {
+      "id": "il_0013",
+      "invoice_id": "inv_0010",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0033"
+    },
+    {
+      "id": "il_0014",
+      "invoice_id": "inv_0011",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0034"
+    },
+    {
+      "id": "il_0015",
+      "invoice_id": "inv_0011",
+      "description": "Replacement contactor",
+      "quantity": 1,
+      "unit_price": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_type": "parts",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0034"
+    },
+    {
+      "id": "il_0016",
+      "invoice_id": "inv_0012",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0035"
+    },
+    {
+      "id": "il_0017",
+      "invoice_id": "inv_0012",
+      "description": "Replacement contactor",
+      "quantity": 1,
+      "unit_price": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_type": "parts",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0035"
+    },
+    {
+      "id": "il_0018",
+      "invoice_id": "inv_0013",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0036"
+    },
+    {
+      "id": "il_0019",
+      "invoice_id": "inv_0013",
+      "description": "Replacement contactor",
+      "quantity": 1,
+      "unit_price": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_type": "parts",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0036"
+    },
+    {
+      "id": "il_0020",
+      "invoice_id": "inv_0014",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0037"
+    },
+    {
+      "id": "il_0021",
+      "invoice_id": "inv_0015",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0022",
+      "invoice_id": "inv_0015",
+      "description": "Replacement contactor",
+      "quantity": 1,
+      "unit_price": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_type": "parts",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0023",
+      "invoice_id": "inv_0016",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0024",
+      "invoice_id": "inv_0016",
+      "description": "Replacement contactor",
+      "quantity": 1,
+      "unit_price": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_type": "parts",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0025",
+      "invoice_id": "inv_0017",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0026",
+      "invoice_id": "inv_0018",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0027",
+      "invoice_id": "inv_0019",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0028",
+      "invoice_id": "inv_0020",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0029",
+      "invoice_id": "inv_0020",
+      "description": "Replacement contactor",
+      "quantity": 1,
+      "unit_price": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_type": "parts",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0030",
+      "invoice_id": "inv_0021",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0031",
+      "invoice_id": "inv_0022",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0032",
+      "invoice_id": "inv_0023",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0033",
+      "invoice_id": "inv_0024",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0034",
+      "invoice_id": "inv_0024",
+      "description": "Replacement contactor",
+      "quantity": 1,
+      "unit_price": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "86.50",
+        "currency": "USD"
+      },
+      "line_type": "parts",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0035",
+      "invoice_id": "inv_0025",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0036",
+      "invoice_id": "inv_0026",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0037",
+      "invoice_id": "inv_0027",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0038",
+      "invoice_id": "inv_0028",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0039",
+      "invoice_id": "inv_0029",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    },
+    {
+      "id": "il_0040",
+      "invoice_id": "inv_0030",
+      "description": "Labor - diagnostic and repair",
+      "quantity": 2,
+      "unit_price": {
+        "amount": "125.00",
+        "currency": "USD"
+      },
+      "line_total": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "line_type": "labor",
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z"
+    }
+  ]
+}

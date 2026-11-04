@@ -1,0 +1,1019 @@
+{
+  "synthetic": true,
+  "entity": "invoice",
+  "schema": "finance/invoice.schema.json",
+  "records": [
+    {
+      "id": "inv_0001",
+      "customer_id": "cust_0015",
+      "status": "draft",
+      "subtotal": {
+        "amount": "336.50",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "24.40",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0020"
+    },
+    {
+      "id": "inv_0002",
+      "customer_id": "cust_0001",
+      "status": "draft",
+      "subtotal": {
+        "amount": "336.50",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "24.40",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0021"
+    },
+    {
+      "id": "inv_0003",
+      "customer_id": "cust_0001",
+      "status": "draft",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0022"
+    },
+    {
+      "id": "inv_0004",
+      "customer_id": "cust_0002",
+      "status": "draft",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0023"
+    },
+    {
+      "id": "inv_0005",
+      "customer_id": "cust_0005",
+      "status": "issued",
+      "subtotal": {
+        "amount": "336.50",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "24.40",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0028",
+      "issued_on": "2026-10-20",
+      "due_on": "2026-11-20"
+    },
+    {
+      "id": "inv_0006",
+      "customer_id": "cust_0006",
+      "status": "issued",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0029",
+      "issued_on": "2026-10-20",
+      "due_on": "2026-11-20"
+    },
+    {
+      "id": "inv_0007",
+      "customer_id": "cust_0007",
+      "status": "issued",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0030",
+      "issued_on": "2026-10-20",
+      "due_on": "2026-11-20"
+    },
+    {
+      "id": "inv_0008",
+      "customer_id": "cust_0007",
+      "status": "issued",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0031",
+      "issued_on": "2026-10-20",
+      "due_on": "2026-11-20"
+    },
+    {
+      "id": "inv_0009",
+      "customer_id": "cust_0008",
+      "status": "issued",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0032",
+      "issued_on": "2026-10-20",
+      "due_on": "2026-11-20"
+    },
+    {
+      "id": "inv_0010",
+      "customer_id": "cust_0009",
+      "status": "issued",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0033",
+      "issued_on": "2026-10-20",
+      "due_on": "2026-11-20"
+    },
+    {
+      "id": "inv_0011",
+      "customer_id": "cust_0010",
+      "status": "paid",
+      "subtotal": {
+        "amount": "336.50",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "24.40",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0034",
+      "issued_on": "2026-08-01",
+      "due_on": "2026-08-31"
+    },
+    {
+      "id": "inv_0012",
+      "customer_id": "cust_0011",
+      "status": "paid",
+      "subtotal": {
+        "amount": "336.50",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "24.40",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0035",
+      "issued_on": "2026-08-01",
+      "due_on": "2026-08-31"
+    },
+    {
+      "id": "inv_0013",
+      "customer_id": "cust_0012",
+      "status": "partially_paid",
+      "subtotal": {
+        "amount": "336.50",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "24.40",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "180.45",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "180.45",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0036",
+      "issued_on": "2026-10-01",
+      "due_on": "2026-11-15"
+    },
+    {
+      "id": "inv_0014",
+      "customer_id": "cust_0013",
+      "status": "overdue",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "work_order_id": "wo_0037",
+      "issued_on": "2026-08-05",
+      "due_on": "2026-09-05"
+    },
+    {
+      "id": "inv_0015",
+      "customer_id": "cust_0001",
+      "status": "paid",
+      "subtotal": {
+        "amount": "336.50",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "24.40",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-11-10",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0016",
+      "customer_id": "cust_0003",
+      "status": "paid",
+      "subtotal": {
+        "amount": "336.50",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "24.40",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-11-10",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0017",
+      "customer_id": "cust_0004",
+      "status": "paid",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-11-10",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0018",
+      "customer_id": "cust_0007",
+      "status": "paid",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-11-10",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0019",
+      "customer_id": "cust_0008",
+      "status": "paid",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-11-10",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0020",
+      "customer_id": "cust_0013",
+      "status": "paid",
+      "subtotal": {
+        "amount": "336.50",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "24.40",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-11-10",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0021",
+      "customer_id": "cust_0002",
+      "status": "paid",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-11-10",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0022",
+      "customer_id": "cust_0006",
+      "status": "paid",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-11-10",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0023",
+      "customer_id": "cust_0010",
+      "status": "partially_paid",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "89.37",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "178.75",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-11-10",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0024",
+      "customer_id": "cust_0011",
+      "status": "partially_paid",
+      "subtotal": {
+        "amount": "336.50",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "24.40",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "360.90",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "120.30",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "240.60",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-11-10",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0025",
+      "customer_id": "cust_0005",
+      "status": "partially_paid",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "89.37",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "178.75",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-11-10",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0026",
+      "customer_id": "cust_0009",
+      "status": "overdue",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "200.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "68.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-09-01",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0027",
+      "customer_id": "cust_0014",
+      "status": "overdue",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "200.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "68.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-09-01",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0028",
+      "customer_id": "cust_0001",
+      "status": "overdue",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "issued_on": "2026-07-10",
+      "due_on": "2026-09-01",
+      "notes": "Seasonal agreement billing"
+    },
+    {
+      "id": "inv_0029",
+      "customer_id": "cust_0003",
+      "status": "voided",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "voided_on": "2026-06-20",
+      "void_reason": "Duplicate draft issued in error",
+      "issued_on": "2026-06-02"
+    },
+    {
+      "id": "inv_0030",
+      "customer_id": "cust_0013",
+      "status": "voided",
+      "subtotal": {
+        "amount": "250.00",
+        "currency": "USD"
+      },
+      "tax": {
+        "amount": "18.12",
+        "currency": "USD"
+      },
+      "adjustments": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "total": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "amount_paid": {
+        "amount": "0.00",
+        "currency": "USD"
+      },
+      "balance": {
+        "amount": "268.12",
+        "currency": "USD"
+      },
+      "created_at": "2026-05-01T11:00:00Z",
+      "updated_at": "2026-05-01T11:00:00Z",
+      "voided_on": "2026-06-20",
+      "void_reason": "Duplicate draft issued in error",
+      "issued_on": "2026-06-02"
+    }
+  ]
+}

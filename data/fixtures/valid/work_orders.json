@@ -1,0 +1,913 @@
+{
+  "synthetic": true,
+  "entity": "work_order",
+  "schema": "field-operations/work-order.schema.json",
+  "records": [
+    {
+      "id": "wo_0001",
+      "customer_id": "cust_0001",
+      "service_location_id": "loc_0001",
+      "status": "created",
+      "priority": "normal",
+      "work_type": "maintenance",
+      "summary": "Maintenance request 1",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0001",
+      "opened_at": "2026-03-05T14:15:00Z",
+      "created_at": "2026-03-05T14:15:00Z",
+      "updated_at": "2026-03-05T14:15:00Z",
+      "equipment_ids": [
+        "eq_0001",
+        "eq_0002"
+      ],
+      "support_ticket_id": "tkt_0001"
+    },
+    {
+      "id": "wo_0002",
+      "customer_id": "cust_0001",
+      "service_location_id": "loc_0002",
+      "status": "created",
+      "priority": "normal",
+      "work_type": "repair",
+      "summary": "Repair request 2",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0001",
+      "opened_at": "2026-03-07T14:15:00Z",
+      "created_at": "2026-03-07T14:15:00Z",
+      "updated_at": "2026-03-07T14:15:00Z",
+      "equipment_ids": [
+        "eq_0003",
+        "eq_0004"
+      ],
+      "support_ticket_id": "tkt_0002"
+    },
+    {
+      "id": "wo_0003",
+      "customer_id": "cust_0002",
+      "service_location_id": "loc_0003",
+      "status": "created",
+      "priority": "normal",
+      "work_type": "inspection",
+      "summary": "Inspection request 3",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0004",
+      "opened_at": "2026-03-09T14:15:00Z",
+      "created_at": "2026-03-09T14:15:00Z",
+      "updated_at": "2026-03-09T14:15:00Z",
+      "equipment_ids": [
+        "eq_0005",
+        "eq_0006"
+      ],
+      "support_ticket_id": "tkt_0003"
+    },
+    {
+      "id": "wo_0004",
+      "customer_id": "cust_0003",
+      "service_location_id": "loc_0004",
+      "status": "scheduled",
+      "priority": "high",
+      "work_type": "after_hours",
+      "summary": "After Hours request 4",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0005",
+      "opened_at": "2026-03-11T14:15:00Z",
+      "created_at": "2026-03-11T14:15:00Z",
+      "updated_at": "2026-03-11T14:15:00Z",
+      "equipment_ids": [
+        "eq_0007",
+        "eq_0008"
+      ],
+      "assigned_employee_ids": [
+        "emp_0013"
+      ],
+      "scheduled_for": "2026-03-12T08:00:00Z",
+      "support_ticket_id": "tkt_0004"
+    },
+    {
+      "id": "wo_0005",
+      "customer_id": "cust_0003",
+      "service_location_id": "loc_0005",
+      "status": "scheduled",
+      "priority": "normal",
+      "work_type": "install",
+      "summary": "Install request 5",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0005",
+      "opened_at": "2026-03-13T14:15:00Z",
+      "created_at": "2026-03-13T14:15:00Z",
+      "updated_at": "2026-03-13T14:15:00Z",
+      "equipment_ids": [
+        "eq_0009",
+        "eq_0010"
+      ],
+      "assigned_employee_ids": [
+        "emp_0010"
+      ],
+      "scheduled_for": "2026-03-14T08:00:00Z",
+      "support_ticket_id": "tkt_0005"
+    },
+    {
+      "id": "wo_0006",
+      "customer_id": "cust_0004",
+      "service_location_id": "loc_0006",
+      "status": "scheduled",
+      "priority": "normal",
+      "work_type": "callback",
+      "summary": "Callback request 6",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0008",
+      "opened_at": "2026-03-15T14:15:00Z",
+      "created_at": "2026-03-15T14:15:00Z",
+      "updated_at": "2026-03-15T14:15:00Z",
+      "equipment_ids": [
+        "eq_0011",
+        "eq_0012"
+      ],
+      "assigned_employee_ids": [
+        "emp_0011"
+      ],
+      "scheduled_for": "2026-03-16T08:00:00Z",
+      "support_ticket_id": "tkt_0006"
+    },
+    {
+      "id": "wo_0007",
+      "customer_id": "cust_0004",
+      "service_location_id": "loc_0007",
+      "status": "scheduled",
+      "priority": "normal",
+      "work_type": "maintenance",
+      "summary": "Maintenance request 7",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0008",
+      "opened_at": "2026-03-17T14:15:00Z",
+      "created_at": "2026-03-17T14:15:00Z",
+      "updated_at": "2026-03-17T14:15:00Z",
+      "equipment_ids": [
+        "eq_0013",
+        "eq_0014"
+      ],
+      "assigned_employee_ids": [
+        "emp_0012"
+      ],
+      "scheduled_for": "2026-03-18T08:00:00Z",
+      "support_ticket_id": "tkt_0007"
+    },
+    {
+      "id": "wo_0008",
+      "customer_id": "cust_0005",
+      "service_location_id": "loc_0008",
+      "status": "assigned",
+      "priority": "normal",
+      "work_type": "repair",
+      "summary": "Repair request 8",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0010",
+      "opened_at": "2026-03-19T14:15:00Z",
+      "created_at": "2026-03-19T14:15:00Z",
+      "updated_at": "2026-03-19T14:15:00Z",
+      "equipment_ids": [
+        "eq_0015",
+        "eq_0016"
+      ],
+      "assigned_employee_ids": [
+        "emp_0013"
+      ],
+      "scheduled_for": "2026-03-20T08:00:00Z",
+      "support_ticket_id": "tkt_0008"
+    },
+    {
+      "id": "wo_0009",
+      "customer_id": "cust_0006",
+      "service_location_id": "loc_0009",
+      "status": "assigned",
+      "priority": "normal",
+      "work_type": "inspection",
+      "summary": "Inspection request 9",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0011",
+      "opened_at": "2026-04-21T14:15:00Z",
+      "created_at": "2026-04-21T14:15:00Z",
+      "updated_at": "2026-04-21T14:15:00Z",
+      "equipment_ids": [
+        "eq_0017",
+        "eq_0018"
+      ],
+      "assigned_employee_ids": [
+        "emp_0010"
+      ],
+      "scheduled_for": "2026-04-22T08:00:00Z",
+      "support_ticket_id": "tkt_0009"
+    },
+    {
+      "id": "wo_0010",
+      "customer_id": "cust_0007",
+      "service_location_id": "loc_0010",
+      "status": "assigned",
+      "priority": "high",
+      "work_type": "after_hours",
+      "summary": "After Hours request 10",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0012",
+      "opened_at": "2026-04-23T14:15:00Z",
+      "created_at": "2026-04-23T14:15:00Z",
+      "updated_at": "2026-04-23T14:15:00Z",
+      "equipment_ids": [
+        "eq_0019",
+        "eq_0020"
+      ],
+      "assigned_employee_ids": [
+        "emp_0011"
+      ],
+      "scheduled_for": "2026-04-24T08:00:00Z",
+      "support_ticket_id": "tkt_0010"
+    },
+    {
+      "id": "wo_0011",
+      "customer_id": "cust_0007",
+      "service_location_id": "loc_0011",
+      "status": "assigned",
+      "priority": "normal",
+      "work_type": "install",
+      "summary": "Install request 11",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0012",
+      "opened_at": "2026-04-25T14:15:00Z",
+      "created_at": "2026-04-25T14:15:00Z",
+      "updated_at": "2026-04-25T14:15:00Z",
+      "equipment_ids": [
+        "eq_0021"
+      ],
+      "assigned_employee_ids": [
+        "emp_0012"
+      ],
+      "scheduled_for": "2026-04-26T08:00:00Z",
+      "support_ticket_id": "tkt_0011"
+    },
+    {
+      "id": "wo_0012",
+      "customer_id": "cust_0008",
+      "service_location_id": "loc_0012",
+      "status": "in_progress",
+      "priority": "emergency",
+      "work_type": "callback",
+      "summary": "Callback request 12",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0014",
+      "opened_at": "2026-04-03T14:15:00Z",
+      "created_at": "2026-04-03T14:15:00Z",
+      "updated_at": "2026-04-03T14:15:00Z",
+      "equipment_ids": [
+        "eq_0022"
+      ],
+      "assigned_employee_ids": [
+        "emp_0013"
+      ],
+      "scheduled_for": "2026-04-04T08:00:00Z",
+      "support_ticket_id": "tkt_0012"
+    },
+    {
+      "id": "wo_0013",
+      "customer_id": "cust_0009",
+      "service_location_id": "loc_0013",
+      "status": "in_progress",
+      "priority": "normal",
+      "work_type": "maintenance",
+      "summary": "Maintenance request 13",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0015",
+      "opened_at": "2026-04-05T14:15:00Z",
+      "created_at": "2026-04-05T14:15:00Z",
+      "updated_at": "2026-04-05T14:15:00Z",
+      "equipment_ids": [
+        "eq_0023"
+      ],
+      "assigned_employee_ids": [
+        "emp_0010"
+      ],
+      "scheduled_for": "2026-04-06T08:00:00Z",
+      "support_ticket_id": "tkt_0013"
+    },
+    {
+      "id": "wo_0014",
+      "customer_id": "cust_0010",
+      "service_location_id": "loc_0014",
+      "status": "in_progress",
+      "priority": "normal",
+      "work_type": "repair",
+      "summary": "Repair request 14",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0016",
+      "opened_at": "2026-04-07T14:15:00Z",
+      "created_at": "2026-04-07T14:15:00Z",
+      "updated_at": "2026-04-07T14:15:00Z",
+      "equipment_ids": [
+        "eq_0024"
+      ],
+      "assigned_employee_ids": [
+        "emp_0011"
+      ],
+      "scheduled_for": "2026-04-08T08:00:00Z",
+      "support_ticket_id": "tkt_0014"
+    },
+    {
+      "id": "wo_0015",
+      "customer_id": "cust_0011",
+      "service_location_id": "loc_0015",
+      "status": "in_progress",
+      "priority": "normal",
+      "work_type": "inspection",
+      "summary": "Inspection request 15",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0018",
+      "opened_at": "2026-04-09T14:15:00Z",
+      "created_at": "2026-04-09T14:15:00Z",
+      "updated_at": "2026-04-09T14:15:00Z",
+      "equipment_ids": [
+        "eq_0025"
+      ],
+      "assigned_employee_ids": [
+        "emp_0012"
+      ],
+      "scheduled_for": "2026-04-10T08:00:00Z",
+      "support_ticket_id": "tkt_0015"
+    },
+    {
+      "id": "wo_0016",
+      "customer_id": "cust_0012",
+      "service_location_id": "loc_0016",
+      "status": "in_progress",
+      "priority": "high",
+      "work_type": "after_hours",
+      "summary": "After Hours request 16",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0019",
+      "opened_at": "2026-04-11T14:15:00Z",
+      "created_at": "2026-04-11T14:15:00Z",
+      "updated_at": "2026-04-11T14:15:00Z",
+      "equipment_ids": [
+        "eq_0026"
+      ],
+      "assigned_employee_ids": [
+        "emp_0013"
+      ],
+      "scheduled_for": "2026-04-12T08:00:00Z"
+    },
+    {
+      "id": "wo_0017",
+      "customer_id": "cust_0013",
+      "service_location_id": "loc_0017",
+      "status": "awaiting_parts",
+      "priority": "emergency",
+      "work_type": "repair",
+      "summary": "Repair request 17",
+      "description": "Waiting on compressor assembly; ETA ten business days.",
+      "requested_by_contact_id": "con_0020",
+      "opened_at": "2026-05-13T14:15:00Z",
+      "created_at": "2026-05-13T14:15:00Z",
+      "updated_at": "2026-05-13T14:15:00Z",
+      "equipment_ids": [
+        "eq_0027"
+      ],
+      "assigned_employee_ids": [
+        "emp_0010"
+      ],
+      "scheduled_for": "2026-05-14T08:00:00Z"
+    },
+    {
+      "id": "wo_0018",
+      "customer_id": "cust_0013",
+      "service_location_id": "loc_0018",
+      "status": "awaiting_parts",
+      "priority": "normal",
+      "work_type": "repair",
+      "summary": "Repair request 18",
+      "description": "Waiting on compressor assembly; ETA ten business days.",
+      "requested_by_contact_id": "con_0020",
+      "opened_at": "2026-05-15T14:15:00Z",
+      "created_at": "2026-05-15T14:15:00Z",
+      "updated_at": "2026-05-15T14:15:00Z",
+      "equipment_ids": [
+        "eq_0028"
+      ],
+      "assigned_employee_ids": [
+        "emp_0011"
+      ],
+      "scheduled_for": "2026-05-16T08:00:00Z"
+    },
+    {
+      "id": "wo_0019",
+      "customer_id": "cust_0014",
+      "service_location_id": "loc_0019",
+      "status": "awaiting_parts",
+      "priority": "normal",
+      "work_type": "repair",
+      "summary": "Repair request 19",
+      "description": "Waiting on compressor assembly; ETA ten business days.",
+      "requested_by_contact_id": "con_0023",
+      "opened_at": "2026-05-17T14:15:00Z",
+      "created_at": "2026-05-17T14:15:00Z",
+      "updated_at": "2026-05-17T14:15:00Z",
+      "equipment_ids": [
+        "eq_0029"
+      ],
+      "assigned_employee_ids": [
+        "emp_0012"
+      ],
+      "scheduled_for": "2026-05-18T08:00:00Z"
+    },
+    {
+      "id": "wo_0020",
+      "customer_id": "cust_0015",
+      "service_location_id": "loc_0020",
+      "status": "completed",
+      "priority": "normal",
+      "work_type": "repair",
+      "summary": "Repair request 20",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0025",
+      "opened_at": "2026-05-19T14:15:00Z",
+      "created_at": "2026-05-19T14:15:00Z",
+      "updated_at": "2026-06-19T17:40:00Z",
+      "equipment_ids": [
+        "eq_0030"
+      ],
+      "assigned_employee_ids": [
+        "emp_0013"
+      ],
+      "scheduled_for": "2026-05-20T08:00:00Z",
+      "completed_at": "2026-06-19T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed."
+    },
+    {
+      "id": "wo_0021",
+      "customer_id": "cust_0001",
+      "service_location_id": "loc_0001",
+      "status": "completed",
+      "priority": "normal",
+      "work_type": "inspection",
+      "summary": "Inspection request 21",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0001",
+      "opened_at": "2026-05-21T14:15:00Z",
+      "created_at": "2026-05-21T14:15:00Z",
+      "updated_at": "2026-06-21T17:40:00Z",
+      "equipment_ids": [
+        "eq_0001",
+        "eq_0002"
+      ],
+      "assigned_employee_ids": [
+        "emp_0010"
+      ],
+      "scheduled_for": "2026-05-22T08:00:00Z",
+      "completed_at": "2026-06-21T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed."
+    },
+    {
+      "id": "wo_0022",
+      "customer_id": "cust_0001",
+      "service_location_id": "loc_0002",
+      "status": "completed",
+      "priority": "high",
+      "work_type": "after_hours",
+      "summary": "After Hours request 22",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0001",
+      "opened_at": "2026-05-23T14:15:00Z",
+      "created_at": "2026-05-23T14:15:00Z",
+      "updated_at": "2026-06-23T17:40:00Z",
+      "equipment_ids": [
+        "eq_0003",
+        "eq_0004"
+      ],
+      "assigned_employee_ids": [
+        "emp_0011"
+      ],
+      "scheduled_for": "2026-05-24T08:00:00Z",
+      "completed_at": "2026-06-23T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed."
+    },
+    {
+      "id": "wo_0023",
+      "customer_id": "cust_0002",
+      "service_location_id": "loc_0003",
+      "status": "completed",
+      "priority": "normal",
+      "work_type": "install",
+      "summary": "Install request 23",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0004",
+      "opened_at": "2026-05-25T14:15:00Z",
+      "created_at": "2026-05-25T14:15:00Z",
+      "updated_at": "2026-06-25T17:40:00Z",
+      "equipment_ids": [
+        "eq_0005",
+        "eq_0006"
+      ],
+      "assigned_employee_ids": [
+        "emp_0012"
+      ],
+      "scheduled_for": "2026-05-26T08:00:00Z",
+      "completed_at": "2026-06-25T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed."
+    },
+    {
+      "id": "wo_0024",
+      "customer_id": "cust_0003",
+      "service_location_id": "loc_0004",
+      "status": "completed",
+      "priority": "normal",
+      "work_type": "callback",
+      "summary": "Callback request 24",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0005",
+      "opened_at": "2026-05-03T14:15:00Z",
+      "created_at": "2026-05-03T14:15:00Z",
+      "updated_at": "2026-06-03T17:40:00Z",
+      "equipment_ids": [
+        "eq_0007",
+        "eq_0008"
+      ],
+      "assigned_employee_ids": [
+        "emp_0013"
+      ],
+      "scheduled_for": "2026-05-04T08:00:00Z",
+      "completed_at": "2026-06-03T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed."
+    },
+    {
+      "id": "wo_0025",
+      "customer_id": "cust_0003",
+      "service_location_id": "loc_0005",
+      "status": "completed",
+      "priority": "normal",
+      "work_type": "maintenance",
+      "summary": "Maintenance request 25",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0005",
+      "opened_at": "2026-06-05T14:15:00Z",
+      "created_at": "2026-06-05T14:15:00Z",
+      "updated_at": "2026-07-05T17:40:00Z",
+      "equipment_ids": [
+        "eq_0009",
+        "eq_0010"
+      ],
+      "assigned_employee_ids": [
+        "emp_0010"
+      ],
+      "scheduled_for": "2026-06-06T08:00:00Z",
+      "completed_at": "2026-07-05T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed."
+    },
+    {
+      "id": "wo_0026",
+      "customer_id": "cust_0004",
+      "service_location_id": "loc_0006",
+      "status": "completed",
+      "priority": "normal",
+      "work_type": "repair",
+      "summary": "Repair request 26",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0008",
+      "opened_at": "2026-06-07T14:15:00Z",
+      "created_at": "2026-06-07T14:15:00Z",
+      "updated_at": "2026-07-07T17:40:00Z",
+      "equipment_ids": [
+        "eq_0011",
+        "eq_0012"
+      ],
+      "assigned_employee_ids": [
+        "emp_0011"
+      ],
+      "scheduled_for": "2026-06-08T08:00:00Z",
+      "completed_at": "2026-07-07T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed."
+    },
+    {
+      "id": "wo_0027",
+      "customer_id": "cust_0004",
+      "service_location_id": "loc_0007",
+      "status": "completed",
+      "priority": "normal",
+      "work_type": "inspection",
+      "summary": "Inspection request 27",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0008",
+      "opened_at": "2026-06-09T14:15:00Z",
+      "created_at": "2026-06-09T14:15:00Z",
+      "updated_at": "2026-07-09T17:40:00Z",
+      "equipment_ids": [
+        "eq_0013",
+        "eq_0014"
+      ],
+      "assigned_employee_ids": [
+        "emp_0012"
+      ],
+      "scheduled_for": "2026-06-10T08:00:00Z",
+      "completed_at": "2026-07-09T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed."
+    },
+    {
+      "id": "wo_0028",
+      "customer_id": "cust_0005",
+      "service_location_id": "loc_0008",
+      "status": "invoiced",
+      "priority": "high",
+      "work_type": "after_hours",
+      "summary": "After Hours request 28",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0010",
+      "opened_at": "2026-06-11T14:15:00Z",
+      "created_at": "2026-06-11T14:15:00Z",
+      "updated_at": "2026-07-11T17:40:00Z",
+      "equipment_ids": [
+        "eq_0015",
+        "eq_0016"
+      ],
+      "assigned_employee_ids": [
+        "emp_0013"
+      ],
+      "scheduled_for": "2026-06-12T08:00:00Z",
+      "completed_at": "2026-07-11T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed.",
+      "invoice_id": "inv_0005"
+    },
+    {
+      "id": "wo_0029",
+      "customer_id": "cust_0006",
+      "service_location_id": "loc_0009",
+      "status": "invoiced",
+      "priority": "normal",
+      "work_type": "install",
+      "summary": "Install request 29",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0011",
+      "opened_at": "2026-06-13T14:15:00Z",
+      "created_at": "2026-06-13T14:15:00Z",
+      "updated_at": "2026-07-13T17:40:00Z",
+      "equipment_ids": [
+        "eq_0017",
+        "eq_0018"
+      ],
+      "assigned_employee_ids": [
+        "emp_0010"
+      ],
+      "scheduled_for": "2026-06-14T08:00:00Z",
+      "completed_at": "2026-07-13T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed.",
+      "invoice_id": "inv_0006"
+    },
+    {
+      "id": "wo_0030",
+      "customer_id": "cust_0007",
+      "service_location_id": "loc_0010",
+      "status": "invoiced",
+      "priority": "normal",
+      "work_type": "callback",
+      "summary": "Callback request 30",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0012",
+      "opened_at": "2026-06-15T14:15:00Z",
+      "created_at": "2026-06-15T14:15:00Z",
+      "updated_at": "2026-07-15T17:40:00Z",
+      "equipment_ids": [
+        "eq_0019",
+        "eq_0020"
+      ],
+      "assigned_employee_ids": [
+        "emp_0011"
+      ],
+      "scheduled_for": "2026-06-16T08:00:00Z",
+      "completed_at": "2026-07-15T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed.",
+      "invoice_id": "inv_0007"
+    },
+    {
+      "id": "wo_0031",
+      "customer_id": "cust_0007",
+      "service_location_id": "loc_0011",
+      "status": "invoiced",
+      "priority": "normal",
+      "work_type": "maintenance",
+      "summary": "Maintenance request 31",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0012",
+      "opened_at": "2026-06-17T14:15:00Z",
+      "created_at": "2026-06-17T14:15:00Z",
+      "updated_at": "2026-07-17T17:40:00Z",
+      "equipment_ids": [
+        "eq_0021"
+      ],
+      "assigned_employee_ids": [
+        "emp_0012"
+      ],
+      "scheduled_for": "2026-06-18T08:00:00Z",
+      "completed_at": "2026-07-17T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed.",
+      "invoice_id": "inv_0008"
+    },
+    {
+      "id": "wo_0032",
+      "customer_id": "cust_0008",
+      "service_location_id": "loc_0012",
+      "status": "invoiced",
+      "priority": "normal",
+      "work_type": "repair",
+      "summary": "Repair request 32",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0014",
+      "opened_at": "2026-06-19T14:15:00Z",
+      "created_at": "2026-06-19T14:15:00Z",
+      "updated_at": "2026-07-19T17:40:00Z",
+      "equipment_ids": [
+        "eq_0022"
+      ],
+      "assigned_employee_ids": [
+        "emp_0013"
+      ],
+      "scheduled_for": "2026-06-20T08:00:00Z",
+      "completed_at": "2026-07-19T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed.",
+      "invoice_id": "inv_0009"
+    },
+    {
+      "id": "wo_0033",
+      "customer_id": "cust_0009",
+      "service_location_id": "loc_0013",
+      "status": "invoiced",
+      "priority": "normal",
+      "work_type": "inspection",
+      "summary": "Inspection request 33",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0015",
+      "opened_at": "2026-07-21T14:15:00Z",
+      "created_at": "2026-07-21T14:15:00Z",
+      "updated_at": "2026-08-21T17:40:00Z",
+      "equipment_ids": [
+        "eq_0023"
+      ],
+      "assigned_employee_ids": [
+        "emp_0010"
+      ],
+      "scheduled_for": "2026-07-22T08:00:00Z",
+      "completed_at": "2026-08-21T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed.",
+      "invoice_id": "inv_0010"
+    },
+    {
+      "id": "wo_0034",
+      "customer_id": "cust_0010",
+      "service_location_id": "loc_0014",
+      "status": "invoiced",
+      "priority": "high",
+      "work_type": "after_hours",
+      "summary": "After Hours request 34",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0016",
+      "opened_at": "2026-07-23T14:15:00Z",
+      "created_at": "2026-07-23T14:15:00Z",
+      "updated_at": "2026-08-23T17:40:00Z",
+      "equipment_ids": [
+        "eq_0024"
+      ],
+      "assigned_employee_ids": [
+        "emp_0011"
+      ],
+      "scheduled_for": "2026-07-24T08:00:00Z",
+      "completed_at": "2026-08-23T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed.",
+      "invoice_id": "inv_0011"
+    },
+    {
+      "id": "wo_0035",
+      "customer_id": "cust_0011",
+      "service_location_id": "loc_0015",
+      "status": "invoiced",
+      "priority": "normal",
+      "work_type": "install",
+      "summary": "Install request 35",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0018",
+      "opened_at": "2026-07-25T14:15:00Z",
+      "created_at": "2026-07-25T14:15:00Z",
+      "updated_at": "2026-08-25T17:40:00Z",
+      "equipment_ids": [
+        "eq_0025"
+      ],
+      "assigned_employee_ids": [
+        "emp_0012"
+      ],
+      "scheduled_for": "2026-07-26T08:00:00Z",
+      "completed_at": "2026-08-25T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed.",
+      "invoice_id": "inv_0012"
+    },
+    {
+      "id": "wo_0036",
+      "customer_id": "cust_0012",
+      "service_location_id": "loc_0016",
+      "status": "invoiced",
+      "priority": "normal",
+      "work_type": "callback",
+      "summary": "Callback request 36",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0019",
+      "opened_at": "2026-07-03T14:15:00Z",
+      "created_at": "2026-07-03T14:15:00Z",
+      "updated_at": "2026-08-03T17:40:00Z",
+      "equipment_ids": [
+        "eq_0026"
+      ],
+      "assigned_employee_ids": [
+        "emp_0013"
+      ],
+      "scheduled_for": "2026-07-04T08:00:00Z",
+      "completed_at": "2026-08-03T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed.",
+      "invoice_id": "inv_0013"
+    },
+    {
+      "id": "wo_0037",
+      "customer_id": "cust_0013",
+      "service_location_id": "loc_0017",
+      "status": "invoiced",
+      "priority": "normal",
+      "work_type": "maintenance",
+      "summary": "Maintenance request 37",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0020",
+      "opened_at": "2026-07-05T14:15:00Z",
+      "created_at": "2026-07-05T14:15:00Z",
+      "updated_at": "2026-08-05T17:40:00Z",
+      "equipment_ids": [
+        "eq_0027"
+      ],
+      "assigned_employee_ids": [
+        "emp_0010"
+      ],
+      "scheduled_for": "2026-07-06T08:00:00Z",
+      "completed_at": "2026-08-05T17:40:00Z",
+      "completion_notes": "Filters replaced, voltages checked, customer signed.",
+      "invoice_id": "inv_0014"
+    },
+    {
+      "id": "wo_0038",
+      "customer_id": "cust_0013",
+      "service_location_id": "loc_0018",
+      "status": "cancelled",
+      "priority": "normal",
+      "work_type": "repair",
+      "summary": "Repair request 38",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0020",
+      "opened_at": "2026-07-07T14:15:00Z",
+      "created_at": "2026-07-07T14:15:00Z",
+      "updated_at": "2026-07-07T14:15:00Z",
+      "equipment_ids": [
+        "eq_0028"
+      ],
+      "cancelled_reason": "Customer postponed pending budget."
+    },
+    {
+      "id": "wo_0039",
+      "customer_id": "cust_0014",
+      "service_location_id": "loc_0019",
+      "status": "cancelled",
+      "priority": "normal",
+      "work_type": "inspection",
+      "summary": "Inspection request 39",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0023",
+      "opened_at": "2026-07-09T14:15:00Z",
+      "created_at": "2026-07-09T14:15:00Z",
+      "updated_at": "2026-07-09T14:15:00Z",
+      "equipment_ids": [
+        "eq_0029"
+      ],
+      "cancelled_reason": "Customer postponed pending budget."
+    },
+    {
+      "id": "wo_0040",
+      "customer_id": "cust_0015",
+      "service_location_id": "loc_0020",
+      "status": "reopened",
+      "priority": "normal",
+      "work_type": "callback",
+      "summary": "Callback request 40",
+      "description": "Synthetic laboratory work order for Wasatch Business Systems.",
+      "requested_by_contact_id": "con_0025",
+      "opened_at": "2026-07-11T14:15:00Z",
+      "created_at": "2026-07-11T14:15:00Z",
+      "updated_at": "2026-07-11T14:15:00Z",
+      "equipment_ids": [
+        "eq_0030"
+      ],
+      "assigned_employee_ids": [
+        "emp_0013"
+      ],
+      "scheduled_for": "2026-07-12T08:00:00Z",
+      "reopen_reason": "Callback for repeated short cycling.",
+      "completed_at": "2026-09-18T16:10:00Z",
+      "completion_notes": "Original visit completed; reopened."
+    }
+  ]
+}

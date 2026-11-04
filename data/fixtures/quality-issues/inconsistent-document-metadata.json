@@ -1,0 +1,24 @@
+{
+  "synthetic": true,
+  "quality_issue": true,
+  "issue": "inconsistent_document_metadata",
+  "description": "Document type, mime type, and current version do not agree. The version belongs to a different document.",
+  "entity": "document",
+  "schema": "documents/document.schema.json",
+  "records": [
+    {
+      "id": "doc_9001",
+      "title": "Vendor bill labeled as a photo",
+      "document_type": "work_order_photo",
+      "status": "needs_review",
+      "source": "email",
+      "mime_type": "application/pdf",
+      "untrusted": true,
+      "customer_id": "cust_0002",
+      "current_version_id": "dv_0001",
+      "notes": "current_version_id points at a version from another document.",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z"
+    }
+  ]
+}

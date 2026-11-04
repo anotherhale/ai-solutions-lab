@@ -1,0 +1,513 @@
+{
+  "synthetic": true,
+  "entity": "audit_event",
+  "schema": "governance/audit-event.schema.json",
+  "records": [
+    {
+      "id": "aud_0001",
+      "occurred_at": "2026-04-02T10:01:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0001",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0002",
+      "occurred_at": "2026-05-03T10:02:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0002",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0003",
+      "occurred_at": "2026-06-04T10:03:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0003",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0004",
+      "occurred_at": "2026-07-05T10:04:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0004",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0005",
+      "occurred_at": "2026-08-06T10:05:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0005",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0006",
+      "occurred_at": "2026-09-07T10:06:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0006",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0007",
+      "occurred_at": "2026-10-08T10:07:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0007",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0008",
+      "occurred_at": "2026-03-09T10:08:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0008",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0009",
+      "occurred_at": "2026-04-10T10:09:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0009",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0010",
+      "occurred_at": "2026-05-11T10:10:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0010",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0011",
+      "occurred_at": "2026-06-12T10:11:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0011",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0012",
+      "occurred_at": "2026-07-13T10:12:00Z",
+      "actor_type": "employee",
+      "action": "work_order.created",
+      "subject_type": "work_order",
+      "subject_id": "wo_0012",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006"
+    },
+    {
+      "id": "aud_0013",
+      "occurred_at": "2026-08-14T10:13:00Z",
+      "actor_type": "employee",
+      "action": "work_order.completed",
+      "subject_type": "work_order",
+      "subject_id": "wo_0020",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0010"
+    },
+    {
+      "id": "aud_0014",
+      "occurred_at": "2026-09-15T10:14:00Z",
+      "actor_type": "employee",
+      "action": "work_order.completed",
+      "subject_type": "work_order",
+      "subject_id": "wo_0021",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0010"
+    },
+    {
+      "id": "aud_0015",
+      "occurred_at": "2026-10-16T10:15:00Z",
+      "actor_type": "employee",
+      "action": "work_order.completed",
+      "subject_type": "work_order",
+      "subject_id": "wo_0022",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0010"
+    },
+    {
+      "id": "aud_0016",
+      "occurred_at": "2026-03-17T10:16:00Z",
+      "actor_type": "employee",
+      "action": "work_order.completed",
+      "subject_type": "work_order",
+      "subject_id": "wo_0023",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0010"
+    },
+    {
+      "id": "aud_0017",
+      "occurred_at": "2026-04-18T10:17:00Z",
+      "actor_type": "employee",
+      "action": "work_order.completed",
+      "subject_type": "work_order",
+      "subject_id": "wo_0024",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0010"
+    },
+    {
+      "id": "aud_0018",
+      "occurred_at": "2026-05-19T10:18:00Z",
+      "actor_type": "employee",
+      "action": "work_order.completed",
+      "subject_type": "work_order",
+      "subject_id": "wo_0025",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0010"
+    },
+    {
+      "id": "aud_0019",
+      "occurred_at": "2026-06-20T10:19:00Z",
+      "actor_type": "employee",
+      "action": "work_order.completed",
+      "subject_type": "work_order",
+      "subject_id": "wo_0026",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0010"
+    },
+    {
+      "id": "aud_0020",
+      "occurred_at": "2026-07-21T10:20:00Z",
+      "actor_type": "employee",
+      "action": "work_order.completed",
+      "subject_type": "work_order",
+      "subject_id": "wo_0027",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0010"
+    },
+    {
+      "id": "aud_0021",
+      "occurred_at": "2026-08-22T10:21:00Z",
+      "actor_type": "employee",
+      "action": "invoice.recorded",
+      "subject_type": "invoice",
+      "subject_id": "inv_0001",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0009"
+    },
+    {
+      "id": "aud_0022",
+      "occurred_at": "2026-09-23T10:22:00Z",
+      "actor_type": "employee",
+      "action": "invoice.recorded",
+      "subject_type": "invoice",
+      "subject_id": "inv_0002",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0009"
+    },
+    {
+      "id": "aud_0023",
+      "occurred_at": "2026-10-24T10:23:00Z",
+      "actor_type": "employee",
+      "action": "invoice.recorded",
+      "subject_type": "invoice",
+      "subject_id": "inv_0003",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0009"
+    },
+    {
+      "id": "aud_0024",
+      "occurred_at": "2026-03-25T10:24:00Z",
+      "actor_type": "employee",
+      "action": "invoice.recorded",
+      "subject_type": "invoice",
+      "subject_id": "inv_0004",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0009"
+    },
+    {
+      "id": "aud_0025",
+      "occurred_at": "2026-04-26T10:25:00Z",
+      "actor_type": "employee",
+      "action": "invoice.recorded",
+      "subject_type": "invoice",
+      "subject_id": "inv_0005",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0009"
+    },
+    {
+      "id": "aud_0026",
+      "occurred_at": "2026-05-27T10:26:00Z",
+      "actor_type": "employee",
+      "action": "invoice.recorded",
+      "subject_type": "invoice",
+      "subject_id": "inv_0006",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0009"
+    },
+    {
+      "id": "aud_0027",
+      "occurred_at": "2026-06-01T10:27:00Z",
+      "actor_type": "employee",
+      "action": "invoice.recorded",
+      "subject_type": "invoice",
+      "subject_id": "inv_0007",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0009"
+    },
+    {
+      "id": "aud_0028",
+      "occurred_at": "2026-07-02T10:28:00Z",
+      "actor_type": "employee",
+      "action": "invoice.recorded",
+      "subject_type": "invoice",
+      "subject_id": "inv_0008",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0009"
+    },
+    {
+      "id": "aud_0029",
+      "occurred_at": "2026-08-03T10:29:00Z",
+      "actor_type": "employee",
+      "action": "invoice.recorded",
+      "subject_type": "invoice",
+      "subject_id": "inv_0009",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0009"
+    },
+    {
+      "id": "aud_0030",
+      "occurred_at": "2026-09-04T10:30:00Z",
+      "actor_type": "employee",
+      "action": "invoice.recorded",
+      "subject_type": "invoice",
+      "subject_id": "inv_0010",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0009"
+    },
+    {
+      "id": "aud_0031",
+      "occurred_at": "2026-10-05T10:31:00Z",
+      "actor_type": "employee",
+      "action": "payment.posted",
+      "subject_type": "payment",
+      "subject_id": "pay_0001",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0008"
+    },
+    {
+      "id": "aud_0032",
+      "occurred_at": "2026-03-06T10:32:00Z",
+      "actor_type": "employee",
+      "action": "payment.posted",
+      "subject_type": "payment",
+      "subject_id": "pay_0002",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0008"
+    },
+    {
+      "id": "aud_0033",
+      "occurred_at": "2026-04-07T10:33:00Z",
+      "actor_type": "employee",
+      "action": "payment.posted",
+      "subject_type": "payment",
+      "subject_id": "pay_0003",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0008"
+    },
+    {
+      "id": "aud_0034",
+      "occurred_at": "2026-05-08T10:34:00Z",
+      "actor_type": "employee",
+      "action": "payment.posted",
+      "subject_type": "payment",
+      "subject_id": "pay_0004",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0008"
+    },
+    {
+      "id": "aud_0035",
+      "occurred_at": "2026-06-09T10:35:00Z",
+      "actor_type": "employee",
+      "action": "payment.posted",
+      "subject_type": "payment",
+      "subject_id": "pay_0005",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0008"
+    },
+    {
+      "id": "aud_0036",
+      "occurred_at": "2026-07-10T10:36:00Z",
+      "actor_type": "employee",
+      "action": "payment.posted",
+      "subject_type": "payment",
+      "subject_id": "pay_0006",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0008"
+    },
+    {
+      "id": "aud_0037",
+      "occurred_at": "2026-08-11T10:37:00Z",
+      "actor_type": "employee",
+      "action": "payment.posted",
+      "subject_type": "payment",
+      "subject_id": "pay_0007",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0008"
+    },
+    {
+      "id": "aud_0038",
+      "occurred_at": "2026-09-12T10:38:00Z",
+      "actor_type": "employee",
+      "action": "payment.posted",
+      "subject_type": "payment",
+      "subject_id": "pay_0008",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0008"
+    },
+    {
+      "id": "aud_0039",
+      "occurred_at": "2026-10-13T10:39:00Z",
+      "actor_type": "employee",
+      "action": "support_ticket.opened",
+      "subject_type": "support_ticket",
+      "subject_id": "tkt_0001",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0007"
+    },
+    {
+      "id": "aud_0040",
+      "occurred_at": "2026-03-14T10:40:00Z",
+      "actor_type": "employee",
+      "action": "support_ticket.opened",
+      "subject_type": "support_ticket",
+      "subject_id": "tkt_0002",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0007"
+    },
+    {
+      "id": "aud_0041",
+      "occurred_at": "2026-04-15T10:41:00Z",
+      "actor_type": "employee",
+      "action": "support_ticket.opened",
+      "subject_type": "support_ticket",
+      "subject_id": "tkt_0003",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0007"
+    },
+    {
+      "id": "aud_0042",
+      "occurred_at": "2026-05-16T10:42:00Z",
+      "actor_type": "employee",
+      "action": "support_ticket.opened",
+      "subject_type": "support_ticket",
+      "subject_id": "tkt_0004",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0007"
+    },
+    {
+      "id": "aud_0043",
+      "occurred_at": "2026-06-17T10:43:00Z",
+      "actor_type": "employee",
+      "action": "support_ticket.opened",
+      "subject_type": "support_ticket",
+      "subject_id": "tkt_0005",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0007"
+    },
+    {
+      "id": "aud_0044",
+      "occurred_at": "2026-07-18T10:44:00Z",
+      "actor_type": "employee",
+      "action": "support_ticket.opened",
+      "subject_type": "support_ticket",
+      "subject_id": "tkt_0006",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0007"
+    },
+    {
+      "id": "aud_0045",
+      "occurred_at": "2026-08-19T10:45:00Z",
+      "actor_type": "employee",
+      "action": "approval.updated",
+      "subject_type": "approval_request",
+      "subject_id": "apr_0001",
+      "outcome": "pending",
+      "actor_employee_id": "emp_0006",
+      "approval_request_id": "apr_0001"
+    },
+    {
+      "id": "aud_0046",
+      "occurred_at": "2026-09-20T10:46:00Z",
+      "actor_type": "employee",
+      "action": "approval.updated",
+      "subject_type": "approval_request",
+      "subject_id": "apr_0002",
+      "outcome": "pending",
+      "actor_employee_id": "emp_0009",
+      "approval_request_id": "apr_0002"
+    },
+    {
+      "id": "aud_0047",
+      "occurred_at": "2026-10-21T10:47:00Z",
+      "actor_type": "employee",
+      "action": "approval.updated",
+      "subject_type": "approval_request",
+      "subject_id": "apr_0003",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0014",
+      "approval_request_id": "apr_0003"
+    },
+    {
+      "id": "aud_0048",
+      "occurred_at": "2026-03-22T10:48:00Z",
+      "actor_type": "employee",
+      "action": "approval.updated",
+      "subject_type": "approval_request",
+      "subject_id": "apr_0004",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0006",
+      "approval_request_id": "apr_0004"
+    },
+    {
+      "id": "aud_0049",
+      "occurred_at": "2026-04-23T10:49:00Z",
+      "actor_type": "employee",
+      "action": "approval.updated",
+      "subject_type": "approval_request",
+      "subject_id": "apr_0005",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0009",
+      "approval_request_id": "apr_0005"
+    },
+    {
+      "id": "aud_0050",
+      "occurred_at": "2026-05-24T10:50:00Z",
+      "actor_type": "employee",
+      "action": "approval.updated",
+      "subject_type": "approval_request",
+      "subject_id": "apr_0006",
+      "outcome": "succeeded",
+      "actor_employee_id": "emp_0004",
+      "approval_request_id": "apr_0006"
+    }
+  ]
+}

@@ -29,3 +29,6 @@ jobs:
 
       - name: Validate repository conventions
         run: python scripts/validate_repo.py
+
+      - name: Validate Wasatch domain fixtures
+        run: python scripts/validate_wasatch_domain.py

@@ -23,6 +23,9 @@ REQUIRED_FILES = (
     "docs/ROADMAP.md",
     "docs/adr/README.md",
     "docs/business/WASATCH_BUSINESS_PROFILE.md",
+    "docs/business/WASATCH_DOMAIN_MODEL.md",
+    "docs/business/WASATCH_WORKFLOWS.md",
+    "docs/architecture/DATA_CONTRACTS.md",
     ".github/workflows/validate.yml",
 )
 
@@ -38,7 +41,11 @@ REQUIRED_DIRECTORIES = (
     "infrastructure/terraform",
     "data/seed",
     "data/fixtures",
+    "data/fixtures/valid",
+    "data/fixtures/quality-issues",
     "data/documents",
+    "data/schemas",
+    "data/schemas/v1",
     "scripts",
     "tests/integration",
     "tests/e2e",

@@ -1,0 +1,29 @@
+{
+  "synthetic": true,
+  "as_of": "2026-11-03",
+  "schema_version": "v1",
+  "description": "Valid interconnected Wasatch Business Systems laboratory dataset.",
+  "counts": {
+    "role": 12,
+    "team": 5,
+    "employee": 15,
+    "customer": 15,
+    "contact": 25,
+    "service_location": 20,
+    "equipment": 30,
+    "work_order": 40,
+    "work_order_task": 63,
+    "appointment": 25,
+    "invoice": 30,
+    "invoice_line": 40,
+    "payment": 20,
+    "document": 30,
+    "document_version": 31,
+    "document_extraction": 18,
+    "support_ticket": 15,
+    "message": 17,
+    "interaction": 15,
+    "approval_request": 10,
+    "audit_event": 50
+  }
+}

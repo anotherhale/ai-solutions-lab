@@ -1,0 +1,27 @@
+{
+  "synthetic": true,
+  "quality_issue": true,
+  "issue": "invoice_requires_human_reconciliation",
+  "description": "Line totals, tax, and amount paid do not reconcile. Do not treat this as a valid invoice.",
+  "entity": "invoice",
+  "schema": "finance/invoice.schema.json",
+  "records": [
+    {
+      "id": "inv_9001",
+      "customer_id": "cust_0009",
+      "work_order_id": "wo_0020",
+      "status": "issued",
+      "issued_on": "2026-10-01",
+      "due_on": "2026-11-15",
+      "subtotal": { "amount": "400.00", "currency": "USD" },
+      "tax": { "amount": "20.00", "currency": "USD" },
+      "adjustments": { "amount": "0.00", "currency": "USD" },
+      "total": { "amount": "500.00", "currency": "USD" },
+      "amount_paid": { "amount": "600.00", "currency": "USD" },
+      "balance": { "amount": "-50.00", "currency": "USD" },
+      "notes": "Totals, tax, payments, and balance disagree.",
+      "created_at": "2026-10-01T11:00:00Z",
+      "updated_at": "2026-10-01T11:00:00Z"
+    }
+  ]
+}

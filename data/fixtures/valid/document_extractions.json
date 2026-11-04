@@ -1,0 +1,298 @@
+{
+  "synthetic": true,
+  "entity": "document_extraction",
+  "schema": "documents/document-extraction.schema.json",
+  "records": [
+    {
+      "id": "dx_0001",
+      "document_id": "doc_0001",
+      "document_version_id": "dv_0001",
+      "status": "pending",
+      "extractor": "rules",
+      "confidence": 0.5,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0001"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z"
+    },
+    {
+      "id": "dx_0002",
+      "document_id": "doc_0002",
+      "document_version_id": "dv_0002",
+      "status": "succeeded",
+      "extractor": "model",
+      "confidence": 0.6,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0002"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z"
+    },
+    {
+      "id": "dx_0003",
+      "document_id": "doc_0003",
+      "document_version_id": "dv_0003",
+      "status": "needs_review",
+      "extractor": "model",
+      "confidence": 0.7,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0003"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z",
+      "review_notes": "Low confidence; hold for AP."
+    },
+    {
+      "id": "dx_0004",
+      "document_id": "doc_0004",
+      "document_version_id": "dv_0004",
+      "status": "accepted",
+      "extractor": "model",
+      "confidence": 0.8,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0004"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z",
+      "reviewed_by_employee_id": "emp_0008",
+      "reviewed_at": "2026-06-08T10:00:00Z",
+      "review_notes": "Accepted for posting"
+    },
+    {
+      "id": "dx_0005",
+      "document_id": "doc_0005",
+      "document_version_id": "dv_0005",
+      "status": "rejected",
+      "extractor": "model",
+      "confidence": 0.9,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0005"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z",
+      "reviewed_by_employee_id": "emp_0008",
+      "reviewed_at": "2026-06-08T10:00:00Z",
+      "review_notes": "Amounts did not match work order."
+    },
+    {
+      "id": "dx_0006",
+      "document_id": "doc_0006",
+      "document_version_id": "dv_0006",
+      "status": "failed",
+      "extractor": "model",
+      "confidence": 0.4,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0006"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z"
+    },
+    {
+      "id": "dx_0007",
+      "document_id": "doc_0007",
+      "document_version_id": "dv_0007",
+      "status": "pending",
+      "extractor": "rules",
+      "confidence": 0.5,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0007"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z"
+    },
+    {
+      "id": "dx_0008",
+      "document_id": "doc_0008",
+      "document_version_id": "dv_0008",
+      "status": "succeeded",
+      "extractor": "model",
+      "confidence": 0.6,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0008"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z"
+    },
+    {
+      "id": "dx_0009",
+      "document_id": "doc_0009",
+      "document_version_id": "dv_0009",
+      "status": "needs_review",
+      "extractor": "model",
+      "confidence": 0.7,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0009"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z",
+      "review_notes": "Low confidence; hold for AP."
+    },
+    {
+      "id": "dx_0010",
+      "document_id": "doc_0010",
+      "document_version_id": "dv_0010",
+      "status": "accepted",
+      "extractor": "model",
+      "confidence": 0.8,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0010"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z",
+      "reviewed_by_employee_id": "emp_0008",
+      "reviewed_at": "2026-06-08T10:00:00Z",
+      "review_notes": "Accepted for posting"
+    },
+    {
+      "id": "dx_0011",
+      "document_id": "doc_0011",
+      "document_version_id": "dv_0011",
+      "status": "rejected",
+      "extractor": "model",
+      "confidence": 0.9,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0011"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z",
+      "reviewed_by_employee_id": "emp_0008",
+      "reviewed_at": "2026-06-08T10:00:00Z",
+      "review_notes": "Amounts did not match work order."
+    },
+    {
+      "id": "dx_0012",
+      "document_id": "doc_0012",
+      "document_version_id": "dv_0012",
+      "status": "failed",
+      "extractor": "model",
+      "confidence": 0.4,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0012"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z"
+    },
+    {
+      "id": "dx_0013",
+      "document_id": "doc_0013",
+      "document_version_id": "dv_0013",
+      "status": "pending",
+      "extractor": "rules",
+      "confidence": 0.5,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0013"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z"
+    },
+    {
+      "id": "dx_0014",
+      "document_id": "doc_0014",
+      "document_version_id": "dv_0014",
+      "status": "succeeded",
+      "extractor": "model",
+      "confidence": 0.6,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0014"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z"
+    },
+    {
+      "id": "dx_0015",
+      "document_id": "doc_0015",
+      "document_version_id": "dv_0015",
+      "status": "needs_review",
+      "extractor": "model",
+      "confidence": 0.7,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0015"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z",
+      "review_notes": "Low confidence; hold for AP."
+    },
+    {
+      "id": "dx_0016",
+      "document_id": "doc_0016",
+      "document_version_id": "dv_0016",
+      "status": "accepted",
+      "extractor": "model",
+      "confidence": 0.8,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0016"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z",
+      "reviewed_by_employee_id": "emp_0008",
+      "reviewed_at": "2026-06-08T10:00:00Z",
+      "review_notes": "Accepted for posting"
+    },
+    {
+      "id": "dx_0017",
+      "document_id": "doc_0017",
+      "document_version_id": "dv_0017",
+      "status": "rejected",
+      "extractor": "model",
+      "confidence": 0.9,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0017"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z",
+      "reviewed_by_employee_id": "emp_0008",
+      "reviewed_at": "2026-06-08T10:00:00Z",
+      "review_notes": "Amounts did not match work order."
+    },
+    {
+      "id": "dx_0018",
+      "document_id": "doc_0018",
+      "document_version_id": "dv_0018",
+      "status": "failed",
+      "extractor": "model",
+      "confidence": 0.4,
+      "extracted_fields": {
+        "vendor_name": "Synthetic Vendor",
+        "invoice_number": "V-0018"
+      },
+      "extracted_at": "2026-06-02T13:00:00Z",
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:00:00Z"
+    }
+  ]
+}

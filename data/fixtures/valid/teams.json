@@ -1,0 +1,50 @@
+{
+  "synthetic": true,
+  "entity": "team",
+  "schema": "workforce/team.schema.json",
+  "records": [
+    {
+      "id": "team_0001",
+      "name": "Field Crew A",
+      "department": "field_operations",
+      "lead_employee_id": "emp_0010",
+      "service_area": "Salt Lake County",
+      "created_at": "2026-01-05T14:10:00Z",
+      "updated_at": "2026-01-05T14:10:00Z"
+    },
+    {
+      "id": "team_0002",
+      "name": "Field Crew B",
+      "department": "field_operations",
+      "lead_employee_id": "emp_0012",
+      "service_area": "Utah and Davis Counties",
+      "created_at": "2026-01-05T14:10:00Z",
+      "updated_at": "2026-01-05T14:10:00Z"
+    },
+    {
+      "id": "team_0003",
+      "name": "Dispatch Desk",
+      "department": "dispatch",
+      "lead_employee_id": "emp_0004",
+      "service_area": "Wasatch Front",
+      "created_at": "2026-01-05T14:10:00Z",
+      "updated_at": "2026-01-05T14:10:00Z"
+    },
+    {
+      "id": "team_0004",
+      "name": "Customer Service",
+      "department": "customer_service",
+      "lead_employee_id": "emp_0006",
+      "created_at": "2026-01-05T14:10:00Z",
+      "updated_at": "2026-01-05T14:10:00Z"
+    },
+    {
+      "id": "team_0005",
+      "name": "Office",
+      "department": "accounting",
+      "lead_employee_id": "emp_0008",
+      "created_at": "2026-01-05T14:10:00Z",
+      "updated_at": "2026-01-05T14:10:00Z"
+    }
+  ]
+}

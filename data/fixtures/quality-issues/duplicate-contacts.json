@@ -1,0 +1,38 @@
+{
+  "synthetic": true,
+  "quality_issue": true,
+  "issue": "duplicate_contact_information",
+  "description": "Two contacts share the same email and phone. This is schema-valid but poor master data.",
+  "entity": "contact",
+  "schema": "customers/contact.schema.json",
+  "records": [
+    {
+      "id": "con_9001",
+      "customer_id": "cust_0005",
+      "first_name": "Ivy",
+      "last_name": "Nash",
+      "title": "Store Operations",
+      "email": "ivy.nash@wasatch-view-retail.test",
+      "phone": "+1-801-555-0149",
+      "contact_role": "operations",
+      "is_primary": true,
+      "status": "active",
+      "created_at": "2026-01-09T18:00:00Z",
+      "updated_at": "2026-01-09T18:00:00Z"
+    },
+    {
+      "id": "con_9002",
+      "customer_id": "cust_0005",
+      "first_name": "Ivy",
+      "last_name": "Nash-Duplicate",
+      "title": "Store Operations copy",
+      "email": "ivy.nash@wasatch-view-retail.test",
+      "phone": "+1-801-555-0149",
+      "contact_role": "operations",
+      "is_primary": true,
+      "status": "active",
+      "created_at": "2026-03-02T18:00:00Z",
+      "updated_at": "2026-03-02T18:00:00Z"
+    }
+  ]
+}

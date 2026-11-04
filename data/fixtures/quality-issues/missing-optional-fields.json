@@ -1,0 +1,41 @@
+{
+  "synthetic": true,
+  "quality_issue": true,
+  "issue": "missing_optional_information",
+  "description": "A customer and contact omit optional billing and communication fields.",
+  "records": {
+    "customers": [
+      {
+        "id": "cust_9001",
+        "legal_name": "Incomplete Site Holdings LLC",
+        "account_number": "WBS-09001",
+        "status": "prospect",
+        "customer_type": "commercial_owner",
+        "billing_address": {
+          "line1": "1 Synthetic Way",
+          "city": "Salt Lake City",
+          "state": "UT",
+          "postal_code": "84101",
+          "country": "US"
+        },
+        "payment_terms": "due_on_receipt",
+        "service_agreement": "none",
+        "created_at": "2026-10-01T16:00:00Z",
+        "updated_at": "2026-10-01T16:00:00Z"
+      }
+    ],
+    "contacts": [
+      {
+        "id": "con_9003",
+        "customer_id": "cust_9001",
+        "first_name": "Pat",
+        "last_name": "Unknown",
+        "contact_role": "other",
+        "is_primary": true,
+        "status": "active",
+        "created_at": "2026-10-01T16:00:00Z",
+        "updated_at": "2026-10-01T16:00:00Z"
+      }
+    ]
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "synthetic": true,
+  "entity": "role",
+  "schema": "workforce/role.schema.json",
+  "records": [
+    {
+      "id": "role_0001",
+      "name": "General Manager",
+      "department": "management",
+      "is_approver": true,
+      "description": "Company-wide approver",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    },
+    {
+      "id": "role_0002",
+      "name": "Operations Manager",
+      "department": "management",
+      "is_approver": true,
+      "description": "Operations approver",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    },
+    {
+      "id": "role_0003",
+      "name": "Service Manager",
+      "department": "field_operations",
+      "is_approver": true,
+      "description": "Field work approver",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    },
+    {
+      "id": "role_0004",
+      "name": "Dispatcher",
+      "department": "dispatch",
+      "is_approver": false,
+      "description": "Schedules technicians",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    },
+    {
+      "id": "role_0005",
+      "name": "Customer Service Lead",
+      "department": "customer_service",
+      "is_approver": false,
+      "description": "CS queue owner",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    },
+    {
+      "id": "role_0006",
+      "name": "Customer Service Agent",
+      "department": "customer_service",
+      "is_approver": false,
+      "description": "Inbound coverage",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    },
+    {
+      "id": "role_0007",
+      "name": "Accounting Manager",
+      "department": "accounting",
+      "is_approver": true,
+      "description": "Billing approver",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    },
+    {
+      "id": "role_0008",
+      "name": "Staff Accountant",
+      "department": "accounting",
+      "is_approver": false,
+      "description": "Invoice assembly",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    },
+    {
+      "id": "role_0009",
+      "name": "Lead Technician",
+      "department": "field_operations",
+      "is_approver": false,
+      "description": "Crew lead",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    },
+    {
+      "id": "role_0010",
+      "name": "Service Technician",
+      "department": "field_operations",
+      "is_approver": false,
+      "description": "Field work",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    },
+    {
+      "id": "role_0011",
+      "name": "Account Executive",
+      "department": "sales",
+      "is_approver": false,
+      "description": "Agreements and quotes",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    },
+    {
+      "id": "role_0012",
+      "name": "HR Coordinator",
+      "department": "human_resources",
+      "is_approver": false,
+      "description": "People records",
+      "created_at": "2026-01-05T14:00:00Z",
+      "updated_at": "2026-01-05T14:00:00Z"
+    }
+  ]
+}

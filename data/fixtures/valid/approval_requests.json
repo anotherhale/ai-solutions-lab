@@ -1,0 +1,234 @@
+{
+  "synthetic": true,
+  "entity": "approval_request",
+  "schema": "governance/approval-request.schema.json",
+  "records": [
+    {
+      "id": "apr_0001",
+      "action_type": "send_customer_message",
+      "status": "pending",
+      "requested_by_employee_id": "emp_0006",
+      "subject_type": "message",
+      "subject_id": "msg_0016",
+      "rationale": "Overtime commitment needs manager approval.",
+      "requested_at": "2026-10-28T15:06:00Z",
+      "decision_history": [],
+      "created_at": "2026-09-01T10:00:00Z",
+      "updated_at": "2026-10-28T15:06:00Z"
+    },
+    {
+      "id": "apr_0002",
+      "action_type": "void_invoice",
+      "status": "pending",
+      "requested_by_employee_id": "emp_0009",
+      "subject_type": "invoice",
+      "subject_id": "inv_0005",
+      "rationale": "Customer disputes duplicate visit.",
+      "requested_at": "2026-11-01T09:15:00Z",
+      "decision_history": [],
+      "created_at": "2026-09-01T10:00:00Z",
+      "updated_at": "2026-11-01T09:15:00Z"
+    },
+    {
+      "id": "apr_0003",
+      "action_type": "price_override",
+      "status": "approved",
+      "requested_by_employee_id": "emp_0014",
+      "reviewer_employee_id": "emp_0001",
+      "subject_type": "invoice",
+      "subject_id": "inv_0011",
+      "rationale": "Match quoted maintenance rate.",
+      "decision_notes": "Approved at quoted rate.",
+      "requested_at": "2026-08-02T13:00:00Z",
+      "decided_at": "2026-08-02T15:10:00Z",
+      "decision_history": [
+        {
+          "at": "2026-08-02T15:10:00Z",
+          "actor_employee_id": "emp_0001",
+          "from_status": "pending",
+          "to_status": "approved",
+          "note": "Rate matches signed quote."
+        }
+      ],
+      "created_at": "2026-09-01T10:00:00Z",
+      "updated_at": "2026-08-02T15:10:00Z"
+    },
+    {
+      "id": "apr_0004",
+      "action_type": "send_customer_message",
+      "status": "executed",
+      "requested_by_employee_id": "emp_0006",
+      "reviewer_employee_id": "emp_0002",
+      "subject_type": "message",
+      "subject_id": "msg_0017",
+      "rationale": "Confirm completion and billing terms.",
+      "requested_at": "2026-09-12T11:05:00Z",
+      "decided_at": "2026-09-12T11:15:00Z",
+      "executed_at": "2026-09-12T11:20:00Z",
+      "decision_history": [
+        {
+          "at": "2026-09-12T11:15:00Z",
+          "actor_employee_id": "emp_0002",
+          "from_status": "pending",
+          "to_status": "approved"
+        },
+        {
+          "at": "2026-09-12T11:20:00Z",
+          "actor_employee_id": "emp_0006",
+          "from_status": "approved",
+          "to_status": "executed",
+          "note": "Email sent."
+        }
+      ],
+      "created_at": "2026-09-01T10:00:00Z",
+      "updated_at": "2026-09-12T11:20:00Z"
+    },
+    {
+      "id": "apr_0005",
+      "action_type": "issue_invoice",
+      "status": "executed",
+      "requested_by_employee_id": "emp_0009",
+      "reviewer_employee_id": "emp_0008",
+      "subject_type": "invoice",
+      "subject_id": "inv_0005",
+      "rationale": "Issue seasonal work invoice over threshold.",
+      "requested_at": "2026-09-14T10:00:00Z",
+      "decided_at": "2026-09-14T16:00:00Z",
+      "executed_at": "2026-09-15T09:00:00Z",
+      "decision_history": [
+        {
+          "at": "2026-09-14T16:00:00Z",
+          "actor_employee_id": "emp_0008",
+          "from_status": "pending",
+          "to_status": "approved"
+        },
+        {
+          "at": "2026-09-15T09:00:00Z",
+          "actor_employee_id": "emp_0009",
+          "from_status": "approved",
+          "to_status": "executed"
+        }
+      ],
+      "created_at": "2026-09-01T10:00:00Z",
+      "updated_at": "2026-09-15T09:00:00Z"
+    },
+    {
+      "id": "apr_0006",
+      "action_type": "cancel_work_order",
+      "status": "executed",
+      "requested_by_employee_id": "emp_0004",
+      "reviewer_employee_id": "emp_0003",
+      "subject_type": "work_order",
+      "subject_id": "wo_0038",
+      "rationale": "Customer asked to freeze spend this quarter.",
+      "requested_at": "2026-10-02T08:30:00Z",
+      "decided_at": "2026-10-02T09:00:00Z",
+      "executed_at": "2026-10-02T09:15:00Z",
+      "decision_history": [
+        {
+          "at": "2026-10-02T09:00:00Z",
+          "actor_employee_id": "emp_0003",
+          "from_status": "pending",
+          "to_status": "approved"
+        },
+        {
+          "at": "2026-10-02T09:15:00Z",
+          "actor_employee_id": "emp_0004",
+          "from_status": "approved",
+          "to_status": "executed",
+          "note": "Work order cancelled."
+        }
+      ],
+      "created_at": "2026-09-01T10:00:00Z",
+      "updated_at": "2026-10-02T09:15:00Z"
+    },
+    {
+      "id": "apr_0007",
+      "action_type": "export_records",
+      "status": "rejected",
+      "requested_by_employee_id": "emp_0007",
+      "reviewer_employee_id": "emp_0001",
+      "subject_type": "customer",
+      "subject_id": "cust_0001",
+      "rationale": "Vendor asked for full customer export.",
+      "decision_notes": "Denied; no DPA in place.",
+      "requested_at": "2026-10-20T14:00:00Z",
+      "decided_at": "2026-10-20T16:40:00Z",
+      "decision_history": [
+        {
+          "at": "2026-10-20T16:40:00Z",
+          "actor_employee_id": "emp_0001",
+          "from_status": "pending",
+          "to_status": "rejected",
+          "note": "Use a summarized report instead."
+        }
+      ],
+      "created_at": "2026-09-01T10:00:00Z",
+      "updated_at": "2026-10-20T16:40:00Z"
+    },
+    {
+      "id": "apr_0008",
+      "action_type": "change_schedule",
+      "status": "cancelled",
+      "requested_by_employee_id": "emp_0005",
+      "subject_type": "appointment",
+      "subject_id": "appt_0004",
+      "rationale": "Move emergency ahead of routine filter run.",
+      "requested_at": "2026-10-12T07:45:00Z",
+      "decided_at": "2026-10-12T08:10:00Z",
+      "decision_history": [
+        {
+          "at": "2026-10-12T08:10:00Z",
+          "actor_employee_id": "emp_0005",
+          "from_status": "pending",
+          "to_status": "cancelled",
+          "note": "Emergency fit into open slot; change not needed."
+        }
+      ],
+      "created_at": "2026-09-01T10:00:00Z",
+      "updated_at": "2026-10-12T08:10:00Z"
+    },
+    {
+      "id": "apr_0009",
+      "action_type": "void_invoice",
+      "status": "executed",
+      "requested_by_employee_id": "emp_0009",
+      "reviewer_employee_id": "emp_0008",
+      "subject_type": "invoice",
+      "subject_id": "inv_0029",
+      "rationale": "Duplicate agreement invoice.",
+      "requested_at": "2026-06-18T10:00:00Z",
+      "decided_at": "2026-06-19T09:00:00Z",
+      "executed_at": "2026-06-20T09:00:00Z",
+      "decision_history": [
+        {
+          "at": "2026-06-19T09:00:00Z",
+          "actor_employee_id": "emp_0008",
+          "from_status": "pending",
+          "to_status": "approved"
+        },
+        {
+          "at": "2026-06-20T09:00:00Z",
+          "actor_employee_id": "emp_0009",
+          "from_status": "approved",
+          "to_status": "executed"
+        }
+      ],
+      "created_at": "2026-09-01T10:00:00Z",
+      "updated_at": "2026-06-20T09:00:00Z"
+    },
+    {
+      "id": "apr_0010",
+      "action_type": "change_schedule",
+      "status": "pending",
+      "requested_by_employee_id": "emp_0004",
+      "subject_type": "appointment",
+      "subject_id": "appt_0010",
+      "rationale": "Technician still on emergency at Lakeside.",
+      "requested_at": "2026-11-02T06:50:00Z",
+      "decision_history": [],
+      "created_at": "2026-09-01T10:00:00Z",
+      "updated_at": "2026-11-02T06:50:00Z"
+    }
+  ]
+}
