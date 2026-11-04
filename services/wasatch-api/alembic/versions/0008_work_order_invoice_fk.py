@@ -10,6 +10,7 @@ invoices.business_id so invoiced work must reference a persisted invoice row.
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from collections.abc import Sequence
 from datetime import datetime
@@ -32,13 +33,24 @@ def _parse_datetime(value: str) -> datetime:
     return datetime.fromisoformat(normalized)
 
 
-def _backfill_invoices() -> None:
+def _valid_fixtures_dir() -> Path:
+    """Resolve synthetic fixtures for upgrade backfill.
+
+    Compose and the API image set WASATCH_FIXTURES_DIR to /srv/data/fixtures/valid.
+    Local Alembic runs from a full repository checkout use data/fixtures/valid
+    under the repo root (four parents above this revision file).
+    """
+
+    configured = os.environ.get("WASATCH_FIXTURES_DIR", "").strip()
+    if configured:
+        return Path(configured)
     repo_root = Path(__file__).resolve().parents[4]
-    payload = json.loads(
-        (repo_root / "data" / "fixtures" / "valid" / "invoices.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    return repo_root / "data" / "fixtures" / "valid"
+
+
+def _backfill_invoices() -> None:
+    invoices_path = _valid_fixtures_dir() / "invoices.json"
+    payload = json.loads(invoices_path.read_text(encoding="utf-8"))
     records = payload["records"]
     connection = op.get_bind()
     for record in records:
