@@ -33,7 +33,7 @@ The simulated subject remains **Wasatch Business Systems**. All business data is
 - Ingest synthetic invoices, work orders, and vendor documents.
 - Classify documents and extract structured fields.
 - Require human review for low-confidence extractions and any financial effect.
-- Store embeddings in PostgreSQL with pgvector. Procedure-page text is stored in `procedure_page_embeddings.embedding`. Document packets still have no bytes in the repository, and the embedding is not a trusted model. WF-1 is a follow-up visit in the monolith. The case study is not started.
+- Store embeddings in PostgreSQL with pgvector. Procedure-page text is stored in `procedure_page_embeddings.embedding`. Document packets still have no bytes in the repository, and the embedding is not a trusted model. WF-1 is a follow-up visit in the monolith. The case study is PORT-1 ([case-studies/wasatch-laboratory-slice.md](case-studies/wasatch-laboratory-slice.md)).
 
 **Exit criteria:** A reviewer can process a document packet from upload through validated structured output without trusting the model blindly.
 
@@ -48,7 +48,7 @@ The simulated subject remains **Wasatch Business Systems**. All business data is
 
 **Exit criteria:** At least one multi-step business workflow runs with human approval and an audit trail.
 
-WF-1 is that workflow for this slice: a dispatcher confirms or cancels a follow-up visit only after an approver has approved the customer message. The visit stays unscheduled until that second human decision. n8n is not connected. The case study is not started.
+WF-1 is that workflow for this slice: a dispatcher confirms or cancels a follow-up visit only after an approver has approved the customer message. The visit stays unscheduled until that second human decision. n8n is not connected. The case study is PORT-1 ([case-studies/wasatch-laboratory-slice.md](case-studies/wasatch-laboratory-slice.md)).
 
 ## Phase 5: Production Engineering and Cloud Deployment
 
@@ -61,7 +61,7 @@ OPS-1 is the bounded slice:
 - Terraform stays a placeholder. No workspace exists, so this slice adds no Azure module, backend, subscription id, tenant id, or credential.
 - Docker Compose and GitHub Actions do not gain a collector, Redis, n8n, or a cloud account. GitHub Actions stays credential-free.
 
-**Exit criteria:** The laboratory application can be deployed to Azure by a documented path. That path is not defined. Do not describe an environment as live until it exists. The case study is not started.
+**Exit criteria:** The laboratory application can be deployed to Azure by a documented path. That path is not defined. Do not describe an environment as live until it exists. The case study is PORT-1 ([case-studies/wasatch-laboratory-slice.md](case-studies/wasatch-laboratory-slice.md)).
 
 ## Phase 6: Consulting Portfolio and Case Studies
 
@@ -72,10 +72,12 @@ OPS-1 is the bounded slice:
 - Identify which capabilities are portable to real Salt Lake City SMBs.
 - Record limitations honestly, including what was simulated.
 
-**Exit criteria:** The repository contains at least one case study that a prospective client can read without being misled about production status.
+PORT-1 is [case-studies/wasatch-laboratory-slice.md](case-studies/wasatch-laboratory-slice.md). That file is the case study in the exit criterion below. It does not add a deployment, a model call, or a measured business result. Reusable discovery assets and a separate portability catalog are not additional files.
+
+**Exit criteria:** The repository contains at least one case study that a prospective client can read without being misled about production status. PORT-1 is that case study.
 
 ## Alignment
 
 This roadmap implements the objectives and scope in [PROJECT_CHARTER.md](PROJECT_CHARTER.md). Technology choices remain those in [ARCHITECTURE.md](ARCHITECTURE.md) unless an ADR changes them.
 
-Phase 1 documentation and domain contracts are in place. Phase 2's customer-service exit is demonstrable on the local API: the review screen opens one synthetic inquiry and approves or rejects the suggested reply. It does not send the message. Phase 3 persists the document fixtures and lets an approver accept or reject an extraction that is awaiting review. That decision does not post an invoice or a payment. Procedure-page embeddings are stored with the fake port and are not a trusted model. Classification, file ingest, and cloud deployment have not started. OPS-1 records host spans and laboratory backup and secret notes. The case study is not started.
+Phase 1 documentation and domain contracts are in place. Phase 2's customer-service exit is demonstrable on the local API: the review screen opens one synthetic inquiry and approves or rejects the suggested reply. It does not send the message. Phase 3 persists the document fixtures and lets an approver accept or reject an extraction that is awaiting review. That decision does not post an invoice or a payment. Procedure-page embeddings are stored with the fake port and are not a trusted model. Classification, file ingest, and cloud deployment have not started. OPS-1 records host spans and laboratory backup and secret notes. The case study is PORT-1 ([case-studies/wasatch-laboratory-slice.md](case-studies/wasatch-laboratory-slice.md)).
