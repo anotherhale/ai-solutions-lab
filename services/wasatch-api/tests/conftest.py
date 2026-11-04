@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from collections.abc import Iterator
 from pathlib import Path
+from typing import NoReturn
 
 import pytest
 from alembic import command
@@ -39,27 +40,73 @@ def database_url() -> str:
     return _database_url()
 
 
+def _database_required() -> bool:
+    return os.environ.get("WASATCH_REQUIRE_DATABASE") == "1"
+
+
+def _sqlstate(exc: BaseException) -> str | None:
+    sqlstate = getattr(exc, "sqlstate", None)
+    if sqlstate:
+        return str(sqlstate)
+    origin = getattr(exc, "orig", None)
+    if origin is not None and origin is not exc:
+        nested = getattr(origin, "sqlstate", None)
+        if nested:
+            return str(nested)
+    return None
+
+
+def _missing_database(exc: Exception) -> bool:
+    """True when the server is up but the named database is absent."""
+    seen: set[int] = set()
+    current: BaseException | None = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        if _sqlstate(current) == "3D000":
+            return True
+        current = current.__cause__ or current.__context__
+    message = str(exc).lower()
+    return "database" in message and "does not exist" in message
+
+
+def _database_unavailable(exc: Exception) -> NoReturn:
+    # Local runs skip when PostgreSQL is down. CI must fail instead.
+    message = f"PostgreSQL is not available: {exc}"
+    if _database_required():
+        pytest.fail(message, pytrace=False)
+    pytest.skip(message)
+
+
 def _ensure_database(database_url: str) -> None:
     parsed = make_url(database_url)
     target = parsed.database
     if not target or target in {"wasatch", "postgres"}:
         return
-    admin_url = parsed.set(database="wasatch")
-    admin_engine = create_engine(
-        admin_url, isolation_level="AUTOCOMMIT", pool_pre_ping=True
-    )
-    try:
-        with admin_engine.connect() as connection:
-            exists = connection.execute(
-                text("SELECT 1 FROM pg_database WHERE datname = :name"),
-                {"name": target},
-            ).scalar()
-            if not exists:
-                connection.execute(text(f'CREATE DATABASE "{target}"'))
-    except Exception as exc:
-        pytest.skip(f"PostgreSQL is not available: {exc}")
-    finally:
-        admin_engine.dispose()
+    # Compose keeps maintenance data in "wasatch". The stock image also
+    # has "postgres". A missing maintenance database is not a down server.
+    for admin_name in ("wasatch", "postgres"):
+        if admin_name == target:
+            continue
+        admin_engine = create_engine(
+            parsed.set(database=admin_name),
+            isolation_level="AUTOCOMMIT",
+            pool_pre_ping=True,
+        )
+        try:
+            with admin_engine.connect() as connection:
+                exists = connection.execute(
+                    text("SELECT 1 FROM pg_database WHERE datname = :name"),
+                    {"name": target},
+                ).scalar()
+                if not exists:
+                    connection.execute(text(f'CREATE DATABASE "{target}"'))
+            return
+        except Exception as exc:
+            if _missing_database(exc):
+                continue
+            return
+        finally:
+            admin_engine.dispose()
 
 
 @pytest.fixture(scope="session")
@@ -72,8 +119,8 @@ def engine(database_url: str) -> Iterator[Engine]:
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
-    except Exception as exc:  # pragma: no cover - skip when DB is down
-        pytest.skip(f"PostgreSQL is not available: {exc}")
+    except Exception as exc:  # local skip when PostgreSQL is down; CI fails
+        _database_unavailable(exc)
     alembic_cfg = Config(str(API_ROOT / "alembic.ini"))
     alembic_cfg.set_main_option("sqlalchemy.url", database_url)
     alembic_cfg.set_main_option("script_location", str(API_ROOT / "alembic"))

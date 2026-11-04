@@ -61,7 +61,7 @@ For a behavior change, include the narrowest tests that prove the rule:
 | Format and lint | Ruff, root and `services/wasatch-api` configuration |
 | Repository conventions | `python3 scripts/validate_repo.py` |
 | Fixture schema, references, and invariants | `python3 scripts/validate_wasatch_domain.py` |
-| Unit, integration, and API | `services/wasatch-api/tests/` via pytest |
+| Unit, integration, and API | `services/wasatch-api/tests/` via pytest. CI fails when integration or API tests are skipped. |
 | Contract | Status enums against JSON Schema. Extend this when routes grow. |
 | Migration | Alembic upgrade in the pytest session. Add a downgrade assertion for new revisions when downgrade is safe. |
 | Security | Secret scan in `validate_repo.py`. Authorization tests once CS-3 exists. |

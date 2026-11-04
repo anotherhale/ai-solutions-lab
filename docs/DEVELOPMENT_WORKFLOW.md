@@ -71,6 +71,8 @@ python3 scripts/validate_wasatch_domain.py
 cd services/wasatch-api && pytest
 ```
 
+GitHub Actions runs that pytest command against PostgreSQL with pgvector. The session applies Alembic migrations and loads `data/fixtures/valid/`. Integration and API tests are required on that job: a skip fails the run. Locally, pytest still skips those tests when PostgreSQL is not running.
+
 ## First application (local)
 
 1. Copy `.env.example` to `.env` and keep the Compose placeholders, or set your own.
