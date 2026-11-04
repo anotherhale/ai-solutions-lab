@@ -12,6 +12,8 @@ from wasatch_api.workforce.infrastructure.local_authenticator import (
 MESSAGE_BODY = "We can be on site Thursday at 08:00 if you approve overtime."
 DECISION_PATH = "/api/v1/approval-requests/apr_0001/decisions"
 OPENAPI_DECISION = "/api/v1/approval-requests/{approval_id}/decisions"
+OPENAPI_DRAFT = "/api/v1/support-tickets/{ticket_id}/draft-replies"
+OPENAPI_WRITES = {OPENAPI_DECISION, OPENAPI_DRAFT}
 
 
 def _message_without_approval(payload: dict) -> dict:
@@ -174,9 +176,10 @@ def test_decision_command_rejects_other_actions_and_unknown_requests(
     assert audits.json()["total"] == 50
 
 
-def test_openapi_exposes_only_the_decision_write(client: TestClient) -> None:
+def test_openapi_exposes_the_decision_and_draft_writes(client: TestClient) -> None:
     spec = client.get("/openapi.json").json()
     assert set(spec["paths"][OPENAPI_DECISION]) == {"post"}
+    assert set(spec["paths"][OPENAPI_DRAFT]) == {"post"}
     http_methods = {
         "get",
         "post",
@@ -188,7 +191,7 @@ def test_openapi_exposes_only_the_decision_write(client: TestClient) -> None:
         "trace",
     }
     for path, operations in spec["paths"].items():
-        allowed = {"post"} if path == OPENAPI_DECISION else {"get", "head"}
+        allowed = {"post"} if path in OPENAPI_WRITES else {"get", "head"}
         assert http_methods & set(operations) <= allowed
 
 
@@ -200,6 +203,8 @@ def test_openapi_exposes_only_the_decision_write(client: TestClient) -> None:
         ("delete", "/api/v1/audit-events/aud_0001"),
         ("put", "/api/v1/approval-requests/apr_0001"),
         ("patch", "/api/v1/messages/msg_0016"),
+        ("put", "/api/v1/support-tickets/tkt_0015/draft-replies"),
+        ("delete", "/api/v1/support-tickets/tkt_0015/draft-replies"),
     ],
 )
 def test_other_writes_stay_denied_for_an_approver(

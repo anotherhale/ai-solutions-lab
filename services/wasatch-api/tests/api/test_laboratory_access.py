@@ -21,6 +21,9 @@ def test_anonymous_write_is_rejected(anonymous_client: TestClient) -> None:
     decision = anonymous_client.post("/api/v1/approval-requests/apr_0001/decisions")
     assert decision.status_code == 401
     assert decision.json()["error"]["code"] == "unauthenticated"
+    draft = anonymous_client.post("/api/v1/support-tickets/tkt_0015/draft-replies")
+    assert draft.status_code == 401
+    assert draft.json()["error"]["code"] == "unauthenticated"
 
 
 def test_anonymous_customer_and_ticket_reads_are_rejected(
@@ -85,7 +88,9 @@ def test_non_approver_can_read_but_cannot_record_a_decision(
     assert message.json()["body"]
     spec = anonymous_client.get("/openapi.json").json()
     decision_path = "/api/v1/approval-requests/{approval_id}/decisions"
+    draft_path = "/api/v1/support-tickets/{ticket_id}/draft-replies"
     assert set(spec["paths"][decision_path]) == {"post"}
+    assert set(spec["paths"][draft_path]) == {"post"}
     http_methods = {
         "get",
         "post",
@@ -96,8 +101,9 @@ def test_non_approver_can_read_but_cannot_record_a_decision(
         "options",
         "trace",
     }
+    writes = {decision_path, draft_path}
     for path, operations in spec["paths"].items():
-        allowed = {"post"} if path == decision_path else {"get", "head"}
+        allowed = {"post"} if path in writes else {"get", "head"}
         assert http_methods & set(operations) <= allowed
 
 

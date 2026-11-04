@@ -10,6 +10,7 @@ from wasatch_api.shared.errors import (
     AuthorizationDenied,
     InvalidParameterError,
     NotFoundError,
+    ProviderConfigurationError,
     UnauthenticatedError,
 )
 
@@ -42,6 +43,15 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AuthorizationDenied)
     async def forbidden(_request: Request, exc: AuthorizationDenied) -> JSONResponse:
         return JSONResponse(status_code=403, content=error_body("forbidden", str(exc)))
+
+    @app.exception_handler(ProviderConfigurationError)
+    async def provider_configuration(
+        _request: Request, exc: ProviderConfigurationError
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=503,
+            content=error_body("provider_unavailable", str(exc)),
+        )
 
     @app.exception_handler(RequestValidationError)
     async def request_validation(

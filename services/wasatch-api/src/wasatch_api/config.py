@@ -83,6 +83,10 @@ class Settings(BaseSettings):
         default=None, validation_alias="WASATCH_FIXTURES_DIR"
     )
     cors_origins: str = ""
+    ai_provider: str = "fake"
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    openai_embedding_model: str = "text-embedding-3-small"
 
     @property
     def sqlalchemy_url(self) -> str:

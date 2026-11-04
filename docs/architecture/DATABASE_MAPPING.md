@@ -25,7 +25,7 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | Addresses | Discrete columns, not JSON documents |
 | Lists of enumerations | PostgreSQL `TEXT[]` (employee certifications) |
 | Flexible documents | `audit_events.details` uses JSONB for the open audit map. Extraction payloads stay deferred |
-| Vectors | `CREATE EXTENSION vector` is applied now; no embedding columns yet. Retrieval does not add one |
+| Vectors | `CREATE EXTENSION vector` is applied now; no embedding columns yet. The embedding port exists and does not fill one |
 
 ## Tables in this slice
 
@@ -58,7 +58,7 @@ Add them in later slices with the same UUID + `business_id` pattern. Do not load
 
 ## Retrieval
 
-Ticket retrieval reads one customer's persisted text: ticket subjects, message bodies, interaction summaries, and work-order text (summary, description, completion notes, cancellation reason, reopen reason, and task descriptions). Procedure pages stay files under `data/documents/procedures/`. They are not rows in a document table and they are not seeded from `data/fixtures/valid/`. Matching is whole-word text search over the ticket subject and message bodies. There is no vector column and no second vector database. Embeddings stay deferred until an embedding port can fill a column in this PostgreSQL instance.
+Ticket retrieval reads one customer's persisted text: ticket subjects, message bodies, interaction summaries, and work-order text (summary, description, completion notes, cancellation reason, reopen reason, and task descriptions). Procedure pages stay files under `data/documents/procedures/`. They are not rows in a document table and they are not seeded from `data/fixtures/valid/`. Matching is whole-word text search over the ticket subject and message bodies. There is no vector column and no second vector database. The embedding port can produce vectors, and this slice does not store them.
 
 Revision `0002` downgrade copies ticket business ids back onto `work_orders.support_ticket_id` and drops the customer-service tables. Reload `data/fixtures/valid/` after that downgrade.
 

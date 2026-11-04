@@ -32,10 +32,12 @@ def create_app() -> FastAPI:
             "Laboratory API for synthetic Wasatch Business Systems data. "
             f"{LABORATORY_ACTOR_HEADER} is a local synthetic development "
             "identity simulation. Reads of customer and employee data require "
-            "that header. An approver may approve or reject a pending "
-            "customer message. That command does not send the message. "
-            "Other writes are denied. Production configuration refuses "
-            "to start. React and AI assistants are not part of this service."
+            "that header. An active employee may draft a suggested reply. "
+            "An approver may approve or reject a pending customer message. "
+            "Neither command sends the message. Other writes are denied. "
+            "The model provider defaults to a fake that does not call the "
+            "network. Production configuration refuses to start. React is "
+            "not part of this service."
         ),
         version=__version__,
     )

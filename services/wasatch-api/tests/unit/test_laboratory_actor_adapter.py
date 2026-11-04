@@ -78,16 +78,18 @@ def test_environment_outside_local_development_does_not_activate_the_adapter() -
 
 def test_anonymous_access_is_rejected() -> None:
     service = _service({"emp_0001": MANAGER, "emp_0004": DISPATCHER})
+    draft = "/api/v1/support-tickets/tkt_0015/draft-replies"
     for presented in (None, "", "  ", "emp_9999", "cust_0001"):
         read = service.decide_request(presented, "GET", "/api/v1/customers/cust_0001")
-        write = service.decide_request(presented, "POST", DECISION)
         assert read.outcome == "unauthenticated"
         assert read.actor is None
-        assert write.outcome == "unauthenticated"
-        assert write.actor is None
+        for path in (DECISION, draft):
+            write = service.decide_request(presented, "POST", path)
+            assert write.outcome == "unauthenticated"
+            assert write.actor is None
 
 
-def test_unauthorized_role_can_read_and_cannot_write_or_approve() -> None:
+def test_non_approver_can_read_and_draft_but_cannot_decide() -> None:
     service = _service({"emp_0004": DISPATCHER})
     read = service.decide_request("emp_0004", "GET", TICKET)
     assert read.outcome == "allowed"
@@ -95,11 +97,17 @@ def test_unauthorized_role_can_read_and_cannot_write_or_approve() -> None:
     write = service.decide_request("emp_0004", "POST", DECISION)
     assert write.outcome == "forbidden"
     assert write.actor == DISPATCHER
+    draft = service.decide_request(
+        "emp_0004", "POST", "/api/v1/support-tickets/tkt_0015/draft-replies"
+    )
+    assert draft.outcome == "allowed"
+    assert draft.actor == DISPATCHER
+    assert draft.subject == "tkt_0015"
     with pytest.raises(AuthorizationDenied, match="role role_0004"):
         service.authorize_approval(DISPATCHER)
 
 
-def test_privileged_role_can_decide_a_customer_message_and_nothing_else() -> None:
+def test_privileged_role_can_decide_a_customer_message_and_draft_a_reply() -> None:
     service = _service({"emp_0001": MANAGER})
     read = service.decide_request(
         "emp_0001", "GET", "/api/v1/approval-requests/apr_0001"
@@ -111,6 +119,11 @@ def test_privileged_role_can_decide_a_customer_message_and_nothing_else() -> Non
     assert decision.outcome == "allowed"
     assert decision.actor == MANAGER
     assert decision.subject == "apr_0001"
+    draft = service.decide_request(
+        "emp_0001", "POST", "/api/v1/support-tickets/tkt_0015/draft-replies"
+    )
+    assert draft.outcome == "allowed"
+    assert draft.subject == "tkt_0015"
     other = service.decide_request("emp_0001", "POST", "/api/v1/customers")
     assert other.outcome == "forbidden"
     replaced = service.decide_request("emp_0001", "PUT", DECISION)

@@ -7,6 +7,7 @@ from wasatch_api.workforce.application.access import (
     customer_message_decision_command,
     decide_http_access,
     require_authenticated_reader,
+    suggested_reply_command,
 )
 from wasatch_api.workforce.application.ports import EmployeeAuthenticator
 
@@ -18,4 +19,5 @@ __all__ = [
     "customer_message_decision_command",
     "decide_http_access",
     "require_authenticated_reader",
+    "suggested_reply_command",
 ]

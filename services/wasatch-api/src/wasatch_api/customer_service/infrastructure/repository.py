@@ -1,6 +1,9 @@
-"""PostgreSQL adapter for customer-service queries."""
+"""PostgreSQL adapter for customer-service queries and suggested replies."""
 
 from __future__ import annotations
+
+import uuid
+from datetime import datetime
 
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, selectinload
@@ -18,10 +21,13 @@ from wasatch_api.customer_service.infrastructure.mapping import (
 from wasatch_api.shared.database.models import (
     ApprovalDecisionORM,
     ApprovalRequestORM,
+    AuditEventORM,
+    EmployeeORM,
     InteractionORM,
     MessageORM,
     SupportTicketORM,
 )
+from wasatch_api.shared.errors import InvalidParameterError, NotFoundError
 from wasatch_api.shared.pagination import PageRequest
 
 
@@ -156,6 +162,130 @@ class CustomerServiceRepository:
             page,
             interaction_from_orm,
         )
+
+    def save_suggested_reply(
+        self,
+        *,
+        ticket_id: str,
+        author_employee_id: str,
+        body: str,
+        requires_approval: bool,
+        drafted_at: datetime,
+        model: str,
+        prompt_tokens: int,
+        completion_tokens: int,
+    ) -> Message:
+        """Insert an unsent reply. A commitment also opens an approval.
+
+        ``sent`` is not a status this method writes. No delivery adapter is
+        called. Audit details record the provider model and token counts, not
+        the message body.
+        """
+
+        cleaned = body.strip()
+        if not cleaned:
+            raise InvalidParameterError("suggested reply was empty")
+        ticket = self.session.scalar(
+            select(SupportTicketORM).where(SupportTicketORM.business_id == ticket_id)
+        )
+        if ticket is None:
+            raise NotFoundError(f"support ticket {ticket_id} was not found")
+        employee = self.session.scalar(
+            select(EmployeeORM).where(EmployeeORM.business_id == author_employee_id)
+        )
+        if employee is None:
+            raise NotFoundError(f"employee {author_employee_id} was not found")
+
+        status = "pending_approval" if requires_approval else "draft"
+        message_business_id = _next_business_id(self.session, MessageORM, "msg_")
+        approval = None
+        if requires_approval:
+            approval = ApprovalRequestORM(
+                id=uuid.uuid4(),
+                business_id=_next_business_id(self.session, ApprovalRequestORM, "apr_"),
+                action_type="send_customer_message",
+                status="pending",
+                requested_by_employee_id=employee.id,
+                subject_type="message",
+                subject_id=message_business_id,
+                rationale=(
+                    "Outbound reply would commit Wasatch and needs approval "
+                    "before it can be sent."
+                ),
+                requested_at=drafted_at,
+                created_at=drafted_at,
+                updated_at=drafted_at,
+                requested_by=employee,
+            )
+            self.session.add(approval)
+            self.session.flush()
+
+        message = MessageORM(
+            id=uuid.uuid4(),
+            business_id=message_business_id,
+            support_ticket_id=ticket.id,
+            direction="outbound",
+            channel=ticket.channel,
+            body=cleaned,
+            status=status,
+            author_employee_id=employee.id,
+            requires_approval=requires_approval,
+            approval_request_id=approval.id if approval is not None else None,
+            sent_at=drafted_at,
+            created_at=drafted_at,
+            updated_at=drafted_at,
+            support_ticket=ticket,
+            author_employee=employee,
+            approval_request=approval,
+        )
+        audit = AuditEventORM(
+            id=uuid.uuid4(),
+            business_id=_next_business_id(self.session, AuditEventORM, "aud_"),
+            occurred_at=drafted_at,
+            actor_type="employee",
+            actor_employee_id=employee.id,
+            action="message.drafted",
+            subject_type="message",
+            subject_id=message_business_id,
+            outcome="pending" if requires_approval else "succeeded",
+            approval_request_id=approval.id if approval is not None else None,
+            details={
+                "status": status,
+                "requires_approval": requires_approval,
+                "model": model,
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+            },
+            actor_employee=employee,
+            approval_request=approval,
+        )
+        self.session.add(message)
+        self.session.add(audit)
+        try:
+            self.session.flush()
+            self.session.commit()
+        except Exception:
+            self.session.rollback()
+            raise
+        stored = self.get_message(message_business_id)
+        if stored is None:
+            raise NotFoundError(f"message {message_business_id} was not found")
+        if stored.status == "sent":
+            raise InvalidParameterError("a suggested reply is not sent")
+        return stored
+
+
+def _next_business_id(session: Session, model, prefix: str) -> str:
+    business_ids = session.scalars(select(model.business_id)).all()
+    highest = 0
+    for business_id in business_ids:
+        suffix = business_id.removeprefix(prefix)
+        if business_id.startswith(prefix) and suffix.isdigit():
+            highest = max(highest, int(suffix))
+    nxt = highest + 1
+    if nxt > 9999:
+        raise InvalidParameterError(f"{prefix} identifiers are exhausted")
+    return f"{prefix}{nxt:04d}"
 
 
 def _ticket_summary_options():

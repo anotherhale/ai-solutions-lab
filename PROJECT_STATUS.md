@@ -18,7 +18,7 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 `main` is the production branch. Work integrates on `develop`. Merges to `main` are out of scope for laboratory agents.
 
-That relationship was true at `881cfc0`. `develop` later received the Ruff pin (`ec6465f`), the `develop` CI trigger (`ecd3015`), ADR 0001 acceptance (`c18ad80`), this planning set (`6cb587a`), CS-1 (`047702e`, pull request [#7](https://github.com/anotherhale/ai-solutions-lab/pull/7)), CS-2 (`7760106`, pull request [#8](https://github.com/anotherhale/ai-solutions-lab/pull/8)), CS-3 (`5b2ffc4`, pull request [#9](https://github.com/anotherhale/ai-solutions-lab/pull/9)), the laboratory-actor production boundary (`ac26535`, pull request [#10](https://github.com/anotherhale/ai-solutions-lab/pull/10)), and the CI database gate (`d1178e8`, pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11)).
+That relationship was true at `881cfc0`. `develop` later received the Ruff pin (`ec6465f`), the `develop` CI trigger (`ecd3015`), ADR 0001 acceptance (`c18ad80`), this planning set (`6cb587a`), CS-1 (`047702e`, pull request [#7](https://github.com/anotherhale/ai-solutions-lab/pull/7)), CS-2 (`7760106`, pull request [#8](https://github.com/anotherhale/ai-solutions-lab/pull/8)), CS-3 (`5b2ffc4`, pull request [#9](https://github.com/anotherhale/ai-solutions-lab/pull/9)), the laboratory-actor production boundary (`ac26535`, pull request [#10](https://github.com/anotherhale/ai-solutions-lab/pull/10)), the CI database gate (`d1178e8`, pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11)), CS-5 retrieval (`a03fea9`, pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12)), and CS-4 approval decisions (`0785ab9`, pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13)).
 
 ## Remote branches observed
 
@@ -82,7 +82,9 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | CS-3 laboratory actor and approver role | Done. Pull request [#9](https://github.com/anotherhale/ai-solutions-lab/pull/9) merged as `5b2ffc4`. Alembic revision `0004` persists roles and teams. `employees.role_id` references `roles`, and `is_approver` comes from that role. A local authenticator resolves `X-Laboratory-Actor` to an active synthetic employee. `/api/v1` reads require that actor. |
 | Laboratory actor production boundary | Done. Pull request [#10](https://github.com/anotherhale/ai-solutions-lab/pull/10) merged as `ac26535`. The header adapter runs only for `APP_ENV` `local`, `development`, or `test`. `APP_ENV=production` and `APP_ENV=prod` raise `UnsafeProductionConfiguration` from `create_app` and from `LocalEmployeeAuthenticator` before a request is served. Any other environment fails the same way. There is no password system and no identity provider. ADR 0006 records the future production authenticator as a different `EmployeeAuthenticator` adapter. Role checks stay in the workforce application service. |
 | CI database gate | Done. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) merged as `d1178e8`. CI sets `WASATCH_REQUIRE_DATABASE=1`. `scripts/check_wasatch_api_pytest.py` fails the job when the Wasatch API database tests were skipped. A local run without PostgreSQL can still skip. |
-| CS-4 approve or reject a customer message | This change. An approver can approve or reject pending `apr_0001` (`send_customer_message` for `msg_0016`). The command appends `decision_history`, sets `reviewer_employee_id` and `decided_at`, and inserts an audit event. The message body stays unchanged and the message is not marked `sent`. `emp_0004` is denied. No email, SMS, or other delivery. |
+| CS-4 approve or reject a customer message | Done. Pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13) merged as `0785ab9`. An approver can approve or reject pending `apr_0001` (`send_customer_message` for `msg_0016`). The command appends `decision_history`, sets `reviewer_employee_id` and `decided_at`, and inserts an audit event. The message body stays unchanged and the message is not marked `sent`. `emp_0004` is denied. No email, SMS, or other delivery. |
+| CS-5 retrieval over synthetic history and procedures | Done. Pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12) merged as `a03fea9`. `GET /api/v1/support-tickets/{ticket_id}/retrieval` returns that customer's persisted history and matching synthetic procedure pages. The route does not call a model and does not add an embedding column. |
+| CS-6 draft a suggested reply | This change. `POST /api/v1/support-tickets/{ticket_id}/draft-replies` creates an unsent reply for an existing ticket, grounded in that retrieval. For synthetic `tkt_0015` the reply cites `msg_0015` and `proc_0001`. Text that would commit Wasatch is `pending_approval` with `requires_approval` and a new `send_customer_message` request. Other text stays `draft` with no approval. Rejecting the approval leaves the message unsent. The default provider is the in-process fake. `AI_PROVIDER=openai` uses the OpenAI adapter only when `OPENAI_API_KEY` is not a placeholder. Tests and CI do not send a provider credential and do not call the network. |
 
 Seeded governance counts: 10 approval requests, 11 decision-history rows, and 50 audit events. `msg_0016` (`pending_approval`, `requires_approval` true) references `apr_0001`. Audit rows are insert-only: revision `0003` installs a trigger that rejects `UPDATE` and `DELETE`. The customer-message decision inserts one new audit row and does not update or delete audit events. A second seed skips existing audit rows.
 
@@ -91,16 +93,16 @@ Seeded governance counts: 10 approval requests, 11 decision-history rows, and 50
 These items are absent. Later documents must not describe them as running:
 
 - React or any other user interface (`apps/` is a placeholder)
-- AI provider port, OpenAI adapter, or any model call
-- Embedding columns (the `vector` extension is enabled; no vector column exists)
-- Outbound message sends, and any write other than the customer-message approval decision. That decision does not deliver email, SMS, or another channel, and it does not mark the message `sent`.
+- A model call in tests or CI. Chat and embedding ports exist. The OpenAI adapter is installed and stays behind `AI_PROVIDER`. The default provider is a fake and does not call the network. No provider credential is committed.
+- Embedding columns (the `vector` extension is enabled; no vector column exists). The embedding port is not used to fill one.
+- Outbound message delivery. The approval decision and the suggested-reply draft are the writes. Neither delivers email, SMS, or another channel, and neither marks the message `sent`.
 - An external identity provider, purchased identity service, password system, or production credential. The local laboratory authenticator is a development-only header simulation. Production configuration fails startup instead of activating that header.
 - OpenTelemetry export
 - Redis, n8n, Azure, and Terraform resources (`infrastructure/terraform/` is a placeholder)
 - Persistence for invoices, payments, and documents
 - File bytes for documents (`data/documents/` is a placeholder; version rows point at synthetic `storage_path` values only)
 
-ADR status in `docs/adr/README.md`: 0001, 0002, 0003, and 0005 are Accepted. ADR 0001 was accepted in pull request [#5](https://github.com/anotherhale/ai-solutions-lab/pull/5) (`c18ad80`): `services/wasatch-api` is the host, one process, and the customer and work-order modules are the first packages. ADR 0004 stays Proposed until a port and adapter exist.
+ADR status in `docs/adr/README.md`: 0001, 0002, 0003, 0004, and 0005 are Accepted. ADR 0001 was accepted in pull request [#5](https://github.com/anotherhale/ai-solutions-lab/pull/5) (`c18ad80`): `services/wasatch-api` is the host, one process, and the customer and work-order modules are the first packages. ADR 0004 is Accepted: chat and embedding ports are in the application layer, and the OpenAI client stays in the infrastructure adapter.
 
 ## Phase 2.1.1 residuals
 
@@ -109,7 +111,7 @@ These are gaps inside an implemented slice. They are not a reason to recreate th
 - HTTP contract coverage is `tests/unit/test_contract_alignment.py`, which checks customer and work-order status enums against JSON Schema. Responses are not validated against the full schemas.
 - Tests run Alembic `upgrade` to `head`. Revision `0001` downgrade is still untested. Revisions `0002`, `0003`, and `0004` include upgrade and downgrade tests on the synthetic database.
 - `tests/conftest.py` skips the suite when PostgreSQL cannot be reached. A local run without the database can skip rather than fail. CI does not rely on that skip: pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` fails the job when the database tests were skipped. The skip predicate was not removed.
-- `/api/v1` reads require an active synthetic employee presented in `X-Laboratory-Actor`. That header is a local laboratory adapter. It runs only when `APP_ENV` is `local`, `development`, or `test`. `APP_ENV=production` and `APP_ENV=prod` fail startup. Health probes stay open. An approver may `POST /api/v1/approval-requests/{approval_id}/decisions` for a pending customer message. That command does not mark the message `sent`. Every other authenticated write returns 403, and an anonymous write returns 401. The pytest skip predicate in `tests/conftest.py` is unchanged.
+- `/api/v1` reads require an active synthetic employee presented in `X-Laboratory-Actor`. That header is a local laboratory adapter. It runs only when `APP_ENV` is `local`, `development`, or `test`. `APP_ENV=production` and `APP_ENV=prod` fail startup. Health probes stay open. An active employee may `POST /api/v1/support-tickets/{ticket_id}/draft-replies`. An approver may `POST /api/v1/approval-requests/{approval_id}/decisions` for a pending customer message. Neither command marks the message `sent`. Every other authenticated write returns 403, and an anonymous write returns 401. The pytest skip predicate in `tests/conftest.py` is unchanged.
 - `APP_LOG_LEVEL` configures structured logs of actor, action, subject, and outcome. Message bodies and secrets are omitted. OpenTelemetry export is still absent.
 - `work_orders.invoice_id` remains a string. `employees.role_id` references `roles`. `employees.team_id` references `teams`. `work_orders.support_ticket_id` references `support_tickets`. `messages.approval_request_id` references `approval_requests`.
 
@@ -243,6 +245,25 @@ From the repository root, same session:
 | Command | Result | Exit |
 |---|---|---|
 | `services/wasatch-api/.venv/bin/ruff format --check .` | 154 files already formatted | 0 |
+| `services/wasatch-api/.venv/bin/ruff check .` | All checks passed | 0 |
+| `python3 scripts/validate_repo.py` | `Repository conventions validated.` | 0 |
+| `python3 scripts/validate_wasatch_domain.py` | `Wasatch domain fixtures validated.` | 0 |
+
+## Verification for CS-6
+
+Run from `services/wasatch-api` with `services/wasatch-api/.venv` against the Compose PostgreSQL service (`pgvector/pgvector:pg16`). The parent is `develop` at `0785ab9`. The suite created or reused `wasatch_test`. `tests/conftest.py`, `.github/workflows/validate.yml`, and `scripts/check_wasatch_api_pytest.py` were not edited. `WASATCH_REQUIRE_DATABASE=1` was set. This run did not skip. No `OPENAI_API_KEY` was set. `AI_PROVIDER` was unset, so the draft route used the fake port.
+
+| Command | Result | Exit |
+|---|---|---|
+| `WASATCH_REQUIRE_DATABASE=1 .venv/bin/pytest --tb=line -rfEs` | 142 passed, 0 failed, 0 skipped, 1 warning in 6.93s | 0 |
+
+The warning is the existing Starlette deprecation of `anyio.abc.BlockingPortal` in `starlette/testclient.py`. The run did not start the API container, did not call OpenAI, and did not observe GitHub Actions.
+
+From the repository root, same session:
+
+| Command | Result | Exit |
+|---|---|---|
+| `services/wasatch-api/.venv/bin/ruff format --check .` | 167 files already formatted | 0 |
 | `services/wasatch-api/.venv/bin/ruff check .` | All checks passed | 0 |
 | `python3 scripts/validate_repo.py` | `Repository conventions validated.` | 0 |
 | `python3 scripts/validate_wasatch_domain.py` | `Wasatch domain fixtures validated.` | 0 |

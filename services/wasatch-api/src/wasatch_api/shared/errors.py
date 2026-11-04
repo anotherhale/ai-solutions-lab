@@ -15,3 +15,7 @@ class UnauthenticatedError(PermissionError):
 
 class AuthorizationDenied(PermissionError):
     """The laboratory actor is not allowed to perform the action."""
+
+
+class ProviderConfigurationError(RuntimeError):
+    """The selected model provider cannot be constructed."""

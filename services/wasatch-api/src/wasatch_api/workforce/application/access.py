@@ -26,6 +26,7 @@ _BUSINESS_ID = re.compile(r"[a-z]+_\d+")
 _CUSTOMER_MESSAGE_DECISION = re.compile(
     r"^/api/v1/approval-requests/[a-z]+_\d+/decisions$"
 )
+_SUGGESTED_REPLY = re.compile(r"^/api/v1/support-tickets/[a-z]+_\d+/draft-replies$")
 
 
 @dataclass(frozen=True)
@@ -63,13 +64,23 @@ def decide_http_access(
 def customer_message_decision_command(method: str, path: str) -> bool:
     """True only for the human approve-or-reject command.
 
-    Every other write stays denied. The command does not send a message.
+    The command does not send a message.
     """
 
     return (
         method.upper() == "POST"
         and _CUSTOMER_MESSAGE_DECISION.fullmatch(path) is not None
     )
+
+
+def suggested_reply_command(method: str, path: str) -> bool:
+    """True only for drafting a suggested reply.
+
+    Any active laboratory actor may draft. The command does not send a
+    message. Every other write stays denied.
+    """
+
+    return method.upper() == "POST" and _SUGGESTED_REPLY.fullmatch(path) is not None
 
 
 class LaboratoryAccessService:
@@ -91,12 +102,23 @@ class LaboratoryAccessService:
         actor = self._authenticator.authenticate(presented_employee_id)
         if actor is not None and actor.status != "active":
             actor = None
+        if suggested_reply_command(method, path):
+            return self._decide_suggested_reply(actor, method, path)
         if customer_message_decision_command(method, path):
             return self._decide_customer_message_decision(actor, method, path)
         return decide_http_access(actor, method, path)
 
     def authorize_approval(self, actor: LaboratoryActor) -> None:
         authorize_approval_decision(actor)
+
+    def _decide_suggested_reply(
+        self, actor: LaboratoryActor | None, method: str, path: str
+    ) -> AccessDecision:
+        action = f"{method.upper()} {path}"
+        subject = subject_from_path(path)
+        if actor is None:
+            return AccessDecision("unauthenticated", action, subject)
+        return AccessDecision("allowed", action, subject, actor)
 
     def _decide_customer_message_decision(
         self, actor: LaboratoryActor | None, method: str, path: str
