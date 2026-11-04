@@ -95,7 +95,8 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | Document extraction review screen | Done. Pull request [#22](https://github.com/anotherhale/ai-solutions-lab/pull/22). `apps/wasatch-review` opens synthetic extractions for approver decisions. |
 | Work order invoice foreign key | Done. Pull request [#26](https://github.com/anotherhale/ai-solutions-lab/pull/26) merged as `e25fb91`. Alembic revision `0008` adds `invoices` and `work_orders.invoice_id` → `invoices.business_id`. |
 | pip-audit in CI | Done. Pull request [#27](https://github.com/anotherhale/ai-solutions-lab/pull/27) merged as `13836b8`. **Wasatch API tests** job runs `scripts/audit_wasatch_dependencies.sh`. |
-| Branch protection documentation and ADR 0007 | This change. `docs/operations/github-branch-protection.md`, migration matrix README, and ADR 0007. No GitHub ruleset API changes (integration lacks admin access). |
+| Branch protection documentation and ADR 0007 | Done. Pull request [#28](https://github.com/anotherhale/ai-solutions-lab/pull/28) merged as `8c950ce`. `docs/operations/github-branch-protection.md`, migration matrix README, and ADR 0007. No GitHub ruleset API changes (integration lacks admin access). |
+| SEC-1 Starlette remediation | This change. FastAPI `>=0.162.0,<0.163` and Starlette `>=1.10.0,<1.11` (resolved 0.162.0 and 1.10.0). `anyio` is `>=4.8.0,<5`. `scripts/audit_wasatch_dependencies.sh` no longer ignores Starlette PYSEC IDs. ADR 0007 is Accepted. `create_app` does not pass `on_startup`. The default lifespan still serves `GET /health`. No delivery, finance posting, or production deployment. |
 
 Seeded document counts: 30 documents, 31 document versions, and 18 extractions. `doc_0004` has two versions and current version `dv_0031`. Needs-review extractions are `dx_0003`, `dx_0009`, and `dx_0015`. Seeded governance counts: 10 approval requests, 11 decision-history rows, and 50 audit events. `msg_0016` (`pending_approval`, `requires_approval` true) references `apr_0001`. Audit rows are insert-only: revision `0003` installs a trigger that rejects `UPDATE` and `DELETE`. The customer-message decision, the extraction-review decision, and each follow-up transition insert one new audit row and do not update or delete audit events. A second seed skips existing audit rows. Seed copies fixture extraction status and does not accept a low-confidence or financial row.
 
@@ -113,7 +114,7 @@ These items are absent. Later documents must not describe them as running:
 - Full finance ORM and routes. Revision `0008` persists `invoices` and links `work_orders.invoice_id` with a foreign key. `invoice_lines` and `payments` are not persisted tables. The extraction review does not post a payment or change an invoice total
 - File bytes for documents (`data/documents/procedures/` holds procedure pages for retrieval; version rows still point at synthetic `storage_path` values only)
 
-ADR status in `docs/adr/README.md`: 0001–0006 are Accepted. ADR 0007 (Starlette security remediation plan) is Proposed in this change set. ADR 0001 was accepted in pull request [#5](https://github.com/anotherhale/ai-solutions-lab/pull/5) (`c18ad80`): `services/wasatch-api` is the host, one process, and the customer and work-order modules are the first packages. ADR 0004 is Accepted: chat and embedding ports are in the application layer, and the OpenAI client stays in the infrastructure adapter.
+ADR status in `docs/adr/README.md`: 0001–0007 are Accepted. ADR 0007 (Starlette security remediation) is Accepted in this change. ADR 0001 was accepted in pull request [#5](https://github.com/anotherhale/ai-solutions-lab/pull/5) (`c18ad80`): `services/wasatch-api` is the host, one process, and the customer and work-order modules are the first packages. ADR 0004 is Accepted: chat and embedding ports are in the application layer, and the OpenAI client stays in the infrastructure adapter.
 
 ## Phase 2.1.1 residuals
 
@@ -446,8 +447,39 @@ Run from repository root and `services/wasatch-api` with Compose PostgreSQL (`pg
 |---|---|---|
 | `WASATCH_REQUIRE_DATABASE=1 .venv/bin/pytest tests/integration/test_invoice_migration.py --tb=short` | 2 passed | 0 |
 | `WASATCH_REQUIRE_DATABASE=1 .venv/bin/pytest --tb=line -rfEs` | 195 passed, 0 skipped | 0 |
-| `scripts/audit_wasatch_dependencies.sh` | No known vulnerabilities found, 5 ignored (Starlette PYSEC IDs per ADR 0007) | 0 |
+| `scripts/audit_wasatch_dependencies.sh` | No known vulnerabilities found, 5 ignored (Starlette PYSEC IDs per ADR 0007 while it was Proposed) | 0 |
 | `ruff format --check .` | All files formatted | 0 |
 | `ruff check .` | All checks passed | 0 |
 | `python3 scripts/validate_repo.py` | Repository conventions validated | 0 |
 | `python3 scripts/validate_wasatch_domain.py` | Wasatch domain fixtures validated | 0 |
+
+## Verification for SEC-1
+
+Run from `services/wasatch-api` with `services/wasatch-api/.venv` against Compose PostgreSQL (`pgvector/pgvector:pg16`). Parent is `develop` at `8c950ce`. `WASATCH_REQUIRE_DATABASE=1` was set. `AI_PROVIDER` and `OPENAI_API_KEY` were unset. This run did not skip. Installed stack: FastAPI 0.162.0, Starlette 1.10.0, anyio 4.16.0. Pytest printed no warning summary.
+
+| Command | Result | Exit |
+|---|---|---|
+| `WASATCH_REQUIRE_DATABASE=1 .venv/bin/pytest --tb=line -rfEs` | 198 passed, 0 failed, 0 skipped in 16.32s | 0 |
+| `scripts/audit_wasatch_dependencies.sh` | `No known vulnerabilities found`. The editable distribution was skipped. No `--ignore-vuln` entries. | 0 |
+| `ruff format --check .` | 222 files already formatted | 0 |
+| `ruff check .` | All checks passed | 0 |
+| `python3 scripts/validate_repo.py` | Repository conventions validated | 0 |
+| `python3 scripts/validate_wasatch_domain.py` | Wasatch domain fixtures validated | 0 |
+
+From `apps/wasatch-review` with Node.js 22.23.4:
+
+| Command | Result | Exit |
+|---|---|---|
+| `npm test` | Vitest 5.1.0. 14 passed across 3 files | 0 |
+| `npm run typecheck` | `tsc --noEmit` | 0 |
+| `npm run build` | Vite production build succeeded | 0 |
+
+Compose image `ai-solutions-lab-api` built from `services/wasatch-api/Dockerfile` and started with `docker compose up -d`. The container reported FastAPI 0.162.0 and Starlette 1.10.0. `GET /health` returned `status` `ok` and `service` `wasatch-api`. `GET /health/ready` returned `status` `ready` and `database` `up`. OpenAPI listed 29 paths, including document extractions. `scripts/smoke_compose.sh` was not executed as a single script because its cleanup runs `docker compose down`. The health, readiness, and OpenAPI checks from that script were run, and the stack was left up.
+
+From `tests/e2e`, with the API virtualenv on `PATH` so `python3` can import Alembic (the CI job installs that package into the runner interpreter first):
+
+| Command | Result | Exit |
+|---|---|---|
+| `npm test` | Playwright. 2 passed (reply approval without a send control, extraction accept without posting money) | 0 |
+
+Uvicorn logged `Application startup complete` on port 8010. The run did not call OpenAI. GitHub Actions was not observed. No customer message was sent and no payment was posted.
