@@ -26,6 +26,10 @@ REQUIRED_FILES = (
     "docs/business/WASATCH_DOMAIN_MODEL.md",
     "docs/business/WASATCH_WORKFLOWS.md",
     "docs/architecture/DATA_CONTRACTS.md",
+    "docs/architecture/DATABASE_MAPPING.md",
+    "docs/architecture/API_CONVENTIONS.md",
+    "compose.yaml",
+    "services/wasatch-api/pyproject.toml",
     ".github/workflows/validate.yml",
 )
 

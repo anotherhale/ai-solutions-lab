@@ -32,3 +32,38 @@ jobs:
 
       - name: Validate Wasatch domain fixtures
         run: python scripts/validate_wasatch_domain.py
+
+  wasatch-api:
+    name: Wasatch API tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: wasatch
+          POSTGRES_PASSWORD: wasatch
+          POSTGRES_DB: wasatch_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wasatch -d wasatch_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install application
+        run: python -m pip install --upgrade pip && python -m pip install -e "services/wasatch-api[dev]"
+
+      - name: Run unit, integration, and API tests
+        working-directory: services/wasatch-api
+        env:
+          WASATCH_DATABASE_URL: postgresql+psycopg://wasatch:wasatch@localhost:5432/wasatch_test
+        run: pytest
