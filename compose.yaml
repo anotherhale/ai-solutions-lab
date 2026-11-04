@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: wasatch-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wasatch}
+      POSTGRES_USER: ${POSTGRES_USER:-wasatch}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-replace-me}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - wasatch_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: services/wasatch-api/Dockerfile
+    container_name: wasatch-api
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      APP_LOG_LEVEL: ${APP_LOG_LEVEL:-INFO}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-wasatch}
+      POSTGRES_USER: ${POSTGRES_USER:-wasatch}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-replace-me}
+      WASATCH_FIXTURES_DIR: /srv/data/fixtures/valid
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  wasatch_pg_data:

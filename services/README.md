@@ -1,5 +1,5 @@
 # Services
 
-Reserved for backend modules and integration services hosted in the modular monolith.
+Backend modules for the modular monolith.
 
-No FastAPI services have been implemented. Add code here when a Wasatch Business Systems use case requires it.
+The first host is `wasatch-api`: a read-only FastAPI service over PostgreSQL. See [wasatch-api/README.md](wasatch-api/README.md).
