@@ -10,11 +10,30 @@ from __future__ import annotations
 from wasatch_api.shared.errors import AuthorizationDenied
 from wasatch_api.workforce.domain.entities import LaboratoryActor
 
+DISPATCHER_ROLE_ID = "role_0004"
+
 
 def authorize_write(actor: LaboratoryActor, action: str) -> None:
     """Deny every write until a later command explicitly allows it."""
 
     raise AuthorizationDenied(f"{actor.employee_id} cannot perform {action}")
+
+
+def authorize_follow_up_decision(actor: LaboratoryActor) -> None:
+    """Permit a follow-up decision only for an active dispatcher.
+
+    ``role_0004`` is the dispatcher role. ``emp_0004`` holds that role.
+    This check does not open a visit, assign a technician, send a message,
+    or post an invoice. The follow-up command calls it through
+    ``LaboratoryAccessService.authorize_follow_up`` before it writes.
+    """
+
+    if actor.status != "active":
+        raise AuthorizationDenied(f"{actor.employee_id} is not an active employee")
+    if actor.role_id != DISPATCHER_ROLE_ID:
+        raise AuthorizationDenied(
+            f"role {actor.role_id} cannot decide a follow-up visit"
+        )
 
 
 def authorize_approval_decision(actor: LaboratoryActor) -> None:

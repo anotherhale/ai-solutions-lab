@@ -17,6 +17,7 @@ from wasatch_api.shared.logging import (
 from wasatch_api.workforce.application.access import AccessDecision, decide_http_access
 from wasatch_api.workforce.domain.authorization import (
     authorize_approval_decision,
+    authorize_follow_up_decision,
     authorize_write,
 )
 from wasatch_api.workforce.domain.entities import LaboratoryActor
@@ -58,6 +59,16 @@ def test_inactive_approver_cannot_decide_an_approval() -> None:
 def test_writes_are_denied_for_an_approver() -> None:
     with pytest.raises(AuthorizationDenied):
         authorize_write(MANAGER, "POST /api/v1/approval-requests/apr_0001/decisions")
+    with pytest.raises(AuthorizationDenied):
+        authorize_write(
+            DISPATCHER, "POST /api/v1/approval-requests/apr_0001/follow-up-visits"
+        )
+
+
+def test_dispatcher_role_may_decide_a_follow_up_and_an_approver_may_not() -> None:
+    authorize_follow_up_decision(DISPATCHER)
+    with pytest.raises(AuthorizationDenied, match="role role_0001"):
+        authorize_follow_up_decision(MANAGER)
 
 
 def test_http_access_rejects_anonymous_writes_and_allows_reads() -> None:

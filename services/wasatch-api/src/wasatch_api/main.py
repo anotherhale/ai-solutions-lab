@@ -15,6 +15,7 @@ from wasatch_api.api.routes import (
     governance,
     health,
     work_orders,
+    workflows,
 )
 from wasatch_api.config import get_settings, reject_unsafe_production_configuration
 from wasatch_api.shared.logging import configure_logging
@@ -38,7 +39,11 @@ def create_app() -> FastAPI:
             "message, and may accept or reject a document extraction that "
             "is awaiting review. Neither customer-message command sends the "
             "message. The extraction decision does not post a payment or "
-            "change an invoice. Other writes are denied. "
+            "change an invoice. A dispatcher may open a follow-up visit from "
+            "an approved customer message and then confirm or cancel it. The "
+            "visit stays unscheduled until that decision. The command does "
+            "not send the message, assign a technician, or post finance. "
+            "Other writes are denied. "
             "The model provider defaults to a fake that does not call the "
             "network. Procedure-page embeddings, when filled, use that same "
             "fake port and are not a trusted model. Production configuration "
@@ -62,6 +67,7 @@ def create_app() -> FastAPI:
     app.include_router(customer_service.router)
     app.include_router(governance.router)
     app.include_router(documents.router)
+    app.include_router(workflows.router)
     return app
 
 

@@ -120,9 +120,11 @@ def test_approval_resource_stays_read_only(
     decision_path = "/api/v1/approval-requests/{approval_id}/decisions"
     draft_path = "/api/v1/support-tickets/{ticket_id}/draft-replies"
     extraction_path = "/api/v1/document-extractions/{extraction_id}/decisions"
+    follow_up_path = "/api/v1/approval-requests/{approval_id}/follow-up-visits"
     assert set(spec["paths"][decision_path]) == {"post"}
     assert set(spec["paths"][draft_path]) == {"post"}
     assert set(spec["paths"][extraction_path]) == {"post"}
+    assert set(spec["paths"][follow_up_path]) == {"get", "post"}
     http_methods = {
         "get",
         "post",
@@ -135,7 +137,12 @@ def test_approval_resource_stays_read_only(
     }
     writes = {decision_path, draft_path, extraction_path}
     for path, operations in spec["paths"].items():
-        allowed = {"post"} if path in writes else {"get", "head"}
+        if path == follow_up_path:
+            allowed = {"get", "head", "post"}
+        elif path in writes:
+            allowed = {"post"}
+        else:
+            allowed = {"get", "head"}
         assert http_methods & set(operations) <= allowed
 
 

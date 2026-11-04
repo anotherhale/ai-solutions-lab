@@ -32,6 +32,7 @@ MANAGER = LaboratoryActor(
 )
 DECISION = "/api/v1/approval-requests/apr_0001/decisions"
 EXTRACTION = "/api/v1/document-extractions/dx_0003/decisions"
+FOLLOW_UP = "/api/v1/approval-requests/apr_0001/follow-up-visits"
 TICKET = "/api/v1/support-tickets/tkt_0007"
 
 
@@ -84,7 +85,7 @@ def test_anonymous_access_is_rejected() -> None:
         read = service.decide_request(presented, "GET", "/api/v1/customers/cust_0001")
         assert read.outcome == "unauthenticated"
         assert read.actor is None
-        for path in (DECISION, draft, EXTRACTION):
+        for path in (DECISION, draft, EXTRACTION, FOLLOW_UP):
             write = service.decide_request(presented, "POST", path)
             assert write.outcome == "unauthenticated"
             assert write.actor is None
@@ -108,6 +109,11 @@ def test_non_approver_can_read_and_draft_but_cannot_decide() -> None:
     assert draft.outcome == "allowed"
     assert draft.actor == DISPATCHER
     assert draft.subject == "tkt_0015"
+    follow_up = service.decide_request("emp_0004", "POST", FOLLOW_UP)
+    assert follow_up.outcome == "allowed"
+    assert follow_up.actor == DISPATCHER
+    assert follow_up.subject == "apr_0001"
+    assert service.authorize_follow_up(DISPATCHER) is None
     with pytest.raises(AuthorizationDenied, match="role role_0004"):
         service.authorize_approval(DISPATCHER)
 
@@ -135,6 +141,11 @@ def test_privileged_role_can_decide_a_customer_message_and_draft_a_reply() -> No
     assert draft.subject == "tkt_0015"
     other = service.decide_request("emp_0001", "POST", "/api/v1/customers")
     assert other.outcome == "forbidden"
+    follow_up = service.decide_request("emp_0001", "POST", FOLLOW_UP)
+    assert follow_up.outcome == "forbidden"
+    assert follow_up.actor == MANAGER
+    with pytest.raises(AuthorizationDenied, match="role role_0001"):
+        service.authorize_follow_up(MANAGER)
     replaced = service.decide_request("emp_0001", "PUT", DECISION)
     assert replaced.outcome == "forbidden"
     deleted = service.decide_request(

@@ -33,7 +33,7 @@ The simulated subject remains **Wasatch Business Systems**. All business data is
 - Ingest synthetic invoices, work orders, and vendor documents.
 - Classify documents and extract structured fields.
 - Require human review for low-confidence extractions and any financial effect.
-- Store embeddings in PostgreSQL with pgvector. Procedure-page text is stored in `procedure_page_embeddings.embedding`. Document packets still have no bytes in the repository, and the embedding is not a trusted model. Phase 4 is not started.
+- Store embeddings in PostgreSQL with pgvector. Procedure-page text is stored in `procedure_page_embeddings.embedding`. Document packets still have no bytes in the repository, and the embedding is not a trusted model. WF-1 is a follow-up visit in the monolith. Phase 5 is not started.
 
 **Exit criteria:** A reviewer can process a document packet from upload through validated structured output without trusting the model blindly.
 
@@ -47,6 +47,8 @@ The simulated subject remains **Wasatch Business Systems**. All business data is
 - Add first cuts of knowledge management, sales qualification, or dispatch assistance only where they support an end-to-end Wasatch process.
 
 **Exit criteria:** At least one multi-step business workflow runs with human approval and an audit trail.
+
+WF-1 is that workflow for this slice: a dispatcher confirms or cancels a follow-up visit only after an approver has approved the customer message. The visit stays unscheduled until that second human decision. n8n is not connected. Phase 5 is not started.
 
 ## Phase 5: Production Engineering and Cloud Deployment
 

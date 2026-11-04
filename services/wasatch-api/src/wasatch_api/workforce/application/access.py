@@ -15,6 +15,7 @@ from wasatch_api.shared.errors import AuthorizationDenied, UnauthenticatedError
 from wasatch_api.workforce.application.ports import EmployeeAuthenticator
 from wasatch_api.workforce.domain.authorization import (
     authorize_approval_decision,
+    authorize_follow_up_decision,
     authorize_write,
 )
 from wasatch_api.workforce.domain.entities import LaboratoryActor
@@ -28,6 +29,9 @@ _CUSTOMER_MESSAGE_DECISION = re.compile(
 )
 _EXTRACTION_REVIEW = re.compile(r"^/api/v1/document-extractions/[a-z]+_\d+/decisions$")
 _SUGGESTED_REPLY = re.compile(r"^/api/v1/support-tickets/[a-z]+_\d+/draft-replies$")
+_FOLLOW_UP_VISIT = re.compile(
+    r"^/api/v1/approval-requests/[a-z]+_\d+/follow-up-visits$"
+)
 
 
 @dataclass(frozen=True)
@@ -93,6 +97,16 @@ def suggested_reply_command(method: str, path: str) -> bool:
     return method.upper() == "POST" and _SUGGESTED_REPLY.fullmatch(path) is not None
 
 
+def follow_up_visit_command(method: str, path: str) -> bool:
+    """True only for the follow-up open, confirm, or cancel command.
+
+    A dispatcher may call it. The command does not send a message, assign a
+    technician, or post finance. Every other write stays denied.
+    """
+
+    return method.upper() == "POST" and _FOLLOW_UP_VISIT.fullmatch(path) is not None
+
+
 class LaboratoryAccessService:
     """Authenticate a caller and enforce laboratory role rules.
 
@@ -100,7 +114,8 @@ class LaboratoryAccessService:
     development. This service decides anonymous access, default-deny writes,
     and approver authority. ``authorize_approval`` does not record a decision,
     set a reviewer, change a message, or post an invoice. The command that
-    was allowed does that after this service allows the actor.
+    was allowed does that after this service allows the actor. The follow-up
+    command uses ``authorize_follow_up`` for the dispatcher role.
     """
 
     def __init__(self, authenticator: EmployeeAuthenticator) -> None:
@@ -118,10 +133,15 @@ class LaboratoryAccessService:
             method, path
         ):
             return self._decide_approver_command(actor, method, path)
+        if follow_up_visit_command(method, path):
+            return self._decide_dispatcher_command(actor, method, path)
         return decide_http_access(actor, method, path)
 
     def authorize_approval(self, actor: LaboratoryActor) -> None:
         authorize_approval_decision(actor)
+
+    def authorize_follow_up(self, actor: LaboratoryActor) -> None:
+        authorize_follow_up_decision(actor)
 
     def _decide_suggested_reply(
         self, actor: LaboratoryActor | None, method: str, path: str
@@ -141,6 +161,19 @@ class LaboratoryAccessService:
             return AccessDecision("unauthenticated", action, subject)
         try:
             self.authorize_approval(actor)
+        except AuthorizationDenied:
+            return AccessDecision("forbidden", action, subject, actor)
+        return AccessDecision("allowed", action, subject, actor)
+
+    def _decide_dispatcher_command(
+        self, actor: LaboratoryActor | None, method: str, path: str
+    ) -> AccessDecision:
+        action = f"{method.upper()} {path}"
+        subject = subject_from_path(path)
+        if actor is None:
+            return AccessDecision("unauthenticated", action, subject)
+        try:
+            self.authorize_follow_up(actor)
         except AuthorizationDenied:
             return AccessDecision("forbidden", action, subject, actor)
         return AccessDecision("allowed", action, subject, actor)

@@ -42,6 +42,7 @@ from wasatch_api.work_orders.domain.entities import (
     WorkOrder,
     WorkOrderTask,
 )
+from wasatch_api.workflows.domain.entities import FollowUpVisit
 
 
 class AddressOut(BaseModel):
@@ -428,6 +429,51 @@ class ApprovalDecisionIn(BaseModel):
 
     decision: Literal["approved", "rejected"]
     note: str | None = None
+
+
+class FollowUpVisitDecisionIn(BaseModel):
+    """Open, confirm, or cancel a follow-up. This request does not send it."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    decision: Literal["open", "confirm", "cancel"]
+    note: str | None = None
+
+
+class FollowUpVisitOut(BaseModel):
+    """Unscheduled until confirm or cancel. No technician and no appointment."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    approval_request_id: str
+    message_id: str
+    support_ticket_id: str
+    status: str
+    opened_by_employee_id: str
+    opened_at: str
+    created_at: str
+    updated_at: str
+    decided_by_employee_id: str | None = None
+    decided_at: str | None = None
+    note: str | None = None
+
+    @classmethod
+    def from_domain(cls, visit: FollowUpVisit) -> FollowUpVisitOut:
+        return cls(
+            id=visit.id,
+            approval_request_id=visit.approval_request_id,
+            message_id=visit.message_id,
+            support_ticket_id=visit.support_ticket_id,
+            status=visit.status,
+            opened_by_employee_id=visit.opened_by_employee_id,
+            opened_at=dump_datetime(visit.opened_at),
+            created_at=dump_datetime(visit.created_at),
+            updated_at=dump_datetime(visit.updated_at),
+            decided_by_employee_id=visit.decided_by_employee_id,
+            decided_at=dump_datetime(visit.decided_at) if visit.decided_at else None,
+            note=visit.note,
+        )
 
 
 class ApprovalDecisionOut(BaseModel):

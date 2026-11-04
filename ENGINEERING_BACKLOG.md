@@ -161,8 +161,23 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 - Only procedure text is embedded. Document version `storage_path` values are still not files. Unaccepted, `needs_review`, low-confidence, and financial extractions are not inserted. Accepting an extraction does not post a payment or change an invoice.
 - Retrieval for `tkt_0015` still cites `proc_0001`. Customer history stays a relational query. The fake vectors are not a trusted semantic model.
 - `AI_PROVIDER` stays `fake`. `openai` with `OPENAI_API_KEY=replace-me` fails before an OpenAI client is constructed. Tests unset `AI_PROVIDER` and `OPENAI_API_KEY` and do not call the network.
-- Phase 4 workflows are not started. No Redis, n8n, or second vector database.
+- That change did not start a workflow. No Redis, n8n, or second vector database.
 - Acceptance: filling the index through the fake port writes the procedure vectors and does not open a provider socket. `tkt_0015` still returns `proc_0001`. The placeholder OpenAI key fails before client construction. An unaccepted financial extraction is not inserted.
+
+### WF-1 — Follow-up visit after an approved customer message
+
+- Status: done in this change
+- Depends on: CS-4 (`0785ab9`). The workflow does not use document extractions
+- One command in the monolith: `POST /api/v1/approval-requests/{approval_id}/follow-up-visits`
+- Two human steps. An approver approves a pending `send_customer_message`. That decision does not open the visit, does not dispatch a technician, does not mark `msg_0016` sent, and does not change the CS-4 rule that a message decision leaves the message unsent. A dispatcher (`role_0004`, including `emp_0004`) then opens the visit from that approval. The opened visit stays `unscheduled` until the dispatcher confirms or cancels it
+- Each transition inserts an audit event. Audit stays insert-only
+- Confirming or canceling does not post a payment, change an invoice total, mark an invoice posted, send a message, assign a technician, or create an appointment
+- Alembic revision `0007` stores `follow_up_visits` only. No vector column. Extractions are not embedded
+- An employee who is not a dispatcher is denied. Anonymous callers receive 401. Other writes stay denied
+- No n8n, Redis, Kafka, queue, or new service. No React screen. The review screen does not gain a send control
+- `X-Laboratory-Actor` stays limited to `local`, `development`, and `test`. Unsafe production configuration still fails startup
+- Phase 5 is not started
+- Acceptance: `emp_0001` approves `apr_0001`, and `emp_0004` opens nothing until that approval exists. After the approval, `emp_0004` confirms `fuv_0001`. `msg_0016` stays `pending_approval`. Invoice and payment rows are unchanged. The dispatcher can cancel instead. `emp_0001` and `emp_0006` are denied. An anonymous caller receives 401. The approval alone does not dispatch a technician
 
 ## After the customer-service slice
 
@@ -171,8 +186,8 @@ These follow [docs/ROADMAP.md](docs/ROADMAP.md). Dates in that roadmap are plann
 | ID | Phase | Work | Depends on |
 |---|---|---|---|
 | DOC-P3 | 3 | Human review for low-confidence and financial extractions. | Done in this change. See the DOC-P3 section. Embeddings are not this item. |
-| EMB-1 | 3 | Embeddings in the existing PostgreSQL instance when a task fills the embedding port. | Done in this change. `procedure_page_embeddings.embedding` is `vector(8)`. Only procedure text is stored. Version rows are still path strings. Phase 4 is not started. |
-| WF-1 | 4 | One multi-step Wasatch workflow with human approval and an audit trail. n8n only for an edge automation that the monolith does not own as the system of record. | CS-4 and the document review path if the workflow uses documents |
+| EMB-1 | 3 | Embeddings in the existing PostgreSQL instance when a task fills the embedding port. | Done in this change. `procedure_page_embeddings.embedding` is `vector(8)`. Only procedure text is stored. Version rows are still path strings. |
+| WF-1 | 4 | One multi-step Wasatch workflow with human approval and an audit trail. n8n only for an edge automation that the monolith does not own as the system of record. | Done in this change. See the WF-1 section. Phase 5 is not started. |
 | OPS-1 | 5 | OpenTelemetry on the running host, Terraform for a non-production Azure environment, runbooks, backup notes, and secret-management notes. | A module worth operating. No production customer deployment. |
 | PORT-1 | 6 | One case study that states what was simulated and what was measured. | A finished laboratory slice with honest limits |
 

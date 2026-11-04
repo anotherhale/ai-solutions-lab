@@ -7,6 +7,7 @@ from wasatch_api.workforce.application.access import (
     customer_message_decision_command,
     decide_http_access,
     extraction_review_command,
+    follow_up_visit_command,
     require_authenticated_reader,
     suggested_reply_command,
 )
@@ -20,6 +21,7 @@ __all__ = [
     "customer_message_decision_command",
     "decide_http_access",
     "extraction_review_command",
+    "follow_up_visit_command",
     "require_authenticated_reader",
     "suggested_reply_command",
 ]
