@@ -95,7 +95,10 @@ jobs:
           python-version: "3.12"
 
       - name: Install application
-        run: python -m pip install --upgrade pip && python -m pip install -e "services/wasatch-api[dev]"
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "libs/development_ops[dev]"
+          python -m pip install -e "services/wasatch-api[dev]"
 
       - name: Audit Python dependencies
         run: scripts/audit_wasatch_dependencies.sh

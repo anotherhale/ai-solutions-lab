@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "development-ops"
+version = "0.1.0"
+description = "Append-only development activity log for AI Solutions Lab."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "sqlalchemy>=2.0.36,<2.1",
+    "psycopg[binary]>=3.2.3,<3.3",
+    "pydantic>=2.10.3,<2.12",
+    "httpx>=0.28.1,<0.29",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.4,<9",
+    "ruff>=0.8,<1",
+]
+
+[project.scripts]
+development-ops-record = "development_ops.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
