@@ -105,7 +105,7 @@ Optional local environment values belong in `.env`. Copy `.env.example` and repl
 ### Repository validation
 
 ```bash
-python3 -m pip install ruff
+python3 -m pip install 'ruff==0.17.3'
 ruff format --check .
 ruff check .
 python3 scripts/validate_repo.py
