@@ -6,6 +6,10 @@ from collections.abc import Iterator
 
 from sqlalchemy.orm import Session
 
+from wasatch_api.customer_service.application.queries import CustomerServiceQueries
+from wasatch_api.customer_service.infrastructure.repository import (
+    CustomerServiceRepository,
+)
 from wasatch_api.customers.application.queries import CustomerQueries
 from wasatch_api.customers.infrastructure.repository import CustomerRepository
 from wasatch_api.shared.database.session import get_session_factory
@@ -27,3 +31,7 @@ def customer_queries(session: Session) -> CustomerQueries:
 
 def work_order_queries(session: Session) -> WorkOrderQueries:
     return WorkOrderQueries(WorkOrderRepository(session))
+
+
+def customer_service_queries(session: Session) -> CustomerServiceQueries:
+    return CustomerServiceQueries(CustomerServiceRepository(session))

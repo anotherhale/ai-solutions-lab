@@ -81,7 +81,9 @@ def work_order_from_orm(row: WorkOrderORM, *, detail: bool) -> WorkOrder:
         summary=row.summary,
         description=row.description,
         requested_by_contact_id=requested,
-        support_ticket_id=row.support_ticket_id,
+        support_ticket_id=(
+            row.support_ticket.business_id if row.support_ticket else None
+        ),
         invoice_id=row.invoice_id,
         opened_at=row.opened_at,
         scheduled_for=row.scheduled_for,

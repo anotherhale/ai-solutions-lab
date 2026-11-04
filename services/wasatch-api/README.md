@@ -46,4 +46,4 @@ pytest
 
 OpenAPI: http://localhost:8000/docs
 
-Seed loads only `data/fixtures/valid/`. It is idempotent and refuses `quality-issues/`.
+Seed loads only `data/fixtures/valid/`, including support tickets, messages, and interactions. It is idempotent and refuses `quality-issues/`.

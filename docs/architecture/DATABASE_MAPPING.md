@@ -36,17 +36,22 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `service_locations` | `service_locations.json` | |
 | `employees` | `employees.json` | `role_id` and `team_id` are stored as strings; Role/Team tables are deferred |
 | `equipment` | `equipment.json` | |
-| `work_orders` | `work_orders.json` | `support_ticket_id` and `invoice_id` are strings until those modules exist |
+| `work_orders` | `work_orders.json` | `support_ticket_id` references `support_tickets.id`; `invoice_id` remains a string |
 | `work_order_assignments` | `assigned_employee_ids` | Many-to-many |
 | `work_order_equipment` | `equipment_ids` | Many-to-many |
 | `work_order_tasks` | `work_order_tasks.json` | |
 | `appointments` | `appointments.json` | Self-FK `replaces_appointment_id` |
+| `support_tickets` | `support_tickets.json` | `related_document_ids` is `TEXT[]` of document business ids |
+| `messages` | `messages.json` | `approval_request_id` stays a string until approval requests are mapped |
+| `interactions` | `interactions.json` | Optional links to a ticket and a work order |
 
 ## Deferred entities
 
-Not mapped yet: Role, Team, Invoice, InvoiceLine, Payment, Document, DocumentVersion, DocumentExtraction, SupportTicket, Message, Interaction, ApprovalRequest, AuditEvent.
+Not mapped yet: Role, Team, Invoice, InvoiceLine, Payment, Document, DocumentVersion, DocumentExtraction, ApprovalRequest, AuditEvent.
 
 Add them in later slices with the same UUID + `business_id` pattern. Do not load `data/fixtures/quality-issues/` into this database.
+
+Revision `0002` downgrade copies ticket business ids back onto `work_orders.support_ticket_id` and drops the customer-service tables. Reload `data/fixtures/valid/` after that downgrade.
 
 ## Contract layers
 
