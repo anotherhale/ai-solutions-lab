@@ -167,4 +167,6 @@ def test_customer_service_routes_are_read_only(client: TestClient) -> None:
         "/api/v1/messages",
         "/api/v1/interactions",
     ):
-        assert client.post(path).status_code == 405
+        response = client.post(path)
+        assert response.status_code == 403
+        assert response.json()["error"]["code"] == "forbidden"

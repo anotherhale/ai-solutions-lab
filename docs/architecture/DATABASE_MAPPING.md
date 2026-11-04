@@ -34,7 +34,9 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `customers` | `customers.json` | `primary_contact_id` is a deferred FK to `contacts` |
 | `contacts` | `contacts.json` | |
 | `service_locations` | `service_locations.json` | |
-| `employees` | `employees.json` | `role_id` and `team_id` are stored as strings; Role/Team tables are deferred |
+| `roles` | `roles.json` | `is_approver` lives on the role. UUID primary key and unique `business_id` |
+| `teams` | `teams.json` | `lead_employee_id` references `employees`. Team membership is not required to approve a message |
+| `employees` | `employees.json` | `role_id` references `roles`; `team_id` references `teams`. An unmatched business id becomes NULL during upgrade; seed sets the fixture links |
 | `equipment` | `equipment.json` | |
 | `work_orders` | `work_orders.json` | `support_ticket_id` references `support_tickets.id`; `invoice_id` remains a string |
 | `work_order_assignments` | `assigned_employee_ids` | Many-to-many |
@@ -50,13 +52,15 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 
 ## Deferred entities
 
-Not mapped yet: Role, Team, Invoice, InvoiceLine, Payment, Document, DocumentVersion, DocumentExtraction.
+Not mapped yet: Invoice, InvoiceLine, Payment, Document, DocumentVersion, DocumentExtraction.
 
 Add them in later slices with the same UUID + `business_id` pattern. Do not load `data/fixtures/quality-issues/` into this database.
 
 Revision `0002` downgrade copies ticket business ids back onto `work_orders.support_ticket_id` and drops the customer-service tables. Reload `data/fixtures/valid/` after that downgrade.
 
 Revision `0003` downgrade copies approval business ids back onto `messages.approval_request_id`, then drops `audit_events`, `approval_decision_history`, and `approval_requests`. It does not `UPDATE` or `DELETE` individual audit rows; dropping the table is the schema rollback and is safe on the synthetic database. Reload `data/fixtures/valid/` after that downgrade. The database trigger `audit_events_insert_only` rejects row updates and deletes while the table exists.
+
+Revision `0004` downgrade copies role and team business ids back onto `employees.role_id` and `employees.team_id`, then drops `teams` and `roles`. That is safe on the synthetic database. Reload `data/fixtures/valid/` after that downgrade. `is_approver` is not stored on `employees`.
 
 ## Contract layers
 

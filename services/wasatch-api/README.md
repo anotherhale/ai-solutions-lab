@@ -1,8 +1,8 @@
 # Wasatch API
 
-Read-only FastAPI service for synthetic Wasatch Business Systems data.
+FastAPI service for synthetic Wasatch Business Systems data.
 
-This is the first modular-monolith slice. It does not include AI assistants, embeddings, or a React UI.
+This is the modular-monolith slice. It does not include AI assistants, embeddings, or a React UI. Reads under `/api/v1` require a laboratory actor. Writes are denied. There is no approval decision route.
 
 ## Prerequisites
 
@@ -46,4 +46,15 @@ pytest
 
 OpenAPI: http://localhost:8000/docs
 
-Seed loads only `data/fixtures/valid/`, including support tickets, messages, interactions, approval requests, and audit events. It refuses `quality-issues/`. Approval rows are updated on a later seed. Audit rows are insert-only: a later seed skips an audit event that already exists and does not update or delete it.
+## Laboratory actor
+
+Send the synthetic employee business id in `X-Laboratory-Actor`. The local adapter looks that employee up and reads `is_approver` from the employee's role. No password is stored. `emp_0001` (general manager) is an approver. `emp_0004` (dispatcher) is not. Only `active` employees authenticate. Health checks do not use the header.
+
+```bash
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  http://localhost:8000/api/v1/support-tickets/tkt_0007
+```
+
+An anonymous call to `/api/v1` returns 401. An authenticated write returns 403. `APP_LOG_LEVEL` controls structured logs of the actor, action, subject, and outcome. Message bodies and secrets are not logged.
+
+Seed loads only `data/fixtures/valid/`, including roles, teams, support tickets, messages, interactions, approval requests, and audit events. It refuses `quality-issues/`. Approval rows are updated on a later seed. Audit rows are insert-only: a later seed skips an audit event that already exists and does not update or delete it. `employees.role_id` references `roles`. `is_approver` stays on the role.

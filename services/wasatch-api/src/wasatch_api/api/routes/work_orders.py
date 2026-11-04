@@ -7,11 +7,19 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from wasatch_api.api.dependencies import db_session, work_order_queries
+from wasatch_api.api.dependencies import (
+    db_session,
+    require_laboratory_actor,
+    work_order_queries,
+)
 from wasatch_api.api.schemas import PageOut, WorkOrderDetailOut, WorkOrderListItemOut
 from wasatch_api.work_orders.application.queries import WorkOrderQueries
 
-router = APIRouter(prefix="/api/v1", tags=["work-orders"])
+router = APIRouter(
+    prefix="/api/v1",
+    tags=["work-orders"],
+    dependencies=[Depends(require_laboratory_actor)],
+)
 
 SessionDep = Annotated[Session, Depends(db_session)]
 

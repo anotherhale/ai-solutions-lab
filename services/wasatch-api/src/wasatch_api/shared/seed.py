@@ -23,8 +23,10 @@ from wasatch_api.shared.database.models import (
     EquipmentORM,
     InteractionORM,
     MessageORM,
+    RoleORM,
     ServiceLocationORM,
     SupportTicketORM,
+    TeamORM,
     WorkOrderORM,
     WorkOrderTaskORM,
 )
@@ -214,6 +216,42 @@ def seed_valid_fixtures(
             session, ServiceLocationORM, record["id"]
         ).id
 
+    role_ids: dict[str, uuid.UUID] = {}
+    for record in _load_records(fixtures_dir, "roles.json"):
+        action = _upsert(
+            session,
+            RoleORM,
+            record["id"],
+            {
+                "name": record["name"],
+                "department": record["department"],
+                "is_approver": bool(record["is_approver"]),
+                "description": record.get("description"),
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("role", action)
+        role_ids[record["id"]] = _get_by_business_id(session, RoleORM, record["id"]).id
+
+    team_records = _load_records(fixtures_dir, "teams.json")
+    team_ids: dict[str, uuid.UUID] = {}
+    for record in team_records:
+        action = _upsert(
+            session,
+            TeamORM,
+            record["id"],
+            {
+                "name": record["name"],
+                "department": record["department"],
+                "service_area": record.get("service_area"),
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("team", action)
+        team_ids[record["id"]] = _get_by_business_id(session, TeamORM, record["id"]).id
+
     employee_ids: dict[str, uuid.UUID] = {}
     for record in _load_records(fixtures_dir, "employees.json"):
         action = _upsert(
@@ -226,8 +264,8 @@ def seed_valid_fixtures(
                 "last_name": record["last_name"],
                 "email": record["email"],
                 "phone": record.get("phone"),
-                "role_id": record.get("role_id"),
-                "team_id": record.get("team_id"),
+                "role_id": _require(role_ids, record["role_id"], "role"),
+                "team_id": _link(team_ids, record.get("team_id"), "team"),
                 "department": record["department"],
                 "job_title": record["job_title"],
                 "status": record["status"],
@@ -241,6 +279,12 @@ def seed_valid_fixtures(
         employee_ids[record["id"]] = _get_by_business_id(
             session, EmployeeORM, record["id"]
         ).id
+
+    for record in team_records:
+        team = _get_by_business_id(session, TeamORM, record["id"])
+        team.lead_employee_id = _link(
+            employee_ids, record.get("lead_employee_id"), "employee"
+        )
 
     equipment_ids: dict[str, uuid.UUID] = {}
     for record in _load_records(fixtures_dir, "equipment.json"):

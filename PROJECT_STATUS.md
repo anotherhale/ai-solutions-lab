@@ -18,7 +18,7 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 `main` is the production branch. Work integrates on `develop`. Merges to `main` are out of scope for laboratory agents.
 
-That relationship was true at `881cfc0`. `develop` later received the Ruff pin (`ec6465f`), the `develop` CI trigger (`ecd3015`), ADR 0001 acceptance (`c18ad80`), this planning set (`6cb587a`), and CS-1 (`047702e`, pull request [#7](https://github.com/anotherhale/ai-solutions-lab/pull/7)).
+That relationship was true at `881cfc0`. `develop` later received the Ruff pin (`ec6465f`), the `develop` CI trigger (`ecd3015`), ADR 0001 acceptance (`c18ad80`), this planning set (`6cb587a`), CS-1 (`047702e`, pull request [#7](https://github.com/anotherhale/ai-solutions-lab/pull/7)), and CS-2 (`7760106`, pull request [#8](https://github.com/anotherhale/ai-solutions-lab/pull/8)).
 
 ## Remote branches observed
 
@@ -78,7 +78,8 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | CI-1 develop push trigger | Done. Pull request [#4](https://github.com/anotherhale/ai-solutions-lab/pull/4) merged as `ecd3015`. `.github/workflows/validate.yml` runs on pushes to `main` and `develop`. Existing jobs stayed in place. |
 | ADR-1 modular host | Done. Pull request [#5](https://github.com/anotherhale/ai-solutions-lab/pull/5) merged as `c18ad80`. ADR 0001 is Accepted. |
 | CS-1 support tickets, messages, and interactions | Done. Pull request [#7](https://github.com/anotherhale/ai-solutions-lab/pull/7) merged as `047702e`. Read-only `/api/v1` routes and Alembic revision `0002`. |
-| CS-2 approval requests and audit events | This change. Read-only `/api/v1` routes and Alembic revision `0003`. No approval decision route. |
+| CS-2 approval requests and audit events | Done. Pull request [#8](https://github.com/anotherhale/ai-solutions-lab/pull/8) merged as `7760106`. Read-only `/api/v1` routes and Alembic revision `0003`. No approval decision route. |
+| CS-3 laboratory actor and approver role | This change. Alembic revision `0004` persists roles and teams. `employees.role_id` references `roles`, and `is_approver` comes from that role. A local authenticator resolves `X-Laboratory-Actor` to an active synthetic employee. `/api/v1` reads require that actor. Writes are denied. There is no approval decision route. |
 
 Seeded governance counts: 10 approval requests, 11 decision-history rows, and 50 audit events. `msg_0016` (`pending_approval`, `requires_approval` true) references `apr_0001`. Audit rows are insert-only: revision `0003` installs a trigger that rejects `UPDATE` and `DELETE`, and the application has no write route. A second seed skips existing audit rows.
 
@@ -89,11 +90,11 @@ These items are absent. Later documents must not describe them as running:
 - React or any other user interface (`apps/` is a placeholder)
 - AI provider port, OpenAI adapter, or any model call
 - Embedding columns (the `vector` extension is enabled; no vector column exists)
-- Write APIs, including approval decisions and outbound message sends
-- Authentication and authorization
-- Structured application logging and OpenTelemetry
+- Write APIs that succeed, including approval decisions and outbound message sends. Writes are denied by default.
+- An external identity provider, purchased identity service, or production credential. The local laboratory authenticator is not one of those.
+- OpenTelemetry export
 - Redis, n8n, Azure, and Terraform resources (`infrastructure/terraform/` is a placeholder)
-- Persistence for roles, teams, invoices, payments, and documents
+- Persistence for invoices, payments, and documents
 - File bytes for documents (`data/documents/` is a placeholder; version rows point at synthetic `storage_path` values only)
 
 ADR status in `docs/adr/README.md`: 0001, 0002, 0003, and 0005 are Accepted. ADR 0001 was accepted in pull request [#5](https://github.com/anotherhale/ai-solutions-lab/pull/5) (`c18ad80`): `services/wasatch-api` is the host, one process, and the customer and work-order modules are the first packages. ADR 0004 stays Proposed until a port and adapter exist.
@@ -103,11 +104,11 @@ ADR status in `docs/adr/README.md`: 0001, 0002, 0003, and 0005 are Accepted. ADR
 These are gaps inside an implemented slice. They are not a reason to recreate the database, models, or fixtures.
 
 - HTTP contract coverage is `tests/unit/test_contract_alignment.py`, which checks customer and work-order status enums against JSON Schema. Responses are not validated against the full schemas.
-- Tests run Alembic `upgrade` to `head`. Revision `0001` downgrade is still untested. Revisions `0002` and `0003` include upgrade and downgrade tests on the synthetic database.
+- Tests run Alembic `upgrade` to `head`. Revision `0001` downgrade is still untested. Revisions `0002`, `0003`, and `0004` include upgrade and downgrade tests on the synthetic database.
 - `tests/conftest.py` skips the suite when PostgreSQL cannot be reached. CI provides PostgreSQL, so CI does not rely on that skip. A local run without the database can skip rather than fail. The skip behavior is unchanged.
-- The read API has no authentication. `docs/SECURITY.md` requires least-privilege authorization before customer and employee data are exposed beyond the laboratory. The current process is a local synthetic slice.
-- No application logger is configured. `APP_LOG_LEVEL` is accepted and unused.
-- `work_orders.invoice_id`, `employees.role_id`, and `employees.team_id` are strings. `work_orders.support_ticket_id` references `support_tickets`. `messages.approval_request_id` references `approval_requests`.
+- `/api/v1` reads require an active synthetic employee presented in `X-Laboratory-Actor`. That header is a local laboratory adapter, not a production authenticator. Health probes stay open. Writes return 403 for an authenticated actor and 401 when the caller is anonymous.
+- `APP_LOG_LEVEL` configures structured logs of actor, action, subject, and outcome. Message bodies and secrets are omitted. OpenTelemetry export is still absent.
+- `work_orders.invoice_id` remains a string. `employees.role_id` references `roles`. `employees.team_id` references `teams`. `work_orders.support_ticket_id` references `support_tickets`. `messages.approval_request_id` references `approval_requests`.
 
 ## Verification in this session
 
@@ -182,6 +183,25 @@ From the repository root, same session:
 | Command | Result | Exit |
 |---|---|---|
 | `ruff format --check .` | 121 files already formatted | 0 |
+| `ruff check .` | All checks passed | 0 |
+| `python3 scripts/validate_repo.py` | `Repository conventions validated.` | 0 |
+| `python3 scripts/validate_wasatch_domain.py` | `Wasatch domain fixtures validated.` | 0 |
+
+## Verification for CS-3
+
+Run from `services/wasatch-api` with `services/wasatch-api/.venv` against the Compose PostgreSQL service (`pgvector/pgvector:pg16`). The suite created or reused `wasatch_test`. The skip in `tests/conftest.py` was not changed. This run did not skip.
+
+| Command | Result | Exit |
+|---|---|---|
+| `.venv/bin/pytest` | 74 passed, 1 warning in 5.37s | 0 |
+
+The warning is the existing Starlette deprecation of `anyio.abc.BlockingPortal` in `starlette/testclient.py`. The run upgraded and downgraded revision `0004` on the synthetic database. It did not start the API container and did not observe GitHub Actions.
+
+From the repository root, same session:
+
+| Command | Result | Exit |
+|---|---|---|
+| `ruff format --check .` | 139 files already formatted | 0 |
 | `ruff check .` | All checks passed | 0 |
 | `python3 scripts/validate_repo.py` | `Repository conventions validated.` | 0 |
 | `python3 scripts/validate_wasatch_domain.py` | `Wasatch domain fixtures validated.` | 0 |

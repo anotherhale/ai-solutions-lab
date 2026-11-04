@@ -122,7 +122,7 @@ def test_governance_revision_upgrades_and_downgrades(seeded_engine: Engine) -> N
         _assert_upgrade_backfill_rolls_back(seeded_engine, revision)
         assert "approval_requests" not in set(inspect(seeded_engine).get_table_names())
 
-        command.upgrade(config, "head")
+        command.upgrade(config, "0003")
         assert _version(seeded_engine) == "0003"
         upgraded = inspect(seeded_engine)
         upgraded_names = set(upgraded.get_table_names())

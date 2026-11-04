@@ -169,8 +169,16 @@ class EmployeeORM(Base):
     last_name: Mapped[str] = mapped_column(String(128))
     email: Mapped[str] = mapped_column(String(255), unique=True)
     phone: Mapped[str | None] = mapped_column(String(32))
-    role_id: Mapped[str | None] = mapped_column(String(16))
-    team_id: Mapped[str | None] = mapped_column(String(16))
+    role_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("roles.id", name="fk_employees_role", ondelete="RESTRICT"),
+        index=True,
+    )
+    team_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("teams.id", name="fk_employees_team", ondelete="SET NULL"),
+        index=True,
+    )
     department: Mapped[str] = mapped_column(String(32), index=True)
     job_title: Mapped[str] = mapped_column(String(128))
     status: Mapped[str] = mapped_column(String(32), index=True)
@@ -178,6 +186,57 @@ class EmployeeORM(Base):
     certifications: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    role: Mapped[RoleORM | None] = relationship(back_populates="employees")
+    team: Mapped[TeamORM | None] = relationship(
+        back_populates="members",
+        foreign_keys=[team_id],
+    )
+
+
+class RoleORM(Base):
+    """Job classification. is_approver lives here, not on the employee."""
+
+    __tablename__ = "roles"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    name: Mapped[str] = mapped_column(String(255))
+    department: Mapped[str] = mapped_column(String(32), index=True)
+    is_approver: Mapped[bool] = mapped_column(Boolean)
+    description: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    employees: Mapped[list[EmployeeORM]] = relationship(back_populates="role")
+
+
+class TeamORM(Base):
+    __tablename__ = "teams"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    name: Mapped[str] = mapped_column(String(255))
+    department: Mapped[str] = mapped_column(String(32), index=True)
+    service_area: Mapped[str | None] = mapped_column(String(255))
+    lead_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            use_alter=True,
+            name="fk_teams_lead_employee",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    lead: Mapped[EmployeeORM | None] = relationship(foreign_keys=[lead_employee_id])
+    members: Mapped[list[EmployeeORM]] = relationship(
+        back_populates="team",
+        foreign_keys="EmployeeORM.team_id",
+    )
 
 
 class EquipmentORM(Base):

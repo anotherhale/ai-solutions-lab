@@ -1,8 +1,21 @@
 # API Conventions
 
-The first HTTP surface is a **read-only** FastAPI service: `services/wasatch-api`.
+The HTTP surface is the FastAPI service `services/wasatch-api`.
 
-OpenAPI is available at `/docs` when the process is running.
+OpenAPI is available at `/docs` when the process is running. `/health`, `/health/ready`, and the OpenAPI documents do not require an actor.
+
+## Laboratory actor
+
+Local development authenticates a synthetic employee with a request header. There is no password and no identity provider.
+
+```bash
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  http://localhost:8000/api/v1/support-tickets/tkt_0007
+```
+
+`emp_0001` is the synthetic general manager (`role_0001`, `is_approver` true). `emp_0004` is the synthetic dispatcher (`role_0004`, `is_approver` false). The adapter loads the employee and reads `is_approver` from that role. Only an `active` employee is accepted. Unknown, blank, and inactive values are rejected.
+
+Every later write in this slice can take the resolved actor from the request. Writes are denied for every actor. There is no route that records an approval decision. A non-approver role fails `authorize_approval_decision` before any such command exists. Team membership is not required.
 
 ## Identifiers
 
@@ -35,6 +48,8 @@ Defaults: `page=1`, `page_size=20`, maximum `page_size=100`. Ordering is by busi
 
 | HTTP | Code | When |
 |---|---|---|
+| 401 | `unauthenticated` | `/api/v1` call without an active laboratory actor |
+| 403 | `forbidden` | Authenticated write. Writes are denied in this slice |
 | 404 | `not_found` | Unknown business id |
 | 422 | `invalid_parameter` | Bad query values such as an unknown status |
 | 503 | — | Readiness probe cannot reach PostgreSQL |
@@ -61,23 +76,34 @@ Defaults: `page=1`, `page_size=20`, maximum `page_size=100`. Ordering is by busi
 | GET | `/api/v1/audit-events` | Filter by outcome or approval request |
 | GET | `/api/v1/audit-events/{audit_event_id}` | One audit event |
 
-A message that references an approval includes that approval request on the message payload. There is no route that records an approval decision, and there is no write route for audit events.
+A message that references an approval includes that approval request on the message payload. There is no route that records an approval decision, and there is no write route for audit events. An authenticated write receives `403`. An anonymous write receives `401`.
 
-There are no write routes. CORS is off unless `CORS_ORIGINS` is set.
+CORS is off unless `CORS_ORIGINS` is set. When it is set, allowed headers include `X-Laboratory-Actor`.
 
 ## Example requests
 
 ```bash
 curl -s http://localhost:8000/health
-curl -s 'http://localhost:8000/api/v1/customers?q=Pioneer'
-curl -s http://localhost:8000/api/v1/customers/cust_0001
-curl -s http://localhost:8000/api/v1/service-locations/loc_0001
-curl -s 'http://localhost:8000/api/v1/work-orders?status=created'
-curl -s http://localhost:8000/api/v1/work-orders/wo_0004
-curl -s http://localhost:8000/api/v1/support-tickets/tkt_0007
-curl -s 'http://localhost:8000/api/v1/messages?support_ticket_id=tkt_0007'
-curl -s http://localhost:8000/api/v1/interactions/ixn_0001
-curl -s http://localhost:8000/api/v1/messages/msg_0016
-curl -s http://localhost:8000/api/v1/approval-requests/apr_0001
-curl -s 'http://localhost:8000/api/v1/audit-events?approval_request_id=apr_0001'
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  'http://localhost:8000/api/v1/customers?q=Pioneer'
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  http://localhost:8000/api/v1/customers/cust_0001
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  http://localhost:8000/api/v1/service-locations/loc_0001
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  'http://localhost:8000/api/v1/work-orders?status=created'
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  http://localhost:8000/api/v1/work-orders/wo_0004
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  http://localhost:8000/api/v1/support-tickets/tkt_0007
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  'http://localhost:8000/api/v1/messages?support_ticket_id=tkt_0007'
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  http://localhost:8000/api/v1/interactions/ixn_0001
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  http://localhost:8000/api/v1/messages/msg_0016
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  http://localhost:8000/api/v1/approval-requests/apr_0001
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  'http://localhost:8000/api/v1/audit-events?approval_request_id=apr_0001'
 ```
