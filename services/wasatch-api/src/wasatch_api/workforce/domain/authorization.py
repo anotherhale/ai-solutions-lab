@@ -1,8 +1,8 @@
 """Authorization rules for laboratory actors.
 
-Approval decisions are not recorded here. CS-4 owns that command and must call
-``authorize_approval_decision`` before it writes. Team membership is not an
-input to either check.
+Approval decisions are not recorded here. The workforce application service
+calls these rules. CS-4 owns the decision command and must authorize through
+that service before it writes. Team membership is not an input to either check.
 """
 
 from __future__ import annotations

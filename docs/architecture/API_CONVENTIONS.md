@@ -6,7 +6,7 @@ OpenAPI is available at `/docs` when the process is running. `/health`, `/health
 
 ## Laboratory actor
 
-Local development authenticates a synthetic employee with a request header. There is no password and no identity provider.
+Local synthetic development simulates a caller with a request header. There is no password and no identity provider. The header is not authentication.
 
 ```bash
 curl -s -H 'X-Laboratory-Actor: emp_0001' \
@@ -15,7 +15,9 @@ curl -s -H 'X-Laboratory-Actor: emp_0001' \
 
 `emp_0001` is the synthetic general manager (`role_0001`, `is_approver` true). `emp_0004` is the synthetic dispatcher (`role_0004`, `is_approver` false). The adapter loads the employee and reads `is_approver` from that role. Only an `active` employee is accepted. Unknown, blank, and inactive values are rejected.
 
-Every later write in this slice can take the resolved actor from the request. Writes are denied for every actor. There is no route that records an approval decision. A non-approver role fails `authorize_approval_decision` before any such command exists. Team membership is not required.
+Every later write in this slice can take the resolved actor from the request. Writes are denied for every actor. There is no route that records an approval decision. The workforce application service rejects a non-approver role before any such command exists. Team membership is not required.
+
+The process starts only when `APP_ENV` is `local`, `development`, or `test`. `APP_ENV=production` and `APP_ENV=prod` raise `UnsafeProductionConfiguration` during startup and do not serve. The same refusal applies to every other environment. A future production authenticator would be a separate `EmployeeAuthenticator` adapter, not this header, not a password system, and not an identity provider in this service. See [ADR 0006](../adr/0006-laboratory-actor-development-only.md).
 
 ## Identifiers
 

@@ -23,6 +23,7 @@ services:
       dockerfile: services/wasatch-api/Dockerfile
     container_name: wasatch-api
     environment:
+      # local, development, or test. production refuses to start.
       APP_ENV: ${APP_ENV:-local}
       APP_LOG_LEVEL: ${APP_LOG_LEVEL:-INFO}
       POSTGRES_HOST: postgres

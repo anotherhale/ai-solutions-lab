@@ -65,6 +65,7 @@ REQUIRED_ADRS = (
     "0003-postgresql-pgvector.md",
     "0004-openai-provider-abstraction.md",
     "0005-docker-compose-local-development.md",
+    "0006-laboratory-actor-development-only.md",
 )
 
 ADR_NAME = re.compile(r"^\d{4}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
