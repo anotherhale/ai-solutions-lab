@@ -65,7 +65,6 @@ def render_run_summary(
         gh = _github_pr_link(event)
         if event.github.actions_run_url:
             gh += f" · [Actions]({event.github.actions_run_url})"
-        slack = ""
         status = event.slack.delivery_status.value
         lines.append(
             f"- **{ts}** `{event.event_type.value}` ({event.severity.value}) — "

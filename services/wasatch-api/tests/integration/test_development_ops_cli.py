@@ -7,14 +7,12 @@ import os
 import subprocess
 import uuid
 
-import pytest
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import sessionmaker
-
 from development_ops.persistence.repository import (
     ActivityEventQuery,
     ActivityEventRepository,
 )
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import sessionmaker
 
 REPO_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..", "..")
