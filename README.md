@@ -137,11 +137,12 @@ The review screen proxies `/api` to that process. From `apps/wasatch-review`: `n
 | Engineering standards | In progress |
 | Repository tooling | In progress |
 | Synthetic domain model and fixtures | Defined |
-| Wasatch API | Implemented for reads, approval decisions, and suggested-reply drafts |
-| Suggested-reply review screen | Implemented in `apps/wasatch-review`. It does not send messages |
-| AI application services | Draft reply through a model port. The default provider is a fake |
+| Wasatch API | On `develop`: customer-service reads, retrieval, draft replies, human approval, document reads, extraction review, procedure-page embeddings, the follow-up visit, and host traces. `main` is not the deployed product |
+| Suggested-reply review screen | Implemented in `apps/wasatch-review`. It records approve or reject and does not send messages |
+| AI application services | Draft replies and embeddings use the fake provider by default. The placeholder OpenAI key fails before a client is constructed. CI does not call a model |
 | Local Docker environment | PostgreSQL with pgvector |
 | Azure deployment | Not started |
+| Case study | PORT-1. Documentation only. See the link below. It does not add a running system |
 
 The 90-day plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering workflow is in [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md). Security principles are in [docs/SECURITY.md](docs/SECURITY.md).
 
@@ -151,6 +152,7 @@ Verified status, ordered work, the implementation plan, and the agent operating 
 - [ENGINEERING_BACKLOG.md](ENGINEERING_BACKLOG.md)
 - [docs/architecture/IMPLEMENTATION_PLAN.md](docs/architecture/IMPLEMENTATION_PLAN.md)
 - [docs/architecture/AGENT_OPERATING_MODEL.md](docs/architecture/AGENT_OPERATING_MODEL.md)
+- [docs/case-studies/wasatch-laboratory-slice.md](docs/case-studies/wasatch-laboratory-slice.md)
 
 ## License
 
