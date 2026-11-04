@@ -391,7 +391,7 @@ Run from `services/wasatch-api` with `services/wasatch-api/.venv` against the Co
 
 | Command | Result | Exit |
 |---|---|---|
-| `WASATCH_REQUIRE_DATABASE=1 .venv/bin/pytest --tb=line -rfEs` | 188 passed, 0 failed, 0 skipped, 1 warning in 12.74s | 0 |
+| `WASATCH_REQUIRE_DATABASE=1 .venv/bin/pytest --tb=line -rfEs` | 195 passed locally after revision `0008` and OpenAPI contract tests (CI gate may differ until runs complete) | 0 |
 
 The warning is the existing Starlette deprecation of `anyio.abc.BlockingPortal` in `starlette/testclient.py`. The run did not call OpenAI, did not open a collector socket, and did not observe GitHub Actions. `terraform plan` and `terraform apply` were not run. The new tests start the app with the exporter unset and `GET /health` still returns `status` `ok` and `service` `wasatch-api`.
 

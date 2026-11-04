@@ -244,7 +244,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | No Compose image smoke test in CI | Closed. `scripts/smoke_compose.sh` runs in the **Compose API smoke** GitHub Actions job. |
 | Review-screen checks not in CI | Closed. **Wasatch review frontend** job runs Vitest, typecheck, and production build. |
 | No browser suite for review workflows | Closed. Playwright specs in `tests/e2e/` run in **Review workbench browser tests**. |
-| No dependency-audit tool | Review each new dependency in the pull request for purpose, what it replaces, license, and maintenance. Add a tool only when a task needs it. |
+| No dependency-audit tool | Closed. `scripts/audit_wasatch_dependencies.sh` runs `pip-audit` on the installed Wasatch API environment in CI. Documented Starlette ignores remain until the FastAPI stack upgrade path is recorded. |
 
 ## Explicitly out of the next implementation
 
