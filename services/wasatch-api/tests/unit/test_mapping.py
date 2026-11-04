@@ -8,7 +8,13 @@ from wasatch_api.customer_service.infrastructure.mapping import (
     support_ticket_from_orm,
 )
 from wasatch_api.customers.infrastructure.mapping import customer_from_orm
+from wasatch_api.governance.infrastructure.mapping import (
+    approval_from_orm,
+    audit_event_from_orm,
+)
 from wasatch_api.shared.database.models import (
+    ApprovalRequestORM,
+    AuditEventORM,
     ContactORM,
     CustomerORM,
     EmployeeORM,
@@ -74,6 +80,22 @@ def test_support_ticket_mapping_uses_business_ids() -> None:
         updated_at=now,
         related_document_ids=["doc_0008"],
     )
+    approval = ApprovalRequestORM(
+        id=uuid.uuid4(),
+        business_id="apr_0001",
+        action_type="send_customer_message",
+        status="pending",
+        requested_by_employee_id=employee.id,
+        subject_type="message",
+        subject_id="msg_0016",
+        rationale="Overtime commitment needs manager approval.",
+        requested_at=now,
+        created_at=now,
+        updated_at=now,
+    )
+    approval.requested_by = employee
+    approval.reviewer = None
+    approval.decision_history = []
     message = MessageORM(
         id=uuid.uuid4(),
         business_id="msg_0016",
@@ -84,7 +106,7 @@ def test_support_ticket_mapping_uses_business_ids() -> None:
         status="pending_approval",
         author_employee_id=employee.id,
         requires_approval=True,
-        approval_request_id="apr_0001",
+        approval_request_id=approval.id,
         sent_at=now,
         created_at=now,
         updated_at=now,
@@ -97,6 +119,7 @@ def test_support_ticket_mapping_uses_business_ids() -> None:
     ticket.messages = [message]
     message.support_ticket = ticket
     message.author_employee = employee
+    message.approval_request = approval
     mapped = support_ticket_from_orm(ticket, detail=True)
     assert mapped.id == "tkt_0007"
     assert mapped.customer_id == "cust_0004"
@@ -106,6 +129,9 @@ def test_support_ticket_mapping_uses_business_ids() -> None:
     assert mapped.messages[0].id == "msg_0016"
     assert mapped.messages[0].author_employee_id == "emp_0006"
     assert mapped.messages[0].approval_request_id == "apr_0001"
+    assert mapped.messages[0].approval_request is not None
+    assert mapped.messages[0].approval_request.status == "pending"
+    assert mapped.messages[0].approval_request.subject_id == "msg_0016"
     assert mapped.messages[0].support_ticket_id == "tkt_0007"
     assert mapped.messages[0].id != str(message.id)
 
@@ -198,3 +224,64 @@ def test_interaction_mapping_uses_business_ids() -> None:
     assert mapped.work_order_id == "wo_0001"
     assert mapped.employee_id == "emp_0007"
     assert mapped.outcome == "answered"
+
+
+def test_approval_mapping_uses_business_ids() -> None:
+    now = datetime(2026, 8, 2, 15, 10, tzinfo=UTC)
+    requester = EmployeeORM(id=uuid.uuid4(), business_id="emp_0014")
+    reviewer = EmployeeORM(id=uuid.uuid4(), business_id="emp_0001")
+    row = ApprovalRequestORM(
+        id=uuid.uuid4(),
+        business_id="apr_0003",
+        action_type="price_override",
+        status="approved",
+        requested_by_employee_id=requester.id,
+        reviewer_employee_id=reviewer.id,
+        subject_type="invoice",
+        subject_id="inv_0011",
+        rationale="Match quoted maintenance rate.",
+        decision_notes="Approved at quoted rate.",
+        requested_at=now,
+        decided_at=now,
+        created_at=now,
+        updated_at=now,
+    )
+    row.requested_by = requester
+    row.reviewer = reviewer
+    row.decision_history = []
+    mapped = approval_from_orm(row)
+    assert mapped.id == "apr_0003"
+    assert mapped.id != str(row.id)
+    assert mapped.requested_by_employee_id == "emp_0014"
+    assert mapped.reviewer_employee_id == "emp_0001"
+    assert mapped.subject_id == "inv_0011"
+    assert mapped.decision_history == ()
+
+
+def test_audit_event_mapping_uses_business_ids() -> None:
+    now = datetime(2026, 8, 19, 10, 45, tzinfo=UTC)
+    actor = EmployeeORM(id=uuid.uuid4(), business_id="emp_0006")
+    approval = ApprovalRequestORM(id=uuid.uuid4(), business_id="apr_0001")
+    row = AuditEventORM(
+        id=uuid.uuid4(),
+        business_id="aud_0045",
+        occurred_at=now,
+        actor_type="employee",
+        actor_employee_id=actor.id,
+        action="approval.updated",
+        subject_type="approval_request",
+        subject_id="apr_0001",
+        outcome="pending",
+        approval_request_id=approval.id,
+        details={"synthetic": True},
+    )
+    row.actor_employee = actor
+    row.approval_request = approval
+    mapped = audit_event_from_orm(row)
+    assert mapped.id == "aud_0045"
+    assert mapped.id != str(row.id)
+    assert mapped.actor_employee_id == "emp_0006"
+    assert mapped.approval_request_id == "apr_0001"
+    assert mapped.subject_id == "apr_0001"
+    assert mapped.details == {"synthetic": True}
+    assert not hasattr(mapped, "updated_at")

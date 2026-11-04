@@ -7,6 +7,7 @@ from wasatch_api.customer_service.domain.entities import (
     Message,
     SupportTicket,
 )
+from wasatch_api.governance.infrastructure.mapping import approval_from_orm
 from wasatch_api.shared.database.models import (
     InteractionORM,
     MessageORM,
@@ -15,6 +16,7 @@ from wasatch_api.shared.database.models import (
 
 
 def message_from_orm(row: MessageORM) -> Message:
+    approval = approval_from_orm(row.approval_request) if row.approval_request else None
     return Message(
         id=row.business_id,
         support_ticket_id=row.support_ticket.business_id,
@@ -29,7 +31,8 @@ def message_from_orm(row: MessageORM) -> Message:
             row.author_contact.business_id if row.author_contact else None
         ),
         requires_approval=row.requires_approval,
-        approval_request_id=row.approval_request_id,
+        approval_request_id=approval.id if approval else None,
+        approval_request=approval,
         sent_at=row.sent_at,
         created_at=row.created_at,
         updated_at=row.updated_at,

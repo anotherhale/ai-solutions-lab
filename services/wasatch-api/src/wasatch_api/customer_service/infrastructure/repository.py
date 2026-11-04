@@ -16,6 +16,8 @@ from wasatch_api.customer_service.infrastructure.mapping import (
     support_ticket_from_orm,
 )
 from wasatch_api.shared.database.models import (
+    ApprovalDecisionORM,
+    ApprovalRequestORM,
     InteractionORM,
     MessageORM,
     SupportTicketORM,
@@ -174,6 +176,16 @@ def _ticket_detail_options():
         ),
         selectinload(SupportTicketORM.messages).selectinload(MessageORM.author_contact),
         selectinload(SupportTicketORM.messages).selectinload(MessageORM.support_ticket),
+        selectinload(SupportTicketORM.messages)
+        .selectinload(MessageORM.approval_request)
+        .selectinload(ApprovalRequestORM.requested_by),
+        selectinload(SupportTicketORM.messages)
+        .selectinload(MessageORM.approval_request)
+        .selectinload(ApprovalRequestORM.reviewer),
+        selectinload(SupportTicketORM.messages)
+        .selectinload(MessageORM.approval_request)
+        .selectinload(ApprovalRequestORM.decision_history)
+        .selectinload(ApprovalDecisionORM.actor),
     )
 
 
@@ -182,6 +194,15 @@ def _message_options():
         selectinload(MessageORM.support_ticket),
         selectinload(MessageORM.author_employee),
         selectinload(MessageORM.author_contact),
+        selectinload(MessageORM.approval_request).selectinload(
+            ApprovalRequestORM.requested_by
+        ),
+        selectinload(MessageORM.approval_request).selectinload(
+            ApprovalRequestORM.reviewer
+        ),
+        selectinload(MessageORM.approval_request)
+        .selectinload(ApprovalRequestORM.decision_history)
+        .selectinload(ApprovalDecisionORM.actor),
     )
 
 

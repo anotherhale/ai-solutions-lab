@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from wasatch_api.governance.domain.entities import ApprovalRequest
+
 
 @dataclass(frozen=True)
 class Message:
@@ -21,6 +23,7 @@ class Message:
     author_contact_id: str | None = None
     requires_approval: bool = False
     approval_request_id: str | None = None
+    approval_request: ApprovalRequest | None = None
 
 
 @dataclass

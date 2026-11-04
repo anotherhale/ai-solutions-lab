@@ -46,4 +46,4 @@ pytest
 
 OpenAPI: http://localhost:8000/docs
 
-Seed loads only `data/fixtures/valid/`, including support tickets, messages, and interactions. It is idempotent and refuses `quality-issues/`.
+Seed loads only `data/fixtures/valid/`, including support tickets, messages, interactions, approval requests, and audit events. It refuses `quality-issues/`. Approval rows are updated on a later seed. Audit rows are insert-only: a later seed skips an audit event that already exists and does not update or delete it.

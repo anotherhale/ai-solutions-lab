@@ -38,6 +38,21 @@ SUPPORT_TICKET_STATUSES = frozenset(
 MESSAGE_STATUSES = frozenset(
     {"draft", "pending_approval", "sent", "failed", "discarded"}
 )
+APPROVAL_STATUSES = frozenset(
+    {"pending", "approved", "rejected", "executed", "cancelled"}
+)
+APPROVAL_ACTION_TYPES = frozenset(
+    {
+        "send_customer_message",
+        "void_invoice",
+        "issue_invoice",
+        "cancel_work_order",
+        "change_schedule",
+        "export_records",
+        "price_override",
+    }
+)
+AUDIT_OUTCOMES = frozenset({"succeeded", "failed", "pending"})
 
 
 @dataclass(frozen=True)
@@ -90,6 +105,30 @@ def validate_message_status(status: str | None) -> str | None:
     if status not in MESSAGE_STATUSES:
         raise InvalidParameterError(f"unsupported message status: {status}")
     return status
+
+
+def validate_approval_status(status: str | None) -> str | None:
+    if status is None:
+        return None
+    if status not in APPROVAL_STATUSES:
+        raise InvalidParameterError(f"unsupported approval status: {status}")
+    return status
+
+
+def validate_approval_action_type(action_type: str | None) -> str | None:
+    if action_type is None:
+        return None
+    if action_type not in APPROVAL_ACTION_TYPES:
+        raise InvalidParameterError(f"unsupported approval action: {action_type}")
+    return action_type
+
+
+def validate_audit_outcome(outcome: str | None) -> str | None:
+    if outcome is None:
+        return None
+    if outcome not in AUDIT_OUTCOMES:
+        raise InvalidParameterError(f"unsupported audit outcome: {outcome}")
+    return outcome
 
 
 def escape_like(term: str) -> str:

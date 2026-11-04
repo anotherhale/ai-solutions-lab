@@ -58,7 +58,9 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 
 ### CS-1 — Read support tickets, messages, and interactions
 
-- Status: ready after this plan is merged
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/7
+- Merge: `047702e`
 - Depends on: Phase 2.1.1 (done)
 - Alembic revision after `0001` for `support_tickets`, `messages`, and `interactions`, using UUID primary keys and unique `business_id` values.
 - When the ticket table exists, replace `work_orders.support_ticket_id` string storage with a foreign key to the ticket row in that same migration, backfilling from the business identifier.
@@ -69,8 +71,8 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 
 ### CS-2 — Read approval requests and audit events
 
-- Status: blocked on CS-1
-- Depends on: CS-1, so seed and migration edits stay serial
+- Status: this pull request
+- Depends on: CS-1 (done, `047702e`), so seed and migration edits stay serial
 - Persist `approval_requests` and `audit_events` from the existing fixtures (10 approvals, 50 audit events).
 - Read-only routes. Audit storage is insert-only: the migration and the application expose no update or delete for `audit_events`.
 - Message rows that already reference `apr_0001` and `apr_0004` gain a foreign key to approval requests once that table exists.
@@ -149,7 +151,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Thin HTTP contract tests | Status enums only. Each new route extends contract alignment. |
 | Downgrade is untested | Revision `0001` defines `downgrade`. New revisions include an upgrade test and a downgrade test when the downgrade is safe on the synthetic database. |
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py`. CI is protected by its service container. A later test change can fail closed when `WASATCH_DATABASE_URL` is set and the server is down. |
-| String foreign keys for invoices and, until CS-1, tickets | `DATABASE_MAPPING.md` |
+| String foreign keys for invoices, roles, and teams | `DATABASE_MAPPING.md` |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
 | Starlette `TestClient` deprecation warning | pytest warning, 1 occurrence |
 | No Compose image smoke test in CI | API container is defined and was not started during the 2026-11-04 assessment |

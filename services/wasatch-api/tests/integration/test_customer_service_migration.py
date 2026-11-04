@@ -114,7 +114,7 @@ def test_customer_service_revision_upgrades_and_downgrades(
         _assert_upgrade_backfill_rolls_back(seeded_engine, revision)
         assert "support_tickets" not in set(inspect(seeded_engine).get_table_names())
 
-        command.upgrade(config, "head")
+        command.upgrade(config, "0002")
         assert _version(seeded_engine) == "0002"
         upgraded = inspect(seeded_engine)
         upgraded_names = set(upgraded.get_table_names())

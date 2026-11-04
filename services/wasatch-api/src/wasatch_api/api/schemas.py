@@ -17,6 +17,11 @@ from wasatch_api.customers.domain.entities import (
     ServiceLocation,
     ServiceLocationDetail,
 )
+from wasatch_api.governance.domain.entities import (
+    ApprovalDecision,
+    ApprovalRequest,
+    AuditEvent,
+)
 from wasatch_api.shared.time import dump_date, dump_datetime
 from wasatch_api.work_orders.domain.entities import (
     Appointment,
@@ -395,6 +400,103 @@ class WorkOrderDetailOut(BaseModel):
         )
 
 
+class ApprovalDecisionOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    at: str
+    actor_employee_id: str
+    from_status: str
+    to_status: str
+    note: str | None = None
+
+    @classmethod
+    def from_domain(cls, decision: ApprovalDecision) -> ApprovalDecisionOut:
+        return cls(
+            at=dump_datetime(decision.at),
+            actor_employee_id=decision.actor_employee_id,
+            from_status=decision.from_status,
+            to_status=decision.to_status,
+            note=decision.note,
+        )
+
+
+class ApprovalRequestOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    action_type: str
+    status: str
+    requested_by_employee_id: str
+    subject_type: str
+    subject_id: str
+    rationale: str
+    requested_at: str
+    created_at: str
+    updated_at: str
+    decision_history: list[ApprovalDecisionOut] = Field(default_factory=list)
+    reviewer_employee_id: str | None = None
+    decision_notes: str | None = None
+    decided_at: str | None = None
+    executed_at: str | None = None
+
+    @classmethod
+    def from_domain(cls, approval: ApprovalRequest) -> ApprovalRequestOut:
+        return cls(
+            id=approval.id,
+            action_type=approval.action_type,
+            status=approval.status,
+            requested_by_employee_id=approval.requested_by_employee_id,
+            reviewer_employee_id=approval.reviewer_employee_id,
+            subject_type=approval.subject_type,
+            subject_id=approval.subject_id,
+            rationale=approval.rationale,
+            decision_notes=approval.decision_notes,
+            requested_at=dump_datetime(approval.requested_at),
+            decided_at=dump_datetime(approval.decided_at)
+            if approval.decided_at
+            else None,
+            executed_at=(
+                dump_datetime(approval.executed_at) if approval.executed_at else None
+            ),
+            decision_history=[
+                ApprovalDecisionOut.from_domain(item)
+                for item in approval.decision_history
+            ],
+            created_at=dump_datetime(approval.created_at),
+            updated_at=dump_datetime(approval.updated_at),
+        )
+
+
+class AuditEventOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    occurred_at: str
+    actor_type: str
+    action: str
+    subject_type: str
+    subject_id: str
+    outcome: str
+    actor_employee_id: str | None = None
+    approval_request_id: str | None = None
+    details: dict | None = None
+
+    @classmethod
+    def from_domain(cls, event: AuditEvent) -> AuditEventOut:
+        return cls(
+            id=event.id,
+            occurred_at=dump_datetime(event.occurred_at),
+            actor_type=event.actor_type,
+            actor_employee_id=event.actor_employee_id,
+            action=event.action,
+            subject_type=event.subject_type,
+            subject_id=event.subject_id,
+            outcome=event.outcome,
+            approval_request_id=event.approval_request_id,
+            details=event.details,
+        )
+
+
 class MessageOut(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -411,6 +513,7 @@ class MessageOut(BaseModel):
     author_contact_id: str | None = None
     requires_approval: bool = False
     approval_request_id: str | None = None
+    approval_request: ApprovalRequestOut | None = None
 
     @classmethod
     def from_domain(cls, message: Message) -> MessageOut:
@@ -428,6 +531,11 @@ class MessageOut(BaseModel):
             author_contact_id=message.author_contact_id,
             requires_approval=message.requires_approval,
             approval_request_id=message.approval_request_id,
+            approval_request=(
+                ApprovalRequestOut.from_domain(message.approval_request)
+                if message.approval_request
+                else None
+            ),
         )
 
 

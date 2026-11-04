@@ -12,6 +12,8 @@ from wasatch_api.customer_service.infrastructure.repository import (
 )
 from wasatch_api.customers.application.queries import CustomerQueries
 from wasatch_api.customers.infrastructure.repository import CustomerRepository
+from wasatch_api.governance.application.queries import GovernanceQueries
+from wasatch_api.governance.infrastructure.repository import GovernanceRepository
 from wasatch_api.shared.database.session import get_session_factory
 from wasatch_api.work_orders.application.queries import WorkOrderQueries
 from wasatch_api.work_orders.infrastructure.repository import WorkOrderRepository
@@ -35,3 +37,7 @@ def work_order_queries(session: Session) -> WorkOrderQueries:
 
 def customer_service_queries(session: Session) -> CustomerServiceQueries:
     return CustomerServiceQueries(CustomerServiceRepository(session))
+
+
+def governance_queries(session: Session) -> GovernanceQueries:
+    return GovernanceQueries(GovernanceRepository(session))

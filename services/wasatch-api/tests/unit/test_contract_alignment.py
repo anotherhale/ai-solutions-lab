@@ -4,6 +4,9 @@ import json
 from pathlib import Path
 
 from wasatch_api.shared.pagination import (
+    APPROVAL_ACTION_TYPES,
+    APPROVAL_STATUSES,
+    AUDIT_OUTCOMES,
     CUSTOMER_STATUSES,
     MESSAGE_STATUSES,
     SUPPORT_TICKET_STATUSES,
@@ -22,7 +25,14 @@ def test_api_status_filters_match_json_schema() -> None:
     work_order = _schema("field-operations/work-order.schema.json")
     ticket = _schema("customer-service/support-ticket.schema.json")
     message = _schema("customer-service/message.schema.json")
+    approval = _schema("governance/approval-request.schema.json")
+    audit = _schema("governance/audit-event.schema.json")
     assert CUSTOMER_STATUSES == frozenset(customer["properties"]["status"]["enum"])
     assert WORK_ORDER_STATUSES == frozenset(work_order["properties"]["status"]["enum"])
     assert SUPPORT_TICKET_STATUSES == frozenset(ticket["properties"]["status"]["enum"])
     assert MESSAGE_STATUSES == frozenset(message["properties"]["status"]["enum"])
+    assert APPROVAL_STATUSES == frozenset(approval["properties"]["status"]["enum"])
+    assert APPROVAL_ACTION_TYPES == frozenset(
+        approval["properties"]["action_type"]["enum"]
+    )
+    assert AUDIT_OUTCOMES == frozenset(audit["properties"]["outcome"]["enum"])
