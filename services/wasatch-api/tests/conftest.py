@@ -103,7 +103,10 @@ def db_session(seeded_engine: Engine) -> Iterator[Session]:
 
 @pytest.fixture
 def client(seeded_engine: Engine) -> Iterator[TestClient]:
-    os.environ["WASATCH_DATABASE_URL"] = str(seeded_engine.url)
+    # str(URL) hides the password, so the app would authenticate as "***".
+    os.environ["WASATCH_DATABASE_URL"] = seeded_engine.url.render_as_string(
+        hide_password=False
+    )
     get_settings.cache_clear()
     reset_engine()
     with TestClient(create_app()) as test_client:
