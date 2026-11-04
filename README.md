@@ -77,11 +77,11 @@ ai-solutions-lab/
 ├── AGENTS.md
 ├── README.md
 ├── LICENSE
-├── docs/                     Project charter, architecture, security, ADRs
+├── docs/                     Charter, architecture, security, operations notes, ADRs
 ├── apps/wasatch-review/      React review screen for one suggested reply
 ├── services/wasatch-api/     FastAPI host for synthetic Wasatch data
 ├── libs/                     Future shared libraries
-├── infrastructure/           Docker notes and future Terraform
+├── infrastructure/           Docker notes; Terraform placeholder, no workspace
 ├── compose.yaml              Local PostgreSQL (pgvector) and API
 ├── data/                     Schemas, synthetic fixtures, and documents
 ├── scripts/                  Repository maintenance and validation

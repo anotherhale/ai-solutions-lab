@@ -61,4 +61,8 @@ curl -s -H 'X-Laboratory-Actor: emp_0001' \
 
 An anonymous call to `/api/v1` returns 401. An authenticated write other than the suggested-reply draft, the customer-message decision, the extraction review, or the dispatcher follow-up command returns 403. `APP_LOG_LEVEL` controls structured logs of the actor, action, subject, and outcome. Message bodies and secrets are not logged.
 
+## Observability
+
+`create_app` records OpenTelemetry spans for HTTP requests. Export uses OTLP over HTTP only when `OTEL_EXPORTER_OTLP_ENDPOINT` is a non-empty URL. Leave that variable unset or blank and the process does not construct an exporter, does not open a collector socket, and does not require a collector. Compose does not run a collector and does not set the variable. Request headers are not copied onto spans. Domain and application modules do not import the OpenTelemetry SDK. The wiring is `wasatch_api.observability`, called from `create_app`.
+
 Seed loads only `data/fixtures/valid/`, including roles, teams, support tickets, messages, interactions, approval requests, audit events, documents, document versions, and document extractions. It refuses `quality-issues/`. The procedure corpus under `data/documents/procedures/` is not seeded and does not replace those fixtures. Document version rows store `storage_path` and do not load file bytes. `procedure_page_embeddings.embedding` is filled by the application service from procedure text, not by seed and not from document bytes. Approval rows are updated on a later seed. Audit rows are insert-only: a later seed skips an audit event that already exists and does not update or delete it. `employees.role_id` references `roles`. `is_approver` stays on the role.

@@ -38,7 +38,7 @@ The laboratory stays portable: business rules live in the application, and vendo
 - Put business rules in domain or application code.
 - Name modules with Wasatch language when they model that business.
 - Add a dependency only when the current task needs it, with a stated purpose, the thing it replaces, and the risk.
-- Synthetic data only. No live customer system. No production deployment in the phases below except the later non-production Azure definition in Phase 5, which is still not a customer production environment.
+- Synthetic data only. No live customer system. No production deployment. Phase 5 does not define an Azure environment. No workspace exists.
 - No purchased services, cloud credentials, or production API keys in the repository or in CI.
 - Tests use the existing fixtures. Quality-issue files stay out of the valid database.
 - Quality bar for a behavior change: unit tests, integration tests, API tests, contract checks against the JSON Schemas, migration upgrade (and downgrade when it is safe), security review when access or tools expand, dependency review when dependencies change, doc updates, and a green CI run. Existing checks stay as strict as they are.
@@ -118,17 +118,17 @@ services/wasatch-api/src/wasatch_api/
 
 Application services own the approval decision and the draft-reply use case. Routes stay thin. Prompts, model names, and the provider client stay in the AI adapter.
 
-Structured logs use `APP_LOG_LEVEL`. Each access record has the actor, action, subject identifier, and outcome. Message bodies, contact details, and secrets stay out of the log. OpenTelemetry export remains Phase 5.
+Structured logs use `APP_LOG_LEVEL`. Each access record has the actor, action, subject identifier, and outcome. Message bodies, contact details, and secrets stay out of the log. Span export is Phase 5 and stays off unless `OTEL_EXPORTER_OTLP_ENDPOINT` is set.
 
 ## Phase 3 — intelligent document processing
 
-**State: procedure-page embeddings are stored. WF-1 is the follow-up visit in Phase 4. Phase 5 is not started.** Depends on Phase 2.2. CS-7 is on `develop` (`13826ed`). Fixture persistence is on `develop` (`78877e6`, pull request [#16](https://github.com/anotherhale/ai-solutions-lab/pull/16)). Human review of extractions is on `develop` (`6e92af9`, pull request [#17](https://github.com/anotherhale/ai-solutions-lab/pull/17)).
+**State: procedure-page embeddings are stored. WF-1 is the follow-up visit in Phase 4. The case study is not started.** Depends on Phase 2.2. CS-7 is on `develop` (`13826ed`). Fixture persistence is on `develop` (`78877e6`, pull request [#16](https://github.com/anotherhale/ai-solutions-lab/pull/16)). Human review of extractions is on `develop` (`6e92af9`, pull request [#17](https://github.com/anotherhale/ai-solutions-lab/pull/17)).
 
-Schemas and fixtures for documents, versions, and extractions already exist (30 documents, 31 versions, 18 extractions). Alembic `0005` persists those fixtures. Read routes serve them. `POST /api/v1/document-extractions/{extraction_id}/decisions` lets an approver accept or reject an extraction that is awaiting review. Confidence below 0.8, a missing score, `needs_review`, an invoice or money field, or a document linked to an invoice stays untrusted until that decision. A read, a seed, and a background job do not accept those rows. The decision records status, reviewer, `reviewed_at`, optional `review_notes`, and an audit event. It does not post a payment, change an invoice total, or mark an invoice posted. There are no bytes to ingest. `storage_path` stays a string. Alembic `0006` adds `procedure_page_embeddings.embedding` (`vector(8)`). An application service fills it by calling `EmbeddingPort`. The laboratory default is the fake port: 8-dimensional and deterministic. It is not a trusted semantic model. Only synthetic procedure page text is embedded. Document version bytes are not embedded. Unaccepted, `needs_review`, low-confidence, and financial extractions are not written into that index. Accepting an extraction does not post a payment, change an invoice, or insert the extraction into the index. `AI_PROVIDER` stays `fake`. WF-1 is the follow-up visit below. Phase 5 is not started.
+Schemas and fixtures for documents, versions, and extractions already exist (30 documents, 31 versions, 18 extractions). Alembic `0005` persists those fixtures. Read routes serve them. `POST /api/v1/document-extractions/{extraction_id}/decisions` lets an approver accept or reject an extraction that is awaiting review. Confidence below 0.8, a missing score, `needs_review`, an invoice or money field, or a document linked to an invoice stays untrusted until that decision. A read, a seed, and a background job do not accept those rows. The decision records status, reviewer, `reviewed_at`, optional `review_notes`, and an audit event. It does not post a payment, change an invoice total, or mark an invoice posted. There are no bytes to ingest. `storage_path` stays a string. Alembic `0006` adds `procedure_page_embeddings.embedding` (`vector(8)`). An application service fills it by calling `EmbeddingPort`. The laboratory default is the fake port: 8-dimensional and deterministic. It is not a trusted semantic model. Only synthetic procedure page text is embedded. Document version bytes are not embedded. Unaccepted, `needs_review`, low-confidence, and financial extractions are not written into that index. Accepting an extraction does not post a payment, change an invoice, or insert the extraction into the index. `AI_PROVIDER` stays `fake`. WF-1 is the follow-up visit below. The case study is not started.
 
 ## Phase 4 — workflow automation
 
-**State: WF-1 is this slice. Phase 5 is not started.** Depends on the approval and audit path from CS-4. This workflow does not use documents.
+**State: WF-1 is this slice. The case study is not started.** Depends on the approval and audit path from CS-4. This workflow does not use documents.
 
 Canonical rules stay in the monolith. The command is `POST /api/v1/approval-requests/{approval_id}/follow-up-visits`.
 
@@ -139,17 +139,23 @@ Two human steps:
 
 Each transition inserts an audit event. Audit storage stays insert-only. Confirming or canceling does not post a payment, change an invoice total, mark an invoice posted, send a message, assign a technician, or create an appointment. Alembic `0007` stores `follow_up_visits`. It does not add a vector column and does not embed extractions.
 
-n8n remains an edge adapter for intake or notification once a workflow needs it. Redis is added only for cache or short-lived coordination that a use case actually performs. This slice adds neither, and it adds no Kafka, queue, or new service. No React screen was added. The review screen has no send control. Knowledge search beyond the Phase 2.2 procedure corpus, sales qualification, and further dispatch assistance are not started. Phase 5 is not started.
+n8n remains an edge adapter for intake or notification once a workflow needs it. Redis is added only for cache or short-lived coordination that a use case actually performs. This slice adds neither, and it adds no Kafka, queue, or new service. No React screen was added. The review screen has no send control. Knowledge search beyond the Phase 2.2 procedure corpus, sales qualification, and further dispatch assistance are not started. The case study is not started.
 
 ## Phase 5 — production engineering and cloud definition
 
-**State: not started.** Depends on a running module worth operating.
+**State: OPS-1 is this bounded slice. The case study is not started.** Depends on a running module worth operating. The host qualifies. No workspace exists, so this slice does not define a cloud environment.
 
-Add OpenTelemetry to the host, Terraform for a non-production Azure environment, and runbooks for backup and secrets. GitHub Actions remains credential-free for the laboratory checks. This phase defines a deployment path. It is not a production customer deployment and it does not authorize live HVAC data.
+The Wasatch API records OpenTelemetry spans. Export uses OTLP over HTTP only when `OTEL_EXPORTER_OTLP_ENDPOINT` is a non-empty URL. An unset or blank value does not construct an exporter, does not open a socket, and does not require a collector. Domain code does not import the SDK. `wasatch_api.observability` is called from `create_app`. Request headers are not copied onto spans. Metrics export and log export are not wired. Structured logs stay on `APP_LOG_LEVEL`.
+
+Compose and GitHub Actions do not gain a collector, Redis, n8n, or a cloud account. GitHub Actions stays credential-free.
+
+`infrastructure/terraform/` stays empty of modules, backends, subscription ids, tenant ids, and credentials. Do not run `terraform plan` or `terraform apply` there. Backup expectations and secret-management notes are in [../operations/](../operations/). Local secrets stay in an uncommitted `.env`. Managed secrets apply only after a cloud deployment exists. That deployment does not exist. These notes, Compose, and the laboratory host are not an Azure deployment and not a production deployment.
+
+This phase does not authorize live HVAC data. An Azure deployment path is not defined.
 
 ## Phase 6 — consulting portfolio
 
-**State: not started.** Depends on a finished slice whose limits can be stated honestly.
+**State: not started.** Depends on a finished slice whose limits can be stated honestly. OPS-1 does not start it.
 
 Write a case study from laboratory results. Say what was simulated, what was measured, and what has not been deployed.
 

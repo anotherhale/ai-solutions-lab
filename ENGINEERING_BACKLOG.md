@@ -176,8 +176,22 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 - An employee who is not a dispatcher is denied. Anonymous callers receive 401. Other writes stay denied
 - No n8n, Redis, Kafka, queue, or new service. No React screen. The review screen does not gain a send control
 - `X-Laboratory-Actor` stays limited to `local`, `development`, and `test`. Unsafe production configuration still fails startup
-- Phase 5 is not started
+- The case study is not started
 - Acceptance: `emp_0001` approves `apr_0001`, and `emp_0004` opens nothing until that approval exists. After the approval, `emp_0004` confirms `fuv_0001`. `msg_0016` stays `pending_approval`. Invoice and payment rows are unchanged. The dispatcher can cancel instead. `emp_0001` and `emp_0006` are denied. An anonymous caller receives 401. The approval alone does not dispatch a technician
+
+### OPS-1 — Observe and operate the laboratory host
+
+- Status: done in this change
+- Depends on: a module worth operating. The Wasatch API host qualifies. No production customer deployment
+- The host records OpenTelemetry spans. `wasatch_api.observability` is called from `create_app`. Domain and application code does not import the SDK
+- Spans export over OTLP/HTTP only when `OTEL_EXPORTER_OTLP_ENDPOINT` is a non-empty URL. An unset or blank value does not construct an exporter, does not open a socket, and does not require a collector
+- Compose and GitHub Actions do not gain a collector, Redis, n8n, or a cloud account. GitHub Actions stays credential-free
+- Direct dependencies are pinned to the OpenTelemetry 1.45.2 / instrumentation 0.66b2 pair: `opentelemetry-api`, `opentelemetry-sdk`, `opentelemetry-exporter-otlp-proto-http`, and `opentelemetry-instrumentation-fastapi`
+- `infrastructure/terraform/` stays free of modules, backends, subscription ids, tenant ids, and credentials. There is no workspace. `terraform plan` and `terraform apply` are not part of this slice
+- Backup expectations and secret-management notes are in `docs/operations/`. Local secrets stay in an uncommitted `.env`. Managed secrets apply only after a cloud deployment exists. That deployment does not exist
+- No ADR. The stack choice was already OpenTelemetry. This slice does not change the deployment shape
+- The case study is not started
+- Acceptance: with the exporter unset, the app starts and `GET /health` still returns `status=ok` and `service=wasatch-api`. That test does not call a network
 
 ## After the customer-service slice
 
@@ -187,9 +201,9 @@ These follow [docs/ROADMAP.md](docs/ROADMAP.md). Dates in that roadmap are plann
 |---|---|---|---|
 | DOC-P3 | 3 | Human review for low-confidence and financial extractions. | Done in this change. See the DOC-P3 section. Embeddings are not this item. |
 | EMB-1 | 3 | Embeddings in the existing PostgreSQL instance when a task fills the embedding port. | Done in this change. `procedure_page_embeddings.embedding` is `vector(8)`. Only procedure text is stored. Version rows are still path strings. |
-| WF-1 | 4 | One multi-step Wasatch workflow with human approval and an audit trail. n8n only for an edge automation that the monolith does not own as the system of record. | Done in this change. See the WF-1 section. Phase 5 is not started. |
-| OPS-1 | 5 | OpenTelemetry on the running host, Terraform for a non-production Azure environment, runbooks, backup notes, and secret-management notes. | A module worth operating. No production customer deployment. |
-| PORT-1 | 6 | One case study that states what was simulated and what was measured. | A finished laboratory slice with honest limits |
+| WF-1 | 4 | One multi-step Wasatch workflow with human approval and an audit trail. n8n only for an edge automation that the monolith does not own as the system of record. | Done in this change. See the WF-1 section. The case study is not started. |
+| OPS-1 | 5 | Host traces and laboratory backup and secret notes. Export spans only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set. No collector, no Terraform workspace, no Azure module, no credential. | Done in this change. See the OPS-1 section. The case study is not started. |
+| PORT-1 | 6 | One case study that states what was simulated and what was measured. | Not started. A finished laboratory slice with honest limits. |
 
 Redis remains deferred until a module needs a cache or a short-lived lock. Kafka, Kubernetes, and a microservice split stay out until an ADR records a requirement the modular monolith cannot meet.
 

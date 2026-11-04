@@ -18,6 +18,7 @@ from wasatch_api.api.routes import (
     workflows,
 )
 from wasatch_api.config import get_settings, reject_unsafe_production_configuration
+from wasatch_api.observability import configure_telemetry
 from wasatch_api.shared.logging import configure_logging
 from wasatch_api.workforce.infrastructure.local_authenticator import (
     LABORATORY_ACTOR_HEADER,
@@ -68,6 +69,7 @@ def create_app() -> FastAPI:
     app.include_router(governance.router)
     app.include_router(documents.router)
     app.include_router(workflows.router)
+    configure_telemetry(app)
     return app
 
 

@@ -19,6 +19,13 @@ dependencies = [
     # Official client for the OpenAI chat and embedding adapter. The default
     # provider is the in-process fake. Tests and CI do not need an API key.
     "openai>=3.45.0,<4",
+    # Host traces. The API, SDK, and OTLP/HTTP exporter are wired from the
+    # composition root. Export runs only when OTEL_EXPORTER_OTLP_ENDPOINT is
+    # set. Pins are the 1.45.2 / 0.66b2 release pair.
+    "opentelemetry-api==1.45.2",
+    "opentelemetry-sdk==1.45.2",
+    "opentelemetry-exporter-otlp-proto-http==1.45.2",
+    "opentelemetry-instrumentation-fastapi==0.66b2",
 ]
 
 [project.optional-dependencies]
