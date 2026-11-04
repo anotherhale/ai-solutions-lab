@@ -6,46 +6,47 @@ Design constraints and acceptance for each phase live in [docs/architecture/IMPL
 
 Pull requests target `develop`. The coordinator merges. Application code for Phase 2.2 starts only after this planning change is merged, and it starts at CS-1. Phase 2.1.1 is already on `develop`.
 
-## In progress
+## Done
+
+Merged to `develop`. Do not reopen these as new work.
 
 ### RUFF-1 — Pin Ruff 0.17.3
 
-- Status: in progress
+- Status: done
 - Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/2
+- Merge: `ec6465f`
 - Branch: `cursor/pin-ruff-0-17-3-6c1a`
 - Base: `develop`
-- Scope already on that branch: pin `ruff==0.17.3` in the root `pyproject.toml` dev extra, the `wasatch-api` dev extra, `.github/workflows/validate.yml`, and the README validation command
-- Dependency: none
+- Scope: pin `ruff==0.17.3` in the root `pyproject.toml` dev extra, the `wasatch-api` dev extra, `.github/workflows/validate.yml`, and the README validation command
 - Do not open a second change for the same pin. The cloud environment install described in that pull request is separate from the git diff and is not part of this backlog item's repository files.
-
-## Ready now
-
-These do not wait on RUFF-1. Keep them off the Ruff branch so the pin stays one intent.
-
-### DOC-1 — Align contributor docs with the integration branch
-
-- Status: ready
-- Depends on: this planning set
-- Update `docs/DEVELOPMENT_WORKFLOW.md` so pull requests target `develop`, `main` stays the production branch, and nobody force-pushes either branch.
-- Replace the sentence in `docs/architecture/README.md` that says no runtime modules exist. Point readers at `services/wasatch-api` and at the plan documents.
-- Link `PROJECT_STATUS.md`, `ENGINEERING_BACKLOG.md`, `docs/architecture/IMPLEMENTATION_PLAN.md`, and `docs/architecture/AGENT_OPERATING_MODEL.md` from `README.md` and `docs/architecture/README.md`.
-- Add those four paths to `REQUIRED_FILES` in `scripts/validate_repo.py`.
-- Acceptance: `python3 scripts/validate_repo.py` passes, and a new reader can find the plan from the root README.
 
 ### CI-1 — Run the existing workflow on `develop`
 
-- Status: ready
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/4
+- Merge: `ecd3015`
 - Depends on: none
-- Add `develop` to the `push` branch list in `.github/workflows/validate.yml`. Keep the existing jobs and commands.
-- Acceptance: a pull request into `develop` and a push to `develop` both run format, lint, both validators, and the Wasatch API tests. The check set stays as strict as it is on `develop` today.
+- `develop` is on the `push` branch list in `.github/workflows/validate.yml`. The existing jobs and commands stayed in place.
+- Acceptance met: a pull request into `develop` and a push to `develop` both run format, lint, both validators, and the Wasatch API tests. The check set stayed as strict as it was.
 
 ### ADR-1 — Record that the modular host exists
 
-- Status: ready
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/5
+- Merge: `c18ad80`
 - Depends on: none
-- ADR 0001 is still `Proposed` and says it remains proposed until a modular host is implemented. `services/wasatch-api` is that host.
-- Update the ADR status to `Accepted` and the index in `docs/adr/README.md`, with a short note that the host is one process and that customer and work-order modules are the first packages.
-- Acceptance: the ADR matches the repository. No new deployment shape is introduced.
+- ADR 0001 is `Accepted`. The index in `docs/adr/README.md` matches. The host is one process, and the customer and work-order modules are the first packages.
+- Acceptance met: the ADR matches the repository. No new deployment shape was introduced.
+
+### DOC-1 — Align contributor docs with the integration branch
+
+- Status: done
+- Depends on: this planning set
+- `docs/DEVELOPMENT_WORKFLOW.md` sends pull requests to `develop`, keeps `main` as the production branch, and forbids force-pushes to either branch.
+- `docs/architecture/README.md` points at `services/wasatch-api` and at the plan documents.
+- `PROJECT_STATUS.md`, `ENGINEERING_BACKLOG.md`, `docs/architecture/IMPLEMENTATION_PLAN.md`, and `docs/architecture/AGENT_OPERATING_MODEL.md` are linked from `README.md` and `docs/architecture/README.md`.
+- Those four paths are in `REQUIRED_FILES` in `scripts/validate_repo.py`.
+- Acceptance: `python3 scripts/validate_repo.py` passes, and a new reader can find the plan from the root README.
 
 ## Phase 2.2 — customer-service vertical slice
 
@@ -149,8 +150,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Downgrade is untested | Revision `0001` defines `downgrade`. New revisions include an upgrade test and a downgrade test when the downgrade is safe on the synthetic database. |
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py`. CI is protected by its service container. A later test change can fail closed when `WASATCH_DATABASE_URL` is set and the server is down. |
 | String foreign keys for invoices and, until CS-1, tickets | `DATABASE_MAPPING.md` |
-| Ruff not pinned on `develop` | RUFF-1 |
-| `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff |
+| `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
 | Starlette `TestClient` deprecation warning | pytest warning, 1 occurrence |
 | No Compose image smoke test in CI | API container is defined and was not started during the 2026-11-04 assessment |
 | No dependency-audit tool | Review each new dependency in the pull request for purpose, what it replaces, license, and maintenance. Add a tool only when a task needs it. |

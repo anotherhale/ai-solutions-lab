@@ -4,7 +4,7 @@ This workflow applies to human contributors and AI coding agents. Persistent age
 
 ## Branch Naming
 
-Create branches from an updated default branch. Do not commit directly to `main`.
+Create branches from an updated `develop`. `develop` is the integration branch. `main` is the production branch. Do not commit directly to `develop` or `main`.
 
 | Prefix | Use |
 |---|---|
@@ -32,16 +32,16 @@ Guidelines:
 
 - Explain why the change exists, not only what files moved.
 - Keep secrets out of history. Never commit `.env` or credentials.
-- Do not rewrite published history or force-push to `main`.
+- Do not rewrite published history. Do not force-push `develop` or `main`.
 - Prefer several logical commits over one mixed commit when the work has distinct purposes.
 
 ## Pull Request Workflow
 
 1. Inspect the current branch and working tree before editing.
-2. Create a feature branch if the default branch is clean.
+2. Create a feature branch from `develop` if the working tree is clean.
 3. Make the smallest change that satisfies the request.
 4. Run local validation.
-5. Open a pull request against `main`. Do not push directly to the default branch.
+5. Open a pull request against `develop`. Do not push directly to `develop` or `main`. Do not force-push either branch.
 6. Request review. Address findings without expanding scope.
 7. Merge only when CI is green and the Definition of Done is met.
 
