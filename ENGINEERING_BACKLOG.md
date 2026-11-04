@@ -238,7 +238,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Thin HTTP contract tests | Closed. `tests/api/test_openapi_contract.py` and `openapi_contract_catalog.py` assert the full slice path/method catalog, write-route methods, decision enums, and runtime error envelopes. `tests/unit/test_contract_alignment.py` still aligns JSON Schema status enums. |
 | Downgrade is untested | Closed for revisions `0001`–`0008`. Matrix in `services/wasatch-api/tests/integration/README.md`. Each revision has an integration upgrade/downgrade test, including `test_initial_migration.py` for revision `0001` and `test_invoice_migration.py` for revision `0008`. |
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py` still skips a local run when PostgreSQL is down. CI fails that skip. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` rejects a run that did not execute the database tests. |
-| String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Invoice and payment JSON fixtures are not full ORM slices yet. |
+| String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Read routes for persisted invoice rows close the ORM slice for reference data; money columns and payments stay fixture-only until a later migration. |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
 | Starlette `TestClient` deprecation warning | Closed. Starlette 1.10 uses `anyio.from_thread.BlockingPortal`. `anyio>=4.8.0,<5` matches that bound. The earlier `<4.15` cap applied to Starlette 0.50. |
 | No Compose image smoke test in CI | Closed. `scripts/smoke_compose.sh` runs in the **Compose API smoke** GitHub Actions job. |
@@ -246,7 +246,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | No browser suite for review workflows | Closed. Playwright specs in `tests/e2e/` run in **Review workbench browser tests**. |
 | No dependency-audit tool | Closed. `scripts/audit_wasatch_dependencies.sh` runs `pip-audit` on the installed Wasatch API environment in CI. |
 | Starlette PYSEC advisories on the pinned FastAPI stack | Closed by SEC-1. ADR 0007 is Accepted. The audit script does not ignore Starlette IDs. |
-| GitHub required checks on `develop` | Open for repository administrators. Agents documented the ruleset in `docs/operations/github-branch-protection.md`. Cloud tokens cannot read or set protection on this repository. |
+| GitHub required checks on `develop` | Closed. Ruleset `develop-protection` is active with all five **Repository Validation** job names required (verified 2026-11-04 via GitHub rulesets API). |
 
 ### SEC-1 — Implement ADR 0007 (FastAPI / Starlette remediation)
 
@@ -261,7 +261,13 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ## Next
 
-No numbered item is ready. GitHub required checks on `develop` stay an administrator task. Do not treat that row as an agent implementation item. Do not add a second Starlette upgrade or a second pip-audit change.
+### FIN-1 — Read-only invoice routes
+
+- Status: in progress (this change)
+- Depends on: revision `0008` and SEC-1
+- `GET /api/v1/invoices` and `GET /api/v1/invoices/{invoice_id}` return persisted reference rows (`business_id`, `customer_id`, `status`, timestamps). Totals and lines stay in JSON fixtures only.
+- No posting, payment tables, or write routes.
+- Acceptance: pytest and OpenAPI contract catalog include the routes; laboratory actor required; CI green.
 
 ## Explicitly out of the next implementation
 
