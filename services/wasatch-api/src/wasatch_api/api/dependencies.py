@@ -32,6 +32,11 @@ from wasatch_api.governance.infrastructure.repository import GovernanceRepositor
 from wasatch_api.shared.database.session import get_session_factory
 from wasatch_api.work_orders.application.queries import WorkOrderQueries
 from wasatch_api.work_orders.infrastructure.repository import WorkOrderRepository
+from wasatch_api.workflows.application.follow_up_visits import (
+    FollowUpVisitQueries,
+    FollowUpVisits,
+)
+from wasatch_api.workflows.infrastructure.repository import FollowUpVisitRepository
 from wasatch_api.workforce.application.access import (
     LaboratoryAccessService,
     require_authenticated_reader,
@@ -101,6 +106,18 @@ def document_extraction_decisions(session: Session) -> DocumentExtractionDecisio
         LocalEmployeeAuthenticator(EmployeeDirectory(session), app_env=settings.app_env)
     )
     return DocumentExtractionDecisions(DocumentRepository(session), access)
+
+
+def follow_up_visits(session: Session) -> FollowUpVisits:
+    settings = get_settings()
+    access = LaboratoryAccessService(
+        LocalEmployeeAuthenticator(EmployeeDirectory(session), app_env=settings.app_env)
+    )
+    return FollowUpVisits(FollowUpVisitRepository(session), access)
+
+
+def follow_up_visit_queries(session: Session) -> FollowUpVisitQueries:
+    return FollowUpVisitQueries(FollowUpVisitRepository(session))
 
 
 def customer_message_decisions(session: Session) -> CustomerMessageDecisions:

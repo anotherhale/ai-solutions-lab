@@ -122,17 +122,24 @@ Structured logs use `APP_LOG_LEVEL`. Each access record has the actor, action, s
 
 ## Phase 3 — intelligent document processing
 
-**State: procedure-page embeddings are stored. Workflow automation is not started.** Depends on Phase 2.2. CS-7 is on `develop` (`13826ed`). Fixture persistence is on `develop` (`78877e6`, pull request [#16](https://github.com/anotherhale/ai-solutions-lab/pull/16)). Human review of extractions is on `develop` (`6e92af9`, pull request [#17](https://github.com/anotherhale/ai-solutions-lab/pull/17)).
+**State: procedure-page embeddings are stored. WF-1 is the follow-up visit in Phase 4. Phase 5 is not started.** Depends on Phase 2.2. CS-7 is on `develop` (`13826ed`). Fixture persistence is on `develop` (`78877e6`, pull request [#16](https://github.com/anotherhale/ai-solutions-lab/pull/16)). Human review of extractions is on `develop` (`6e92af9`, pull request [#17](https://github.com/anotherhale/ai-solutions-lab/pull/17)).
 
-Schemas and fixtures for documents, versions, and extractions already exist (30 documents, 31 versions, 18 extractions). Alembic `0005` persists those fixtures. Read routes serve them. `POST /api/v1/document-extractions/{extraction_id}/decisions` lets an approver accept or reject an extraction that is awaiting review. Confidence below 0.8, a missing score, `needs_review`, an invoice or money field, or a document linked to an invoice stays untrusted until that decision. A read, a seed, and a background job do not accept those rows. The decision records status, reviewer, `reviewed_at`, optional `review_notes`, and an audit event. It does not post a payment, change an invoice total, or mark an invoice posted. There are no bytes to ingest. `storage_path` stays a string. Alembic `0006` adds `procedure_page_embeddings.embedding` (`vector(8)`). An application service fills it by calling `EmbeddingPort`. The laboratory default is the fake port: 8-dimensional and deterministic. It is not a trusted semantic model. Only synthetic procedure page text is embedded. Document version bytes are not embedded. Unaccepted, `needs_review`, low-confidence, and financial extractions are not written into that index. Accepting an extraction does not post a payment, change an invoice, or insert the extraction into the index. `AI_PROVIDER` stays `fake`. Phase 4 workflows are not started.
+Schemas and fixtures for documents, versions, and extractions already exist (30 documents, 31 versions, 18 extractions). Alembic `0005` persists those fixtures. Read routes serve them. `POST /api/v1/document-extractions/{extraction_id}/decisions` lets an approver accept or reject an extraction that is awaiting review. Confidence below 0.8, a missing score, `needs_review`, an invoice or money field, or a document linked to an invoice stays untrusted until that decision. A read, a seed, and a background job do not accept those rows. The decision records status, reviewer, `reviewed_at`, optional `review_notes`, and an audit event. It does not post a payment, change an invoice total, or mark an invoice posted. There are no bytes to ingest. `storage_path` stays a string. Alembic `0006` adds `procedure_page_embeddings.embedding` (`vector(8)`). An application service fills it by calling `EmbeddingPort`. The laboratory default is the fake port: 8-dimensional and deterministic. It is not a trusted semantic model. Only synthetic procedure page text is embedded. Document version bytes are not embedded. Unaccepted, `needs_review`, low-confidence, and financial extractions are not written into that index. Accepting an extraction does not post a payment, change an invoice, or insert the extraction into the index. `AI_PROVIDER` stays `fake`. WF-1 is the follow-up visit below. Phase 5 is not started.
 
 ## Phase 4 — workflow automation
 
-**State: not started.** Depends on the approval and audit path from CS-4, and on document review when the workflow uses documents.
+**State: WF-1 is this slice. Phase 5 is not started.** Depends on the approval and audit path from CS-4. This workflow does not use documents.
 
-Canonical rules stay in the monolith. n8n is an edge adapter for intake or notification once a workflow needs it. Redis is added only for cache or short-lived coordination that the use case actually performs. The exit is one multi-step workflow with human approval and an audit trail.
+Canonical rules stay in the monolith. The command is `POST /api/v1/approval-requests/{approval_id}/follow-up-visits`.
 
-Knowledge search beyond the Phase 2.2 procedure corpus, sales qualification, and dispatch assistance belong here only when they complete a Wasatch process. They are not separate products.
+Two human steps:
+
+1. An approver approves a pending `send_customer_message`. The decision leaves the message unsent. It does not open the visit and does not dispatch a technician.
+2. A dispatcher (`role_0004`, including `emp_0004`) confirms or cancels the visit. The visit can be opened only from that approved request. It stays `unscheduled` until the dispatcher confirms or cancels it.
+
+Each transition inserts an audit event. Audit storage stays insert-only. Confirming or canceling does not post a payment, change an invoice total, mark an invoice posted, send a message, assign a technician, or create an appointment. Alembic `0007` stores `follow_up_visits`. It does not add a vector column and does not embed extractions.
+
+n8n remains an edge adapter for intake or notification once a workflow needs it. Redis is added only for cache or short-lived coordination that a use case actually performs. This slice adds neither, and it adds no Kafka, queue, or new service. No React screen was added. The review screen has no send control. Knowledge search beyond the Phase 2.2 procedure corpus, sales qualification, and further dispatch assistance are not started. Phase 5 is not started.
 
 ## Phase 5 — production engineering and cloud definition
 

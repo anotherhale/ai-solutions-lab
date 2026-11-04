@@ -807,3 +807,74 @@ class ProcedurePageEmbeddingORM(Base):
     )
     token_count: Mapped[int] = mapped_column(Integer)
     embedded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class FollowUpVisitORM(Base):
+    """Visit opened from an approved customer message.
+
+    ``unscheduled`` has no technician and no appointment. Confirm and cancel
+    update this row only. They do not change the message, book a window, or
+    post finance. There is no vector column.
+    """
+
+    __tablename__ = "follow_up_visits"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    approval_request_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "approval_requests.id",
+            name="fk_follow_up_visits_approval_request",
+            ondelete="RESTRICT",
+        ),
+        unique=True,
+    )
+    message_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "messages.id",
+            name="fk_follow_up_visits_message",
+            ondelete="RESTRICT",
+        ),
+        index=True,
+    )
+    support_ticket_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "support_tickets.id",
+            name="fk_follow_up_visits_support_ticket",
+            ondelete="RESTRICT",
+        ),
+        index=True,
+    )
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    opened_by_employee_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            name="fk_follow_up_visits_opened_by",
+            ondelete="RESTRICT",
+        ),
+    )
+    opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    decided_by_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "employees.id",
+            name="fk_follow_up_visits_decided_by",
+            ondelete="RESTRICT",
+        ),
+    )
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    decision_note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    approval_request: Mapped[ApprovalRequestORM] = relationship()
+    message: Mapped[MessageORM] = relationship()
+    support_ticket: Mapped[SupportTicketORM] = relationship()
+    opened_by: Mapped[EmployeeORM] = relationship(foreign_keys=[opened_by_employee_id])
+    decided_by: Mapped[EmployeeORM | None] = relationship(
+        foreign_keys=[decided_by_employee_id]
+    )

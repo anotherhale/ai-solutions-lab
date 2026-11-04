@@ -53,6 +53,7 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `document_versions` | `document_versions.json` | `storage_path` is a synthetic relative path. The bytes are not in the repository. Unique `(document_id, version_number)` |
 | `document_extractions` | `document_extractions.json` | `extracted_fields` is JSONB. The review command updates `status`, `reviewed_by_employee_id`, `reviewed_at`, `review_notes`, and `updated_at`. It does not change `extracted_fields` or the document `invoice_id`. No vector column. Unaccepted, `needs_review`, low-confidence, and financial rows are not copied into `procedure_page_embeddings` |
 | `procedure_page_embeddings` | `data/documents/procedures/` | Not seeded from `data/fixtures/valid/`. `embedding` is `vector(8)`. One row per synthetic procedure page after the fill service runs. Document version bytes are not stored |
+| `follow_up_visits` | Created by the follow-up command, not by seed | One row per approved customer-message approval after a dispatcher opens it. Status is `unscheduled`, `confirmed`, or `cancelled`. No technician column, no appointment, and no vector column. Confirm and cancel do not post finance |
 
 ## Deferred entities
 
@@ -73,6 +74,8 @@ Revision `0004` downgrade copies role and team business ids back onto `employees
 Revision `0005` downgrade drops `document_extractions`, `document_versions`, and `documents`. That is safe on the synthetic database. Reload `data/fixtures/valid/` after that downgrade. The revision does not add a vector column.
 
 Revision `0006` downgrade drops `procedure_page_embeddings`. That is safe on the synthetic database. Procedure pages remain files. The revision does not embed document version bytes or extractions.
+
+Revision `0007` downgrade drops `follow_up_visits`. That is safe on the synthetic database. It does not update or delete audit events. The insert-only trigger on `audit_events` stays in place. The revision does not add a vector column.
 
 ## Contract layers
 

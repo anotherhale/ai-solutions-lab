@@ -14,6 +14,7 @@ DECISION_PATH = "/api/v1/approval-requests/apr_0001/decisions"
 OPENAPI_DECISION = "/api/v1/approval-requests/{approval_id}/decisions"
 OPENAPI_DRAFT = "/api/v1/support-tickets/{ticket_id}/draft-replies"
 OPENAPI_EXTRACTION = "/api/v1/document-extractions/{extraction_id}/decisions"
+OPENAPI_FOLLOW_UP = "/api/v1/approval-requests/{approval_id}/follow-up-visits"
 OPENAPI_WRITES = {OPENAPI_DECISION, OPENAPI_DRAFT, OPENAPI_EXTRACTION}
 
 
@@ -181,6 +182,7 @@ def test_openapi_exposes_the_decision_and_draft_writes(client: TestClient) -> No
     spec = client.get("/openapi.json").json()
     assert set(spec["paths"][OPENAPI_DECISION]) == {"post"}
     assert set(spec["paths"][OPENAPI_DRAFT]) == {"post"}
+    assert set(spec["paths"][OPENAPI_FOLLOW_UP]) == {"get", "post"}
     http_methods = {
         "get",
         "post",
@@ -192,7 +194,12 @@ def test_openapi_exposes_the_decision_and_draft_writes(client: TestClient) -> No
         "trace",
     }
     for path, operations in spec["paths"].items():
-        allowed = {"post"} if path in OPENAPI_WRITES else {"get", "head"}
+        if path == OPENAPI_FOLLOW_UP:
+            allowed = {"get", "head", "post"}
+        elif path in OPENAPI_WRITES:
+            allowed = {"post"}
+        else:
+            allowed = {"get", "head"}
         assert http_methods & set(operations) <= allowed
 
 
