@@ -15,6 +15,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
+from development_ops.database import development_ops_database_url
 from development_ops.errors import PersistenceError
 from development_ops.models import ActivityEventCreate, GitHubReference
 from development_ops.recorder import ActivityRecorder, RecordResult
@@ -42,10 +43,7 @@ class CliRecordOutcome:
 
 
 def _database_url() -> str:
-    return os.environ.get(
-        "WASATCH_DATABASE_URL",
-        "postgresql+psycopg://wasatch:replace-me@localhost:5432/wasatch",
-    )
+    return development_ops_database_url()
 
 
 def _run_id(value: str | None) -> uuid.UUID:

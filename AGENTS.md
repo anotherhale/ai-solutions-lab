@@ -99,7 +99,7 @@ Do not install Nx unless the monorepo complexity clearly outweighs the tool's co
 
 Docker Compose Postgres, the FastAPI service, and the review screen are the runnable slice. Compose defaults match the application defaults (`wasatch` / `replace-me` on localhost), so a root `.env` is optional. Leave `WASATCH_FIXTURES_DIR` unset. A blank value is loaded as the current directory and seed will not find `data/fixtures/valid`.
 
-From `services/wasatch-api`, `pytest` uses that Postgres and creates the `wasatch_test` database. On a Cloud Agent workstation the start command launches Docker, Postgres, migrations, seed, and the API on port 8000. That workstation is not an Azure deployment.
+From `services/wasatch-api`, `pytest` uses that Postgres and creates the `wasatch_test` database. Pytest reads `WASATCH_TEST_DATABASE_URL` only (not `WASATCH_DATABASE_URL`), so migration downgrade tests cannot wipe the activity database. Record milestones in `wasatch_development_ops` via `DEVELOPMENT_OPS_DATABASE_URL` and `scripts/prepare_development_ops_database.py`. On a Cloud Agent workstation the start command launches Docker, Postgres, migrations, seed, and the API on port 8000. That workstation is not an Azure deployment.
 
 ## Development activity log (mandatory)
 

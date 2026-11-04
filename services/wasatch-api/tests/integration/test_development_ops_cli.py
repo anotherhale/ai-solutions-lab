@@ -23,7 +23,9 @@ def _run_cli(
     engine: Engine, *args: str, env: dict[str, str] | None = None
 ) -> subprocess.CompletedProcess[str]:
     run_env = os.environ.copy()
-    run_env["WASATCH_DATABASE_URL"] = engine.url.render_as_string(hide_password=False)
+    run_env["DEVELOPMENT_OPS_DATABASE_URL"] = engine.url.render_as_string(
+        hide_password=False
+    )
     run_env["PYTHONPATH"] = os.path.join(REPO_ROOT, "libs", "development_ops", "src")
     if env:
         run_env.update(env)
@@ -149,7 +151,7 @@ def test_cli_persistence_failure_exits_nonzero() -> None:
         env={
             **os.environ,
             "PYTHONPATH": os.path.join(repo_root, "libs", "development_ops", "src"),
-            "WASATCH_DATABASE_URL": "postgresql+psycopg://invalid:invalid@127.0.0.1:1/none",
+            "DEVELOPMENT_OPS_DATABASE_URL": "postgresql+psycopg://invalid:invalid@127.0.0.1:1/none",
         },
         check=False,
     )

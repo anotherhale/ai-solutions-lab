@@ -48,11 +48,39 @@ after insert; event content remains append-only.
 | `skipped` | Notification intentionally disabled |
 | `duplicate` | Idempotent Slack replay |
 
+## Database isolation
+
+Laboratory agents record into PostgreSQL database **`wasatch_development_ops`**
+(schema `development_ops`), not the Wasatch API database **`wasatch`** and not
+the pytest database **`wasatch_test`**.
+
+| Database | Purpose |
+|---|---|
+| `wasatch` | Synthetic business data and local API |
+| `wasatch_test` | Pytest migrations, downgrade/upgrade cycles, seeds |
+| `wasatch_development_ops` | Append-only development activity (durable) |
+
+Pytest resolves its URL from **`WASATCH_TEST_DATABASE_URL` only**. It does **not**
+fall back to `WASATCH_DATABASE_URL`, so a shell export for the API or an old
+activity configuration cannot redirect migration tests onto `wasatch`.
+
+Provision the ops database once per environment:
+
+```bash
+python3 scripts/prepare_development_ops_database.py
+```
+
+**Telemetry gaps:** If events are missing (for example after an ops database was
+wiped before isolation landed), record a `blocker.reported` or `progress.report`
+with metadata describing the gap. Do **not** backfill fabricated `run.started` or
+`task.selected` rows.
+
 ## Configuration
 
 | Variable | Purpose |
 |---|---|
-| `WASATCH_DATABASE_URL` | PostgreSQL URL (same instance as Wasatch) |
+| `DEVELOPMENT_OPS_DATABASE_URL` | Activity log PostgreSQL URL (default `…/wasatch_development_ops`) |
+| `WASATCH_DATABASE_URL` | Wasatch API only — not used by `development-ops-record` |
 | `DEVELOPMENT_OPS_RUN_ID` | Correlate all events in one agent/coordinator run |
 | `DEVELOPMENT_OPS_TASK_ID` | Active backlog/task identifier |
 | `DEVELOPMENT_OPS_GITHUB_REPOSITORY` | `owner/repo` for PR links |
@@ -67,7 +95,8 @@ Install: `python3 -m pip install -e libs/development_ops`
 
 ```bash
 export DEVELOPMENT_OPS_RUN_ID="$(uuidgen)"
-export WASATCH_DATABASE_URL=postgresql+psycopg://wasatch:replace-me@localhost:5432/wasatch
+export DEVELOPMENT_OPS_DATABASE_URL=postgresql+psycopg://wasatch:replace-me@localhost:5432/wasatch_development_ops
+python3 scripts/prepare_development_ops_database.py
 
 development-ops-record record \
   --event-type implementation.milestone \
@@ -133,7 +162,8 @@ See [samples/run-correlation-sample.md](samples/run-correlation-sample.md).
 | Slack down | Events remain in PostgreSQL; retry delivery or post manually, then `confirm-slack` |
 | Duplicate MCP post | Use idempotency keys; pass `--duplicate` to `confirm-slack` when replaying |
 | `development-ops-record` exit 1 | Persistence failed — check DB URL/migrations; report blocker in Slack |
-| Migration pending | From `services/wasatch-api`, run `alembic upgrade head` |
+| Migration pending | Run `python3 scripts/prepare_development_ops_database.py` for ops; `alembic upgrade head` for Wasatch API |
+| Activity wiped by pytest | Use `wasatch_development_ops`; ensure `WASATCH_TEST_DATABASE_URL` targets `wasatch_test` |
 | No telemetry | Treat as unknown; investigate run logs and GitHub Actions |
 
 ## Security

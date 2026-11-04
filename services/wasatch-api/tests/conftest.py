@@ -23,6 +23,7 @@ from wasatch_api.config import get_settings  # noqa: E402
 from wasatch_api.main import create_app  # noqa: E402
 from wasatch_api.shared.database.session import reset_engine
 from wasatch_api.shared.seed import seed_valid_fixtures
+from wasatch_api.testing.postgres import wasatch_test_database_url
 from wasatch_api.workforce.infrastructure.local_authenticator import (
     LABORATORY_ACTOR_HEADER,
 )
@@ -32,13 +33,7 @@ REPO_ROOT = API_ROOT.parents[1]
 
 
 def _database_url() -> str:
-    return os.environ.get(
-        "WASATCH_TEST_DATABASE_URL",
-        os.environ.get(
-            "WASATCH_DATABASE_URL",
-            "postgresql+psycopg://wasatch:replace-me@localhost:5432/wasatch_test",
-        ),
-    )
+    return wasatch_test_database_url()
 
 
 @pytest.fixture(scope="session")
