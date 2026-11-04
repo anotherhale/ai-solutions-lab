@@ -1,6 +1,6 @@
 # ADR 0001: Modular Monolith Architecture
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-03
 
 ## Context
@@ -31,4 +31,4 @@ Hexagonal architecture still applies inside the monolith. Modules communicate th
 - Local development, testing, and later Azure deployment stay simpler.
 - Module discipline must be enforced by package layout, reviews, and tests rather than by network boundaries.
 - A future split is possible if a module acquires a distinct runtime need.
-- This decision remains Proposed until a modular host is implemented.
+- `services/wasatch-api` is the host. It is one process, and the customer and work-order modules are the first packages.
