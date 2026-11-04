@@ -1,0 +1,90 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
+id_rsa
+id_ed25519
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+dist/
+build/
+*.egg-info/
+.tox/
+.nox/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+dist-ssr/
+.turbo/
+.vite/
+.next/
+.nuxt/
+.cache/
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.iml
+
+# Operating systems
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local data and artifacts
+tmp/
+temp/
+*.tmp
+coverage/
+.ipynb_checkpoints/
+
+# Agent and tool caches
+.cursor/
+!.cursor/rules/
+.agent-store/

@@ -1,0 +1,32 @@
+[project]
+name = "ai-solutions-lab"
+version = "0.1.0"
+description = "Engineering laboratory for practical AI solutions for small and midsize businesses."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+authors = [{ name = "AI Solutions Lab contributors" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8,<1",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+src = ["scripts", "tests", "services", "libs", "apps"]
+exclude = [
+    ".git",
+    ".ruff_cache",
+    ".venv",
+    "node_modules",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
