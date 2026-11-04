@@ -123,6 +123,7 @@ def test_get_work_order_detail(client: TestClient) -> None:
     body = response.json()
     assert body["id"] == "wo_0004"
     assert body["status"] == "scheduled"
+    assert body["support_ticket_id"] == "tkt_0004"
     assert body["tasks"]
     assert body["appointments"]
     assert body["equipment"]

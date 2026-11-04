@@ -15,7 +15,10 @@ from wasatch_api.shared.database.models import (
     CustomerORM,
     EmployeeORM,
     EquipmentORM,
+    InteractionORM,
+    MessageORM,
     ServiceLocationORM,
+    SupportTicketORM,
     WorkOrderORM,
     WorkOrderTaskORM,
 )
@@ -82,6 +85,12 @@ def _require(index: dict[str, object], key: str, label: str):
     if value is None:
         raise SeedError(f"missing {label} {key}")
     return value
+
+
+def _link(index: dict[str, uuid.UUID], business_id: str | None, label: str):
+    if not business_id:
+        return None
+    return _require(index, business_id, label)
 
 
 def seed_valid_fixtures(
@@ -247,7 +256,8 @@ def seed_valid_fixtures(
         ).id
 
     work_order_ids: dict[str, uuid.UUID] = {}
-    for record in _load_records(fixtures_dir, "work_orders.json"):
+    work_order_records = _load_records(fixtures_dir, "work_orders.json")
+    for record in work_order_records:
         requested = record.get("requested_by_contact_id")
         action = _upsert(
             session,
@@ -260,7 +270,6 @@ def seed_valid_fixtures(
                 "service_location_id": _require(
                     location_ids, record["service_location_id"], "service location"
                 ),
-                "support_ticket_id": record.get("support_ticket_id"),
                 "status": record["status"],
                 "priority": record["priority"],
                 "work_type": record["work_type"],
@@ -361,6 +370,112 @@ def seed_valid_fixtures(
         appointment.replaces_appointment_id = (
             appointment_ids.get(replaces) if replaces else None
         )
+
+    ticket_ids: dict[str, uuid.UUID] = {}
+    for record in _load_records(fixtures_dir, "support_tickets.json"):
+        action = _upsert(
+            session,
+            SupportTicketORM,
+            record["id"],
+            {
+                "customer_id": _require(
+                    customer_ids, record["customer_id"], "customer"
+                ),
+                "contact_id": _link(contact_ids, record.get("contact_id"), "contact"),
+                "service_location_id": _link(
+                    location_ids,
+                    record.get("service_location_id"),
+                    "service location",
+                ),
+                "work_order_id": _link(
+                    work_order_ids, record.get("work_order_id"), "work order"
+                ),
+                "status": record["status"],
+                "priority": record["priority"],
+                "channel": record["channel"],
+                "subject": record["subject"],
+                "assigned_employee_id": _link(
+                    employee_ids, record.get("assigned_employee_id"), "employee"
+                ),
+                "opened_at": parse_datetime(record["opened_at"]),
+                "resolved_at": parse_datetime(record["resolved_at"])
+                if record.get("resolved_at")
+                else None,
+                "closed_at": parse_datetime(record["closed_at"])
+                if record.get("closed_at")
+                else None,
+                "related_document_ids": list(record.get("related_document_ids") or []),
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("support_ticket", action)
+        ticket_ids[record["id"]] = _get_by_business_id(
+            session, SupportTicketORM, record["id"]
+        ).id
+
+    for record in work_order_records:
+        work_order = _get_by_business_id(session, WorkOrderORM, record["id"])
+        work_order.support_ticket_id = _link(
+            ticket_ids, record.get("support_ticket_id"), "support ticket"
+        )
+
+    for record in _load_records(fixtures_dir, "messages.json"):
+        action = _upsert(
+            session,
+            MessageORM,
+            record["id"],
+            {
+                "support_ticket_id": _require(
+                    ticket_ids, record["support_ticket_id"], "support ticket"
+                ),
+                "direction": record["direction"],
+                "channel": record["channel"],
+                "body": record["body"],
+                "status": record["status"],
+                "author_employee_id": _link(
+                    employee_ids, record.get("author_employee_id"), "employee"
+                ),
+                "author_contact_id": _link(
+                    contact_ids, record.get("author_contact_id"), "contact"
+                ),
+                "requires_approval": bool(record.get("requires_approval", False)),
+                "approval_request_id": record.get("approval_request_id"),
+                "sent_at": parse_datetime(record["sent_at"]),
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("message", action)
+
+    for record in _load_records(fixtures_dir, "interactions.json"):
+        action = _upsert(
+            session,
+            InteractionORM,
+            record["id"],
+            {
+                "customer_id": _require(
+                    customer_ids, record["customer_id"], "customer"
+                ),
+                "contact_id": _link(contact_ids, record.get("contact_id"), "contact"),
+                "support_ticket_id": _link(
+                    ticket_ids, record.get("support_ticket_id"), "support ticket"
+                ),
+                "work_order_id": _link(
+                    work_order_ids, record.get("work_order_id"), "work order"
+                ),
+                "channel": record["channel"],
+                "occurred_at": parse_datetime(record["occurred_at"]),
+                "summary": record["summary"],
+                "employee_id": _require(
+                    employee_ids, record["employee_id"], "employee"
+                ),
+                "outcome": record["outcome"],
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("interaction", action)
 
     session.commit()
     return counts

@@ -4,6 +4,11 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from wasatch_api.customer_service.domain.entities import (
+    Interaction,
+    Message,
+    SupportTicket,
+)
 from wasatch_api.customers.domain.entities import (
     Address,
     Contact,
@@ -387,6 +392,150 @@ class WorkOrderDetailOut(BaseModel):
             appointments=[
                 AppointmentOut.from_domain(item) for item in work_order.appointments
             ],
+        )
+
+
+class MessageOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    support_ticket_id: str
+    direction: str
+    channel: str
+    body: str
+    status: str
+    sent_at: str
+    created_at: str
+    updated_at: str
+    author_employee_id: str | None = None
+    author_contact_id: str | None = None
+    requires_approval: bool = False
+    approval_request_id: str | None = None
+
+    @classmethod
+    def from_domain(cls, message: Message) -> MessageOut:
+        return cls(
+            id=message.id,
+            support_ticket_id=message.support_ticket_id,
+            direction=message.direction,
+            channel=message.channel,
+            body=message.body,
+            status=message.status,
+            sent_at=dump_datetime(message.sent_at),
+            created_at=dump_datetime(message.created_at),
+            updated_at=dump_datetime(message.updated_at),
+            author_employee_id=message.author_employee_id,
+            author_contact_id=message.author_contact_id,
+            requires_approval=message.requires_approval,
+            approval_request_id=message.approval_request_id,
+        )
+
+
+class SupportTicketListItemOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    customer_id: str
+    status: str
+    priority: str
+    channel: str
+    subject: str
+    opened_at: str
+    service_location_id: str | None = None
+    assigned_employee_id: str | None = None
+
+    @classmethod
+    def from_domain(cls, ticket: SupportTicket) -> SupportTicketListItemOut:
+        return cls(
+            id=ticket.id,
+            customer_id=ticket.customer_id,
+            status=ticket.status,
+            priority=ticket.priority,
+            channel=ticket.channel,
+            subject=ticket.subject,
+            opened_at=dump_datetime(ticket.opened_at),
+            service_location_id=ticket.service_location_id,
+            assigned_employee_id=ticket.assigned_employee_id,
+        )
+
+
+class SupportTicketDetailOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    customer_id: str
+    status: str
+    priority: str
+    channel: str
+    subject: str
+    opened_at: str
+    created_at: str
+    updated_at: str
+    contact_id: str | None = None
+    service_location_id: str | None = None
+    work_order_id: str | None = None
+    assigned_employee_id: str | None = None
+    resolved_at: str | None = None
+    closed_at: str | None = None
+    related_document_ids: list[str] = Field(default_factory=list)
+    messages: list[MessageOut] = Field(default_factory=list)
+
+    @classmethod
+    def from_domain(cls, ticket: SupportTicket) -> SupportTicketDetailOut:
+        return cls(
+            id=ticket.id,
+            customer_id=ticket.customer_id,
+            status=ticket.status,
+            priority=ticket.priority,
+            channel=ticket.channel,
+            subject=ticket.subject,
+            opened_at=dump_datetime(ticket.opened_at),
+            created_at=dump_datetime(ticket.created_at),
+            updated_at=dump_datetime(ticket.updated_at),
+            contact_id=ticket.contact_id,
+            service_location_id=ticket.service_location_id,
+            work_order_id=ticket.work_order_id,
+            assigned_employee_id=ticket.assigned_employee_id,
+            resolved_at=dump_datetime(ticket.resolved_at)
+            if ticket.resolved_at
+            else None,
+            closed_at=dump_datetime(ticket.closed_at) if ticket.closed_at else None,
+            related_document_ids=list(ticket.related_document_ids),
+            messages=[MessageOut.from_domain(item) for item in ticket.messages],
+        )
+
+
+class InteractionOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    customer_id: str
+    channel: str
+    occurred_at: str
+    summary: str
+    employee_id: str
+    outcome: str
+    created_at: str
+    updated_at: str
+    contact_id: str | None = None
+    support_ticket_id: str | None = None
+    work_order_id: str | None = None
+
+    @classmethod
+    def from_domain(cls, interaction: Interaction) -> InteractionOut:
+        return cls(
+            id=interaction.id,
+            customer_id=interaction.customer_id,
+            channel=interaction.channel,
+            occurred_at=dump_datetime(interaction.occurred_at),
+            summary=interaction.summary,
+            employee_id=interaction.employee_id,
+            outcome=interaction.outcome,
+            created_at=dump_datetime(interaction.created_at),
+            updated_at=dump_datetime(interaction.updated_at),
+            contact_id=interaction.contact_id,
+            support_ticket_id=interaction.support_ticket_id,
+            work_order_id=interaction.work_order_id,
         )
 
 

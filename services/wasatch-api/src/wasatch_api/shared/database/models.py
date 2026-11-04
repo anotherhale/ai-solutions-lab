@@ -221,7 +221,16 @@ class WorkOrderORM(Base):
     service_location_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("service_locations.id", ondelete="RESTRICT"), index=True
     )
-    support_ticket_id: Mapped[str | None] = mapped_column(String(16))
+    support_ticket_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey(
+            "support_tickets.id",
+            use_alter=True,
+            name="fk_work_orders_support_ticket",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
     status: Mapped[str] = mapped_column(String(32), index=True)
     priority: Mapped[str] = mapped_column(String(32))
     work_type: Mapped[str] = mapped_column(String(32))
@@ -243,6 +252,10 @@ class WorkOrderORM(Base):
     customer: Mapped[CustomerORM] = relationship()
     service_location: Mapped[ServiceLocationORM] = relationship()
     requested_by: Mapped[ContactORM | None] = relationship()
+    support_ticket: Mapped[SupportTicketORM | None] = relationship(
+        "SupportTicketORM",
+        foreign_keys=[support_ticket_id],
+    )
     assigned_employees: Mapped[list[EmployeeORM]] = relationship(
         secondary=work_order_assignments
     )
@@ -313,3 +326,108 @@ class AppointmentORM(Base):
         remote_side="AppointmentORM.id",
         foreign_keys=[replaces_appointment_id],
     )
+
+
+class SupportTicketORM(Base):
+    __tablename__ = "support_tickets"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("customers.id", ondelete="RESTRICT"), index=True
+    )
+    contact_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("contacts.id", ondelete="SET NULL")
+    )
+    service_location_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("service_locations.id", ondelete="SET NULL"), index=True
+    )
+    work_order_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("work_orders.id", ondelete="SET NULL"), index=True
+    )
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    priority: Mapped[str] = mapped_column(String(32))
+    channel: Mapped[str] = mapped_column(String(32))
+    subject: Mapped[str] = mapped_column(String(255))
+    assigned_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="SET NULL"), index=True
+    )
+    opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    related_document_ids: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    customer: Mapped[CustomerORM] = relationship()
+    contact: Mapped[ContactORM | None] = relationship()
+    service_location: Mapped[ServiceLocationORM | None] = relationship()
+    work_order: Mapped[WorkOrderORM | None] = relationship(foreign_keys=[work_order_id])
+    assigned_employee: Mapped[EmployeeORM | None] = relationship()
+    messages: Mapped[list[MessageORM]] = relationship(
+        back_populates="support_ticket",
+        order_by="MessageORM.sent_at",
+    )
+
+
+class MessageORM(Base):
+    __tablename__ = "messages"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    support_ticket_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("support_tickets.id", ondelete="CASCADE"), index=True
+    )
+    direction: Mapped[str] = mapped_column(String(32))
+    channel: Mapped[str] = mapped_column(String(32))
+    body: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    author_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="SET NULL")
+    )
+    author_contact_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("contacts.id", ondelete="SET NULL")
+    )
+    requires_approval: Mapped[bool] = mapped_column(Boolean, default=False)
+    approval_request_id: Mapped[str | None] = mapped_column(String(16))
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    support_ticket: Mapped[SupportTicketORM] = relationship(back_populates="messages")
+    author_employee: Mapped[EmployeeORM | None] = relationship()
+    author_contact: Mapped[ContactORM | None] = relationship()
+
+
+class InteractionORM(Base):
+    __tablename__ = "interactions"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("customers.id", ondelete="RESTRICT"), index=True
+    )
+    contact_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("contacts.id", ondelete="SET NULL")
+    )
+    support_ticket_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("support_tickets.id", ondelete="SET NULL"), index=True
+    )
+    work_order_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("work_orders.id", ondelete="SET NULL"), index=True
+    )
+    channel: Mapped[str] = mapped_column(String(32))
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    summary: Mapped[str] = mapped_column(Text)
+    employee_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="RESTRICT"), index=True
+    )
+    outcome: Mapped[str] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    customer: Mapped[CustomerORM] = relationship()
+    contact: Mapped[ContactORM | None] = relationship()
+    support_ticket: Mapped[SupportTicketORM | None] = relationship()
+    work_order: Mapped[WorkOrderORM | None] = relationship()
+    employee: Mapped[EmployeeORM] = relationship()

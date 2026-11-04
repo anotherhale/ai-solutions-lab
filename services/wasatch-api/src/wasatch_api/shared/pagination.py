@@ -24,6 +24,20 @@ WORK_ORDER_STATUSES = frozenset(
         "reopened",
     }
 )
+SUPPORT_TICKET_STATUSES = frozenset(
+    {
+        "opened",
+        "triaged",
+        "assigned",
+        "awaiting_customer",
+        "resolved",
+        "closed",
+        "reopened",
+    }
+)
+MESSAGE_STATUSES = frozenset(
+    {"draft", "pending_approval", "sent", "failed", "discarded"}
+)
 
 
 @dataclass(frozen=True)
@@ -59,6 +73,22 @@ def validate_work_order_status(status: str | None) -> str | None:
         return None
     if status not in WORK_ORDER_STATUSES:
         raise InvalidParameterError(f"unsupported work order status: {status}")
+    return status
+
+
+def validate_support_ticket_status(status: str | None) -> str | None:
+    if status is None:
+        return None
+    if status not in SUPPORT_TICKET_STATUSES:
+        raise InvalidParameterError(f"unsupported support ticket status: {status}")
+    return status
+
+
+def validate_message_status(status: str | None) -> str | None:
+    if status is None:
+        return None
+    if status not in MESSAGE_STATUSES:
+        raise InvalidParameterError(f"unsupported message status: {status}")
     return status
 
 
