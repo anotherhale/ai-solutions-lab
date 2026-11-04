@@ -412,6 +412,15 @@ class WorkOrderDetailOut(BaseModel):
         )
 
 
+class ExtractionDecisionIn(BaseModel):
+    """Human accept or reject. This request does not post an invoice."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    decision: Literal["accepted", "rejected"]
+    note: str | None = None
+
+
 class ApprovalDecisionIn(BaseModel):
     """Human approve or reject. This request does not send the message."""
 

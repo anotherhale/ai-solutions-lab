@@ -24,7 +24,7 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | Timestamps | `TIMESTAMPTZ` |
 | Addresses | Discrete columns, not JSON documents |
 | Lists of enumerations | PostgreSQL `TEXT[]` (employee certifications) |
-| Flexible documents | `audit_events.details` and `document_extractions.extracted_fields` use JSONB. Extraction payloads stay untrusted. This slice stores them and does not record a review decision |
+| Flexible documents | `audit_events.details` and `document_extractions.extracted_fields` use JSONB. Extraction payloads stay untrusted until an approver accepts them. The review command does not post finance |
 | Vectors | `CREATE EXTENSION vector` is applied now; no embedding columns yet. The embedding port exists and does not fill one |
 
 ## Tables in this slice
@@ -48,10 +48,10 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `interactions` | `interactions.json` | Optional links to a ticket and a work order |
 | `approval_requests` | `approval_requests.json` | `subject_id` stays the subject's business id |
 | `approval_decision_history` | `decision_history` on each approval | Child rows ordered by `position`; replaced when the approval is reseeded. The customer-message decision appends one row |
-| `audit_events` | `audit_events.json` | Insert-only. No `updated_at`. Optional `approval_request_id` references `approval_requests.id`. `details` is JSONB for the open map. The customer-message decision inserts one row and does not update the message |
+| `audit_events` | `audit_events.json` | Insert-only. No `updated_at`. Optional `approval_request_id` references `approval_requests.id`. `details` is JSONB for the open map. The customer-message decision and the extraction review each insert one row. Neither updates an audit event |
 | `documents` | `documents.json` | UUID primary key and unique `business_id`. `invoice_id` stays a string. `current_version_id` references `document_versions`. No vector column |
 | `document_versions` | `document_versions.json` | `storage_path` is a synthetic relative path. The bytes are not in the repository. Unique `(document_id, version_number)` |
-| `document_extractions` | `document_extractions.json` | `extracted_fields` is JSONB and stays untrusted. No review command writes this table |
+| `document_extractions` | `document_extractions.json` | `extracted_fields` is JSONB. The review command updates `status`, `reviewed_by_employee_id`, `reviewed_at`, `review_notes`, and `updated_at`. It does not change `extracted_fields` or the document `invoice_id`. No vector column |
 
 ## Deferred entities
 

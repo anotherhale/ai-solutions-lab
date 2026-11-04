@@ -122,9 +122,9 @@ Structured logs use `APP_LOG_LEVEL`. Each access record has the actor, action, s
 
 ## Phase 3 — intelligent document processing
 
-**State: first slice in progress.** Depends on Phase 2.2. CS-7 is on `develop` (`13826ed`).
+**State: human review is this change. Embeddings are not started.** Depends on Phase 2.2. CS-7 is on `develop` (`13826ed`). Fixture persistence is on `develop` (`78877e6`, pull request [#16](https://github.com/anotherhale/ai-solutions-lab/pull/16)).
 
-Schemas and fixtures for documents, versions, and extractions already exist (30 documents, 31 versions, 18 extractions). The first slice persists those fixtures and serves them on read-only `/api/v1` routes. There are no bytes to ingest. `storage_path` stays a string. There is no vector column. Human review for low-confidence results and any financial effect is not started. Embeddings, when added, use pgvector in the same PostgreSQL instance. Model output stays untrusted until a person accepts it.
+Schemas and fixtures for documents, versions, and extractions already exist (30 documents, 31 versions, 18 extractions). Alembic `0005` persists those fixtures. Read routes serve them. `POST /api/v1/document-extractions/{extraction_id}/decisions` lets an approver accept or reject an extraction that is awaiting review. Confidence below 0.8, a missing score, `needs_review`, an invoice or money field, or a document linked to an invoice stays untrusted until that decision. A read, a seed, and a background job do not accept those rows. The decision records status, reviewer, `reviewed_at`, optional `review_notes`, and an audit event. It does not post a payment, change an invoice total, or mark an invoice posted. There are no bytes to ingest. `storage_path` stays a string. There is no vector column and no model call. Embeddings, when added, use pgvector in the same PostgreSQL instance. That work has not started. Model output stays untrusted until a person accepts it.
 
 ## Phase 4 — workflow automation
 

@@ -1,6 +1,7 @@
 """Document domain records used by application services.
 
-Extraction fields stay untrusted. This module does not accept or reject them.
+Extraction fields stay untrusted until an approver accepts them. The review
+rule lives in ``review.py``. Accepting or rejecting does not post finance.
 """
 
 from __future__ import annotations

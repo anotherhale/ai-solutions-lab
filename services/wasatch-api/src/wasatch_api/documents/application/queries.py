@@ -88,6 +88,8 @@ class DocumentQueries:
         return items, total, request
 
     def get_document_extraction(self, extraction_id: str) -> DocumentExtraction:
+        """Return the stored extraction. A read does not accept it."""
+
         extraction = self.repository.get_document_extraction(extraction_id)
         if extraction is None:
             raise NotFoundError(f"document extraction {extraction_id} was not found")

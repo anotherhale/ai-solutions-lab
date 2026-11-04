@@ -31,6 +31,7 @@ MANAGER = LaboratoryActor(
     status="active",
 )
 DECISION = "/api/v1/approval-requests/apr_0001/decisions"
+EXTRACTION = "/api/v1/document-extractions/dx_0003/decisions"
 TICKET = "/api/v1/support-tickets/tkt_0007"
 
 
@@ -83,7 +84,7 @@ def test_anonymous_access_is_rejected() -> None:
         read = service.decide_request(presented, "GET", "/api/v1/customers/cust_0001")
         assert read.outcome == "unauthenticated"
         assert read.actor is None
-        for path in (DECISION, draft):
+        for path in (DECISION, draft, EXTRACTION):
             write = service.decide_request(presented, "POST", path)
             assert write.outcome == "unauthenticated"
             assert write.actor is None
@@ -97,6 +98,10 @@ def test_non_approver_can_read_and_draft_but_cannot_decide() -> None:
     write = service.decide_request("emp_0004", "POST", DECISION)
     assert write.outcome == "forbidden"
     assert write.actor == DISPATCHER
+    extraction = service.decide_request("emp_0004", "POST", EXTRACTION)
+    assert extraction.outcome == "forbidden"
+    assert extraction.actor == DISPATCHER
+    assert extraction.subject == "dx_0003"
     draft = service.decide_request(
         "emp_0004", "POST", "/api/v1/support-tickets/tkt_0015/draft-replies"
     )
@@ -119,6 +124,10 @@ def test_privileged_role_can_decide_a_customer_message_and_draft_a_reply() -> No
     assert decision.outcome == "allowed"
     assert decision.actor == MANAGER
     assert decision.subject == "apr_0001"
+    extraction = service.decide_request("emp_0001", "POST", EXTRACTION)
+    assert extraction.outcome == "allowed"
+    assert extraction.actor == MANAGER
+    assert extraction.subject == "dx_0003"
     draft = service.decide_request(
         "emp_0001", "POST", "/api/v1/support-tickets/tkt_0015/draft-replies"
     )

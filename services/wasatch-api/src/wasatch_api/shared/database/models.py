@@ -730,7 +730,11 @@ class DocumentVersionORM(Base):
 
 
 class DocumentExtractionORM(Base):
-    """Untrusted extracted fields. This slice does not record a review decision."""
+    """Extracted fields. A review decision updates status and reviewer columns.
+
+    The decision does not post a payment or change an invoice. There is no
+    embedding column.
+    """
 
     __tablename__ = "document_extractions"
 

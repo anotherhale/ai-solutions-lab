@@ -20,9 +20,10 @@ def authorize_write(actor: LaboratoryActor, action: str) -> None:
 def authorize_approval_decision(actor: LaboratoryActor) -> None:
     """Permit a decision only when the actor's role is an approver.
 
-    This check does not append decision history, set a reviewer, or change a
-    message. The customer-message decision command calls it through
-    ``LaboratoryAccessService.authorize_approval`` before it writes.
+    This check does not append decision history, set a reviewer, change a
+    message, or post an invoice. The customer-message and extraction-review
+    commands call it through ``LaboratoryAccessService.authorize_approval``
+    before they write.
     """
 
     if actor.status != "active":

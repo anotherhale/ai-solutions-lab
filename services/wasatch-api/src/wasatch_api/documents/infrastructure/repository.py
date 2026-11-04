@@ -1,9 +1,15 @@
-"""PostgreSQL adapter for document reads.
+"""PostgreSQL adapter for documents and extraction review.
 
-There is no write method. Extraction review is not recorded here.
+The review write records status, reviewer, time, and optional notes, then
+inserts one audit event. It does not change invoice or payment rows.
+``extracted_fields`` and ``invoice_id`` stay as stored. Audit events are
+insert-only.
 """
 
 from __future__ import annotations
+
+import uuid
+from datetime import datetime
 
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, selectinload
@@ -13,16 +19,23 @@ from wasatch_api.documents.domain.entities import (
     DocumentExtraction,
     DocumentVersion,
 )
+from wasatch_api.documents.domain.review import (
+    EXTRACTION_REVIEW_DECISIONS,
+    awaiting_review,
+)
 from wasatch_api.documents.infrastructure.mapping import (
     document_extraction_from_orm,
     document_from_orm,
     document_version_from_orm,
 )
 from wasatch_api.shared.database.models import (
+    AuditEventORM,
     DocumentExtractionORM,
     DocumentORM,
     DocumentVersionORM,
+    EmployeeORM,
 )
+from wasatch_api.shared.errors import InvalidParameterError, NotFoundError
 from wasatch_api.shared.pagination import PageRequest
 
 
@@ -149,6 +162,86 @@ class DocumentRepository:
             page,
             document_extraction_from_orm,
         )
+
+    def record_review_decision(
+        self,
+        extraction_id: str,
+        *,
+        actor_employee_id: str,
+        to_status: str,
+        reviewed_at: datetime,
+        note: str | None,
+    ) -> DocumentExtraction:
+        """Store one human decision and insert one audit row.
+
+        Invoice totals, payment status, ``extracted_fields``, and the
+        document's ``invoice_id`` are not updated.
+        """
+
+        if to_status not in EXTRACTION_REVIEW_DECISIONS:
+            raise InvalidParameterError(
+                f"unsupported document extraction decision: {to_status}"
+            )
+        row = self.session.scalar(
+            select(DocumentExtractionORM)
+            .options(*_extraction_options())
+            .where(DocumentExtractionORM.business_id == extraction_id)
+        )
+        if row is None:
+            raise NotFoundError(f"document extraction {extraction_id} was not found")
+        if not awaiting_review(row.status):
+            raise InvalidParameterError(
+                f"document extraction {extraction_id} is {row.status}"
+            )
+        employee = self.session.scalar(
+            select(EmployeeORM).where(EmployeeORM.business_id == actor_employee_id)
+        )
+        if employee is None:
+            raise NotFoundError(f"employee {actor_employee_id} was not found")
+
+        from_status = row.status
+        row.status = to_status
+        row.reviewed_by = employee
+        row.reviewed_by_employee_id = employee.id
+        row.reviewed_at = reviewed_at
+        if note is not None:
+            row.review_notes = note
+        row.updated_at = reviewed_at
+        audit = AuditEventORM(
+            id=uuid.uuid4(),
+            business_id=self._next_audit_business_id(),
+            occurred_at=reviewed_at,
+            actor_type="employee",
+            actor_employee_id=employee.id,
+            action="document_extraction.reviewed",
+            subject_type="document_extraction",
+            subject_id=row.business_id,
+            outcome="succeeded",
+            approval_request_id=None,
+            details={"from_status": from_status, "to_status": to_status},
+            actor_employee=employee,
+        )
+        self.session.add(audit)
+        try:
+            self.session.flush()
+            recorded = document_extraction_from_orm(row)
+            self.session.commit()
+        except Exception:
+            self.session.rollback()
+            raise
+        return recorded
+
+    def _next_audit_business_id(self) -> str:
+        business_ids = self.session.scalars(select(AuditEventORM.business_id)).all()
+        highest = 0
+        for business_id in business_ids:
+            suffix = business_id.removeprefix("aud_")
+            if business_id.startswith("aud_") and suffix.isdigit():
+                highest = max(highest, int(suffix))
+        nxt = highest + 1
+        if nxt > 9999:
+            raise InvalidParameterError("audit event identifiers are exhausted")
+        return f"aud_{nxt:04d}"
 
 
 def _document_summary_options():
