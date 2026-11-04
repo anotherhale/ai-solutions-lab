@@ -72,7 +72,7 @@ Mapped scope is the customer kernel plus the field slice required by those endpo
 
 ## Phase 2.2 — customer-service vertical slice
 
-**State: not started.** This is the next implementation priority.
+**State: in progress.** CS-1 (`047702e`) and CS-2 (`7760106`) are on `develop`. CS-3 persists roles and requires an authenticated synthetic employee before a write.
 
 Roadmap exit: a dispatcher or customer-service agent can review an inbound inquiry, inspect a suggested reply, and approve or reject it, using synthetic data.
 
@@ -118,7 +118,7 @@ services/wasatch-api/src/wasatch_api/
 
 Application services own the approval decision and the draft-reply use case. Routes stay thin. Prompts, model names, and the provider client stay in the AI adapter.
 
-Structured logs land with CS-3. Log the actor, action, subject identifier, and outcome. Omit message bodies, contact details, and secrets. OpenTelemetry export remains Phase 5.
+Structured logs use `APP_LOG_LEVEL`. Each access record has the actor, action, subject identifier, and outcome. Message bodies, contact details, and secrets stay out of the log. OpenTelemetry export remains Phase 5.
 
 ## Phase 3 — intelligent document processing
 

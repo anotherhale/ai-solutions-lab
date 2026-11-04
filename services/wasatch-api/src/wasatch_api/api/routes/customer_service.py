@@ -7,7 +7,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from wasatch_api.api.dependencies import customer_service_queries, db_session
+from wasatch_api.api.dependencies import (
+    customer_service_queries,
+    db_session,
+    require_laboratory_actor,
+)
 from wasatch_api.api.schemas import (
     InteractionOut,
     MessageOut,
@@ -17,7 +21,11 @@ from wasatch_api.api.schemas import (
 )
 from wasatch_api.customer_service.application.queries import CustomerServiceQueries
 
-router = APIRouter(prefix="/api/v1", tags=["customer-service"])
+router = APIRouter(
+    prefix="/api/v1",
+    tags=["customer-service"],
+    dependencies=[Depends(require_laboratory_actor)],
+)
 
 SessionDep = Annotated[Session, Depends(db_session)]
 

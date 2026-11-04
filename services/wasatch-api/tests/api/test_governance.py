@@ -103,9 +103,16 @@ def test_message_is_readable_with_its_approval_request(client: TestClient) -> No
 def test_no_approval_decision_can_be_recorded(client: TestClient) -> None:
     for method in ("post", "put", "patch", "delete"):
         response = getattr(client, method)("/api/v1/approval-requests/apr_0001")
-        assert response.status_code == 405
+        assert response.status_code == 403
+        assert response.json()["error"]["code"] == "forbidden"
     missing = client.post("/api/v1/approval-requests/apr_0001/decisions")
-    assert missing.status_code == 404
+    assert missing.status_code == 403
+    assert missing.json()["error"]["code"] == "forbidden"
+    current = client.get("/api/v1/approval-requests/apr_0001")
+    assert current.status_code == 200
+    assert current.json()["status"] == "pending"
+    spec = client.get("/openapi.json").json()
+    assert not any("decision" in path for path in spec["paths"])
 
 
 def test_list_audit_events_paginated(client: TestClient) -> None:
@@ -161,7 +168,10 @@ def test_filter_and_get_audit_events(client: TestClient) -> None:
 
 def test_governance_routes_are_read_only(client: TestClient) -> None:
     for path in ("/api/v1/approval-requests", "/api/v1/audit-events"):
-        assert client.post(path).status_code == 405
-        assert client.delete(path).status_code == 405
-    assert client.delete("/api/v1/audit-events/aud_0001").status_code == 405
-    assert client.patch("/api/v1/audit-events/aud_0001").status_code == 405
+        posted = client.post(path)
+        deleted = client.delete(path)
+        assert posted.status_code == 403
+        assert deleted.status_code == 403
+        assert posted.json()["error"]["code"] == "forbidden"
+    assert client.delete("/api/v1/audit-events/aud_0001").status_code == 403
+    assert client.patch("/api/v1/audit-events/aud_0001").status_code == 403

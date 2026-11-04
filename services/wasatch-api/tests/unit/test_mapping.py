@@ -20,11 +20,18 @@ from wasatch_api.shared.database.models import (
     EmployeeORM,
     InteractionORM,
     MessageORM,
+    RoleORM,
     ServiceLocationORM,
     SupportTicketORM,
+    TeamORM,
     WorkOrderORM,
 )
 from wasatch_api.work_orders.infrastructure.mapping import work_order_from_orm
+from wasatch_api.workforce.infrastructure.mapping import (
+    laboratory_actor_from_employee,
+    role_from_orm,
+    team_from_orm,
+)
 
 
 def test_customer_mapping_uses_business_id() -> None:
@@ -285,3 +292,52 @@ def test_audit_event_mapping_uses_business_ids() -> None:
     assert mapped.subject_id == "apr_0001"
     assert mapped.details == {"synthetic": True}
     assert not hasattr(mapped, "updated_at")
+
+
+def test_role_mapping_reads_is_approver_from_the_role() -> None:
+    now = datetime(2026, 1, 5, 14, 0, tzinfo=UTC)
+    role = RoleORM(
+        id=uuid.uuid4(),
+        business_id="role_0004",
+        name="Dispatcher",
+        department="dispatch",
+        is_approver=False,
+        description="Schedules technicians",
+        created_at=now,
+        updated_at=now,
+    )
+    employee = EmployeeORM(
+        id=uuid.uuid4(),
+        business_id="emp_0004",
+        status="active",
+        role=role,
+    )
+    mapped_role = role_from_orm(role)
+    actor = laboratory_actor_from_employee(employee)
+    assert mapped_role.id == "role_0004"
+    assert mapped_role.id != str(role.id)
+    assert mapped_role.is_approver is False
+    assert actor.employee_id == "emp_0004"
+    assert actor.role_id == "role_0004"
+    assert actor.is_approver is False
+    assert not hasattr(actor, "team_id")
+
+
+def test_team_mapping_uses_lead_business_id() -> None:
+    now = datetime(2026, 1, 5, 14, 10, tzinfo=UTC)
+    lead = EmployeeORM(id=uuid.uuid4(), business_id="emp_0010")
+    team = TeamORM(
+        id=uuid.uuid4(),
+        business_id="team_0001",
+        name="Field Crew A",
+        department="field_operations",
+        service_area="Salt Lake County",
+        lead_employee_id=lead.id,
+        created_at=now,
+        updated_at=now,
+        lead=lead,
+    )
+    mapped = team_from_orm(team)
+    assert mapped.id == "team_0001"
+    assert mapped.id != str(team.id)
+    assert mapped.lead_employee_id == "emp_0010"

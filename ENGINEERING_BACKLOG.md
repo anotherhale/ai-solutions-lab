@@ -71,7 +71,9 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 
 ### CS-2 — Read approval requests and audit events
 
-- Status: this pull request
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/8
+- Merge: `7760106`
 - Depends on: CS-1 (done, `047702e`), so seed and migration edits stay serial
 - Persist `approval_requests` and `audit_events` from the existing fixtures (10 approvals, 50 audit events).
 - Read-only routes. Audit storage is insert-only: the migration and the application expose no update or delete for `audit_events`.
@@ -80,8 +82,8 @@ Use `data/schemas/v1/` and `data/fixtures/valid/`. Extend the existing seed load
 
 ### CS-3 — Laboratory actor and approver role
 
-- Status: blocked on CS-2
-- Depends on: CS-2
+- Status: this pull request
+- Depends on: CS-2 (done, `7760106`)
 - Persist `roles` from `roles.json` and attach `employees.role_id` with a foreign key. `is_approver` comes from that role. Persist `teams` in the same change only if the employee foreign key is straightforward; team membership is not required to approve a message.
 - Add a local authentication adapter for synthetic employees. Default deny on writes. Reads of customer and employee data require an authenticated laboratory actor.
 - Keep the adapter inside the monolith. No Azure identity provider, no purchased identity service, and no production credentials.
@@ -146,12 +148,12 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 | Item | Where it shows up |
 |---|---|
-| Unauthenticated reads of synthetic customer and employee data | Current API. CS-3 closes this before writes. |
-| No structured logs | `APP_LOG_LEVEL` is unused. Add logging with CS-3, excluding message bodies and secrets. |
+| Unauthenticated reads of synthetic customer and employee data | Closed by CS-3. `/api/v1` reads require the `X-Laboratory-Actor` header. |
+| No structured logs | Closed by CS-3. `APP_LOG_LEVEL` configures JSON logs of actor, action, subject, and outcome. Message bodies and secrets are omitted. |
 | Thin HTTP contract tests | Status enums only. Each new route extends contract alignment. |
 | Downgrade is untested | Revision `0001` defines `downgrade`. New revisions include an upgrade test and a downgrade test when the downgrade is safe on the synthetic database. |
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py`. CI is protected by its service container. A later test change can fail closed when `WASATCH_DATABASE_URL` is set and the server is down. |
-| String foreign keys for invoices, roles, and teams | `DATABASE_MAPPING.md` |
+| String foreign key for invoices | `employees.role_id` and `employees.team_id` reference `roles` and `teams` as of CS-3. `work_orders.invoice_id` remains a string. |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
 | Starlette `TestClient` deprecation warning | pytest warning, 1 occurrence |
 | No Compose image smoke test in CI | API container is defined and was not started during the 2026-11-04 assessment |

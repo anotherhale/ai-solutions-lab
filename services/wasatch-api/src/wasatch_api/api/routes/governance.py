@@ -7,7 +7,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from wasatch_api.api.dependencies import db_session, governance_queries
+from wasatch_api.api.dependencies import (
+    db_session,
+    governance_queries,
+    require_laboratory_actor,
+)
 from wasatch_api.api.schemas import (
     ApprovalRequestOut,
     AuditEventOut,
@@ -15,7 +19,11 @@ from wasatch_api.api.schemas import (
 )
 from wasatch_api.governance.application.queries import GovernanceQueries
 
-router = APIRouter(prefix="/api/v1", tags=["governance"])
+router = APIRouter(
+    prefix="/api/v1",
+    tags=["governance"],
+    dependencies=[Depends(require_laboratory_actor)],
+)
 
 SessionDep = Annotated[Session, Depends(db_session)]
 

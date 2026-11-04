@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 import pytest
 from sqlalchemy import inspect, text
@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 from wasatch_api.config import REPO_ROOT
-from wasatch_api.shared.database.models import MessageORM, WorkOrderORM
+from wasatch_api.shared.database.models import EmployeeORM, MessageORM, WorkOrderORM
 from wasatch_api.shared.seed import SeedError, seed_valid_fixtures
 
 
@@ -42,6 +42,8 @@ def test_expected_tables_exist(engine: Engine) -> None:
         "approval_requests",
         "approval_decision_history",
         "audit_events",
+        "roles",
+        "teams",
         "alembic_version",
     }
     assert expected <= names
@@ -75,6 +77,14 @@ def test_seed_is_idempotent(seeded_engine: Engine) -> None:
     assert second["audit_event"]["created"] == 0
     assert second["audit_event"]["updated"] == 0
     assert second["audit_event"]["skipped"] == 50
+    assert first["role"]["created"] == 0
+    assert first["role"]["updated"] == 12
+    assert first["team"]["created"] == 0
+    assert first["team"]["updated"] == 5
+    assert second["role"]["created"] == 0
+    assert second["role"]["updated"] == 12
+    assert second["team"]["created"] == 0
+    assert second["team"]["updated"] == 5
 
 
 def test_seed_rejects_quality_issues(db_session: Session) -> None:
@@ -99,6 +109,30 @@ def test_foreign_key_is_enforced(db_session: Session) -> None:
         updated_at=datetime.now(tz=UTC),
     )
     db_session.add(work_order)
+    with pytest.raises(IntegrityError):
+        db_session.flush()
+    db_session.rollback()
+
+
+def test_employee_role_foreign_key_is_enforced(db_session: Session) -> None:
+    now = datetime.now(tz=UTC)
+    employee = EmployeeORM(
+        id=uuid.uuid4(),
+        business_id="emp_9999",
+        employee_number="E-9999",
+        first_name="No",
+        last_name="Role",
+        email="no.role@wasatch-business-systems.test",
+        role_id=uuid.uuid4(),
+        department="dispatch",
+        job_title="Dispatcher",
+        status="active",
+        hire_date=date(2026, 1, 1),
+        certifications=[],
+        created_at=now,
+        updated_at=now,
+    )
+    db_session.add(employee)
     with pytest.raises(IntegrityError):
         db_session.flush()
     db_session.rollback()
@@ -174,3 +208,45 @@ def test_seeded_counts_match_slice(db_session: Session) -> None:
     assert decisions == 11
     assert audits == 50
     assert pending_message == "apr_0001"
+    roles = db_session.execute(text("SELECT count(*) FROM roles")).scalar()
+    teams = db_session.execute(text("SELECT count(*) FROM teams")).scalar()
+    approver = db_session.execute(
+        text(
+            """
+            SELECT roles.is_approver
+            FROM employees
+            JOIN roles ON roles.id = employees.role_id
+            WHERE employees.business_id = 'emp_0001'
+            """
+        )
+    ).scalar()
+    dispatcher = db_session.execute(
+        text(
+            """
+            SELECT roles.business_id, roles.is_approver, teams.business_id
+            FROM employees
+            JOIN roles ON roles.id = employees.role_id
+            LEFT JOIN teams ON teams.id = employees.team_id
+            WHERE employees.business_id = 'emp_0004'
+            """
+        )
+    ).one()
+    lead = db_session.execute(
+        text(
+            """
+            SELECT employees.business_id
+            FROM teams
+            JOIN employees ON employees.id = teams.lead_employee_id
+            WHERE teams.business_id = 'team_0001'
+            """
+        )
+    ).scalar()
+    manager_team = db_session.execute(
+        text("SELECT team_id FROM employees WHERE business_id = 'emp_0001'")
+    ).scalar()
+    assert roles == 12
+    assert teams == 5
+    assert approver is True
+    assert tuple(dispatcher) == ("role_0004", False, "team_0003")
+    assert lead == "emp_0010"
+    assert manager_team is None

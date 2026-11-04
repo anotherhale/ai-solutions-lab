@@ -25,6 +25,8 @@ No production environment has been deployed. The absence of running services doe
 - Separate read paths from paths that can change schedules, invoices, or customer communications.
 - Do not give AI tools more authority than the user who invoked them.
 
+The laboratory API applies those rules inside the monolith. A caller presents a synthetic employee business id in the `X-Laboratory-Actor` header. The local adapter loads that active employee and the role's `is_approver` flag. It stores no password, and it is not an Azure identity provider or a purchased identity service. Reads under `/api/v1` require that actor. Writes are denied unless a later command explicitly allows the actor. An approval decision requires `is_approver` on the role. Team membership is not that authority. The decision command itself is a later change.
+
 ## Sensitive Business Information
 
 Wasatch Business Systems data is synthetic, but it must be handled as if it were real SMB data.
