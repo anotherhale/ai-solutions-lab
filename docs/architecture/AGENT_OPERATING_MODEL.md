@@ -28,7 +28,7 @@ Never merge to `main`. Never force-push `main` or `develop`. A normal fast-forwa
 
 Repository branch prefixes in [../DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) remain the human convention: `feature/`, `fix/`, `docs/`, `chore/`, `adr/`. Cloud-agent branches in this program use the `cursor/` prefix required by the agent runtime, still based on `develop`.
 
-[../DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) still tells contributors to open pull requests against `main`. That sentence is stale. Until DOC-1 updates it, follow this file: the pull request base is `develop`.
+[../DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) sends pull requests to `develop` and keeps `main` as the production branch. Do not force-push either branch.
 
 ## Pull request gate
 
@@ -42,18 +42,13 @@ A pull request is ready to merge only when all of these are true:
 
 Merge method on `develop` is squash, and only after that gate. Agents do not merge their own pull requests.
 
-Direct pushes to `develop` or `main` are not the contribution path. CI currently runs on pull requests and on pushes to `main`. CI-1 adds `develop` to the push trigger so the integration branch is checked after merge. Do not remove or relax existing jobs while doing that.
+Direct pushes to `develop` or `main` are not the contribution path. CI runs on pull requests and on pushes to `main` and `develop`. Do not remove or relax existing jobs.
 
 ## One change at a time
 
-Inspect open pull requests before editing. On 2026-11-04 the in-progress change is:
+Inspect open pull requests before editing.
 
-- Pull request https://github.com/anotherhale/ai-solutions-lab/pull/2
-- Branch `cursor/pin-ruff-0-17-3-6c1a`
-- Pins Ruff to 0.17.3 in development dependencies, the Actions install, and the README command
-- Describes a separate Cursor cloud environment install so system Python can import Ruff
-
-Do not repeat that pin. Do not retarget or rewrite that branch from another task.
+Pull request https://github.com/anotherhale/ai-solutions-lab/pull/2 merged as `ec6465f` and pinned Ruff to 0.17.3. Do not open a second change for that pin. The cloud environment install described there is separate from the git diff.
 
 `cursor/wasatch-pytest-db-url-de06` matches the `develop` tree. There is nothing on it to port.
 
@@ -95,10 +90,9 @@ A documentation-only change still runs the validators that the repository alread
 
 After this planning set:
 
-1. Leave RUFF-1 on its existing pull request.
-2. DOC-1, CI-1, and ADR-1 may proceed as small documentation and workflow changes.
-3. The first application change is CS-1 from the backlog. Phase 2.1.1 is already implemented.
-4. Later phases follow [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
+1. RUFF-1, CI-1, ADR-1, and DOC-1 are done.
+2. The first application change is CS-1 from the backlog. Phase 2.1.1 is already implemented.
+3. Later phases follow [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
 
 ## Honest completion
 

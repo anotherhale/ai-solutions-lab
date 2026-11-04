@@ -142,6 +142,13 @@ uvicorn wasatch_api.main:app --reload
 
 The 90-day plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering workflow is in [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md). Security principles are in [docs/SECURITY.md](docs/SECURITY.md).
 
+Verified status, ordered work, the implementation plan, and the agent operating model:
+
+- [PROJECT_STATUS.md](PROJECT_STATUS.md)
+- [ENGINEERING_BACKLOG.md](ENGINEERING_BACKLOG.md)
+- [docs/architecture/IMPLEMENTATION_PLAN.md](docs/architecture/IMPLEMENTATION_PLAN.md)
+- [docs/architecture/AGENT_OPERATING_MODEL.md](docs/architecture/AGENT_OPERATING_MODEL.md)
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).

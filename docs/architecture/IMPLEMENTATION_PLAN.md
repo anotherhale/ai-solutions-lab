@@ -152,9 +152,9 @@ These are wording drift, not competing designs:
 
 | Location | Drift | Resolution |
 |---|---|---|
-| `docs/architecture/README.md` | Says no runtime modules exist | DOC-1. The host exists. |
-| `docs/DEVELOPMENT_WORKFLOW.md` | Says open pull requests against `main` | DOC-1. Integration is `develop`. |
-| ADR 0001 | Still Proposed after the host landed | ADR-1. Mark Accepted. The decision text stays. |
-| `.github/workflows/validate.yml` | Push trigger lists `main` only | CI-1. Also run on `develop`. |
+| `docs/architecture/README.md` | Said no runtime modules exist | Closed by DOC-1. The host is `services/wasatch-api`. |
+| `docs/DEVELOPMENT_WORKFLOW.md` | Said open pull requests against `main` | Closed by DOC-1. Integration is `develop`. |
+| ADR 0001 | Was Proposed after the host landed | Closed by ADR-1 (`c18ad80`). Status is Accepted. |
+| `.github/workflows/validate.yml` | Push trigger listed `main` only | Closed by CI-1 (`ecd3015`). Pushes to `develop` run the workflow. |
 
 No ADR is superseded by this plan.

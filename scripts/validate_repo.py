@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parent.parent
 REQUIRED_FILES = (
     "AGENTS.md",
     "README.md",
+    "PROJECT_STATUS.md",
+    "ENGINEERING_BACKLOG.md",
     "LICENSE",
     ".gitignore",
     ".editorconfig",
@@ -28,6 +30,8 @@ REQUIRED_FILES = (
     "docs/architecture/DATA_CONTRACTS.md",
     "docs/architecture/DATABASE_MAPPING.md",
     "docs/architecture/API_CONVENTIONS.md",
+    "docs/architecture/IMPLEMENTATION_PLAN.md",
+    "docs/architecture/AGENT_OPERATING_MODEL.md",
     "compose.yaml",
     "services/wasatch-api/pyproject.toml",
     ".github/workflows/validate.yml",

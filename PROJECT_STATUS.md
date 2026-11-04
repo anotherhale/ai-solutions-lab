@@ -18,13 +18,15 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 `main` is the production branch. Work integrates on `develop`. Merges to `main` are out of scope for laboratory agents.
 
+That relationship was true at `881cfc0`. `develop` later received the Ruff pin (`ec6465f`), the `develop` CI trigger (`ecd3015`), ADR 0001 acceptance (`c18ad80`), and this planning set (`6cb587a`).
+
 ## Remote branches observed
 
 | Branch | Tip | Notes |
 |---|---|---|
-| `main` | `881cfc0` | Production branch. Same commit as `develop`. |
-| `develop` | `881cfc0` | Integration branch. |
-| `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Open pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) into `develop`. Pins Ruff 0.17.3. In progress. Do not copy that change. |
+| `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
+| `develop` | `881cfc0` | Integration branch at the assessment. Later merges are under Current work. |
+| `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
 
 ## Completed milestones
@@ -71,9 +73,11 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 
 | Item | State |
 |---|---|
-| This planning set | Documentation only. No application code in this change. |
-| Ruff 0.17.3 pin | In progress on pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2), branch `cursor/pin-ruff-0-17-3-6c1a`, base `develop`. Root and service dev extras, the Actions install, and the README command. The pull request also describes a separate Cursor cloud environment install so `python3 -m ruff` works. This assessment did not edit those files and did not change environment configuration. |
-| Phase 2.2 customer-service slice | Not started. Next implementation priority after the planning documents. |
+| This planning set | Documentation only. No application code in this change. Merged as pull request [#3](https://github.com/anotherhale/ai-solutions-lab/pull/3) (`6cb587a`). |
+| RUFF-1 Ruff 0.17.3 pin | Done. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) merged as `ec6465f`. Root and service dev extras, the Actions install, and the README command pin `ruff==0.17.3`. |
+| CI-1 develop push trigger | Done. Pull request [#4](https://github.com/anotherhale/ai-solutions-lab/pull/4) merged as `ecd3015`. `.github/workflows/validate.yml` runs on pushes to `main` and `develop`. Existing jobs stayed in place. |
+| ADR-1 modular host | Done. Pull request [#5](https://github.com/anotherhale/ai-solutions-lab/pull/5) merged as `c18ad80`. ADR 0001 is Accepted. |
+| Phase 2.2 customer-service slice | Not started. Next implementation priority is CS-1. |
 
 ## Not implemented
 
@@ -89,7 +93,7 @@ These items are absent. Later documents must not describe them as running:
 - Persistence for roles, teams, invoices, payments, documents, tickets, messages, interactions, approvals, and audit events
 - File bytes for documents (`data/documents/` is a placeholder; version rows point at synthetic `storage_path` values only)
 
-ADR status in `docs/adr/README.md`: 0002, 0003, and 0005 are Accepted. 0001 and 0004 are Proposed. ADR 0001 still says it stays Proposed until a modular host exists. The host now exists, and the ADR text has not been updated. That is a documentation follow-up, not a new architecture decision. ADR 0004 stays Proposed until a port and adapter exist.
+ADR status in `docs/adr/README.md`: 0001, 0002, 0003, and 0005 are Accepted. ADR 0001 was accepted in pull request [#5](https://github.com/anotherhale/ai-solutions-lab/pull/5) (`c18ad80`): `services/wasatch-api` is the host, one process, and the customer and work-order modules are the first packages. ADR 0004 stays Proposed until a port and adapter exist.
 
 ## Phase 2.1.1 residuals
 
@@ -101,10 +105,6 @@ These are gaps inside an implemented slice. They are not a reason to recreate th
 - The read API has no authentication. `docs/SECURITY.md` requires least-privilege authorization before customer and employee data are exposed beyond the laboratory. The current process is a local synthetic slice.
 - No application logger is configured. `APP_LOG_LEVEL` is accepted and unused.
 - `work_orders.support_ticket_id` and `work_orders.invoice_id` are strings. `employees.role_id` and `employees.team_id` are strings. Foreign keys wait for those tables.
-- Actions `push` runs on `main` only. `pull_request` has no branch filter, so pull requests into `develop` run the workflow. A direct push to `develop` does not.
-- `docs/architecture/README.md` still says no runtime modules exist.
-- `docs/DEVELOPMENT_WORKFLOW.md` still says to open pull requests against `main`. The operating model in this change uses `develop`.
-- `scripts/validate_repo.py` does not yet require this status file or the plan documents.
 
 ## Verification in this session
 
@@ -162,4 +162,4 @@ Domain validator counts:
 
 Pytest used the Compose PostgreSQL service and created the `wasatch_test` database. Routes were exercised with FastAPI `TestClient`. This session did not start the API container, did not call a live uvicorn process, did not run `alembic downgrade`, and did not observe a GitHub Actions run.
 
-`python3 -m ruff` fails on this machine because system Python does not have Ruff installed. The `ruff` executable on `PATH` is 0.17.3. Pull request #2 is the in-progress fix for the system-interpreter install. The unpinned constraint still in `develop` is `ruff>=0.8,<1`.
+Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) merged as `ec6465f` and pinned Ruff to 0.17.3 in the root and service dev extras, the Actions install, and the README command. The cloud environment install described in that pull request is separate from the git diff.
