@@ -4,6 +4,8 @@ The HTTP surface is the FastAPI service `services/wasatch-api`.
 
 OpenAPI is available at `/docs` when the process is running. `/health`, `/health/ready`, and the OpenAPI documents do not require an actor.
 
+The published paths and methods for this slice are checked in CI against `services/wasatch-api/tests/api/openapi_contract_catalog.py`. Update that catalog when you add or change a route.
+
 ## Laboratory actor
 
 Local synthetic development simulates a caller with a request header. There is no password and no identity provider. The header is not authentication.
