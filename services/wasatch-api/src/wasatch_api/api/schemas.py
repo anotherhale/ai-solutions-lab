@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from wasatch_api.customer_service.domain.entities import (
     Interaction,
     Message,
     SupportTicket,
+)
+from wasatch_api.customer_service.domain.retrieval import (
+    HistoryPassage,
+    ProcedurePage,
+    RetrievalResult,
 )
 from wasatch_api.customers.domain.entities import (
     Address,
@@ -644,6 +651,62 @@ class InteractionOut(BaseModel):
             contact_id=interaction.contact_id,
             support_ticket_id=interaction.support_ticket_id,
             work_order_id=interaction.work_order_id,
+        )
+
+
+class HistoryPassageOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source: str
+    source_id: str
+    text: str
+
+    @classmethod
+    def from_domain(cls, passage: HistoryPassage) -> HistoryPassageOut:
+        return cls(
+            source=passage.source,
+            source_id=passage.source_id,
+            text=passage.text,
+        )
+
+
+class ProcedurePageOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    title: str
+    path: str
+    text: str
+    synthetic: Literal[True]
+
+    @classmethod
+    def from_domain(cls, page: ProcedurePage) -> ProcedurePageOut:
+        return cls(
+            id=page.id,
+            title=page.title,
+            path=page.path,
+            text=page.text,
+            synthetic=page.synthetic,
+        )
+
+
+class TicketRetrievalOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    support_ticket_id: str
+    customer_id: str
+    history: list[HistoryPassageOut]
+    procedures: list[ProcedurePageOut]
+
+    @classmethod
+    def from_domain(cls, result: RetrievalResult) -> TicketRetrievalOut:
+        return cls(
+            support_ticket_id=result.support_ticket_id,
+            customer_id=result.customer_id,
+            history=[HistoryPassageOut.from_domain(item) for item in result.history],
+            procedures=[
+                ProcedurePageOut.from_domain(item) for item in result.procedures
+            ],
         )
 
 

@@ -39,7 +39,7 @@ flowchart LR
     AIPorts -.-> OpenAI["OpenAI Adapter (future)"]
 ```
 
-Customer-service, document, workflow, knowledge, sales, and BI modules remain planned packages. The current host exposes health, customer, service-location, and work-order read APIs only.
+Customer-service reads, governance reads, and ticket retrieval are in the host. Document processing, workflow automation, knowledge search beyond the synthetic procedure corpus, sales, and BI remain planned. The host does not call a model and does not store embedding columns.
 
 ## Architectural Principles
 

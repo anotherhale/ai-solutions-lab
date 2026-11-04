@@ -3,5 +3,17 @@ from wasatch_api.customer_service.domain.entities import (
     Message,
     SupportTicket,
 )
+from wasatch_api.customer_service.domain.retrieval import (
+    HistoryPassage,
+    ProcedurePage,
+    RetrievalResult,
+)
 
-__all__ = ["Interaction", "Message", "SupportTicket"]
+__all__ = [
+    "HistoryPassage",
+    "Interaction",
+    "Message",
+    "ProcedurePage",
+    "RetrievalResult",
+    "SupportTicket",
+]

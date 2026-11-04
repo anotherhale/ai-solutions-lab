@@ -69,6 +69,7 @@ Defaults: `page=1`, `page_size=20`, maximum `page_size=100`. Ordering is by busi
 | GET | `/api/v1/work-orders/{work_order_id}` | Work order plus tasks, appointments, equipment |
 | GET | `/api/v1/support-tickets` | Filter by customer, status, location, employee |
 | GET | `/api/v1/support-tickets/{ticket_id}` | Ticket plus messages |
+| GET | `/api/v1/support-tickets/{ticket_id}/retrieval` | That customer's history and matching procedure pages |
 | GET | `/api/v1/messages` | Filter by ticket or message status |
 | GET | `/api/v1/messages/{message_id}` | One ticket message |
 | GET | `/api/v1/interactions` | Filter by customer or ticket |
@@ -79,6 +80,31 @@ Defaults: `page=1`, `page_size=20`, maximum `page_size=100`. Ordering is by busi
 | GET | `/api/v1/audit-events/{audit_event_id}` | One audit event |
 
 A message that references an approval includes that approval request on the message payload. There is no route that records an approval decision, and there is no write route for audit events. An authenticated write receives `403`. An anonymous write receives `401`.
+
+`GET /api/v1/support-tickets/{ticket_id}/retrieval` is read-only and requires `X-Laboratory-Actor`. History is that ticket's customer only, ordered by source (`support_ticket`, `message`, `interaction`, `work_order`) and then business id. Procedure pages are the synthetic files under `data/documents/procedures/` whose text shares a content word with the ticket subject and message bodies. The route does not call a model.
+
+```json
+{
+  "support_ticket_id": "tkt_0015",
+  "customer_id": "cust_0011",
+  "history": [
+    {
+      "source": "message",
+      "source_id": "msg_0015",
+      "text": "Please send a technician. Rooftop unit is down."
+    }
+  ],
+  "procedures": [
+    {
+      "id": "proc_0001",
+      "title": "Rooftop unit is down",
+      "path": "rooftop-unit-down.txt",
+      "text": "Synthetic laboratory procedure for Wasatch Business Systems.",
+      "synthetic": true
+    }
+  ]
+}
+```
 
 CORS is off unless `CORS_ORIGINS` is set. When it is set, allowed headers include `X-Laboratory-Actor`.
 
@@ -98,6 +124,8 @@ curl -s -H 'X-Laboratory-Actor: emp_0001' \
   http://localhost:8000/api/v1/work-orders/wo_0004
 curl -s -H 'X-Laboratory-Actor: emp_0001' \
   http://localhost:8000/api/v1/support-tickets/tkt_0007
+curl -s -H 'X-Laboratory-Actor: emp_0001' \
+  http://localhost:8000/api/v1/support-tickets/tkt_0015/retrieval
 curl -s -H 'X-Laboratory-Actor: emp_0001' \
   'http://localhost:8000/api/v1/messages?support_ticket_id=tkt_0007'
 curl -s -H 'X-Laboratory-Actor: emp_0001' \

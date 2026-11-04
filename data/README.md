@@ -8,6 +8,6 @@ Synthetic laboratory data only.
 | `fixtures/valid/` | Internally consistent sample dataset |
 | `fixtures/quality-issues/` | Deliberate defects, not valid business data |
 | `seed/` | Reserved for future database seed files derived from fixtures |
-| `documents/` | Reserved for sample file bytes used in document processing |
+| `documents/` | Synthetic procedure pages for retrieval. Document-version blobs are not stored here |
 
 Do not add real customer, employee, or financial files. See [../docs/architecture/DATA_CONTRACTS.md](../docs/architecture/DATA_CONTRACTS.md).
