@@ -6,9 +6,11 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PATH="${HOME}/.local/bin:${PATH}"
 
 if [[ -z "${DEVELOPMENT_OPS_RUN_ID:-}" ]]; then
-  export DEVELOPMENT_OPS_RUN_ID="$(uuidgen)"
+  export DEVELOPMENT_OPS_RUN_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
 fi
 
-python3 "${ROOT}/scripts/prepare_development_ops_database.py" >/dev/null
+PYTHON="${ROOT}/services/wasatch-api/.venv/bin/python"
+if [[ ! -x "${PYTHON}" ]]; then PYTHON=python3; fi
+"${PYTHON}" "${ROOT}/scripts/prepare_development_ops_database.py" >/dev/null
 
 exec development-ops-record coordinator tick "$@"

@@ -32,6 +32,7 @@ class CoordinatorTickResult:
     recovery: bool
     selected_task_id: str | None
     selected_task_title: str | None
+    skipped_duplicate: bool
     active_tasks: int
     open_pull_requests: tuple[int, ...]
     auto_merge_attempts: tuple[AutoMergeAttempt, ...]
@@ -116,6 +117,7 @@ class CoordinatorEngine:
         resume_task_id = os.environ.get("DEVELOPMENT_OPS_TASK_ID", "").strip()
         selected_id: str | None = None
         selected_title: str | None = None
+        skipped_duplicate = False
         if resume_task_id:
             resume_view = next(
                 (view for view in views if view.task_id == resume_task_id),
@@ -134,14 +136,33 @@ class CoordinatorEngine:
             active_count=active_count,
         )
         if selected_id is None and decision.task is not None:
-            selected_id = decision.task.task_id
-            selected_title = decision.task.title
-            self._tasks.mark_in_progress(
-                selected_id,
-                run_id=self._run_id,
-                owner_agent=os.environ.get("DEVELOPMENT_OPS_AGENT_NAME", "coordinator"),
-            )
-            self._record_scheduled(selected_id, selected_title)
+            existing = self._tasks.get(decision.task.task_id)
+            if (
+                existing is not None
+                and existing.status
+                in {
+                    RuntimeTaskStatus.IN_PROGRESS.value,
+                    RuntimeTaskStatus.PR_OPEN.value,
+                }
+                and existing.active_run_id != self._run_id
+                and os.environ.get("DEVELOPMENT_OPS_RECLAIM_STALE") != "1"
+            ):
+                skipped_duplicate = True
+                notes.append(
+                    f"skipped duplicate assignment for {decision.task.task_id} "
+                    f"(owned by run {existing.active_run_id})"
+                )
+            else:
+                selected_id = decision.task.task_id
+                selected_title = decision.task.title
+                self._tasks.mark_in_progress(
+                    selected_id,
+                    run_id=self._run_id,
+                    owner_agent=os.environ.get(
+                        "DEVELOPMENT_OPS_AGENT_NAME", "coordinator"
+                    ),
+                )
+                self._record_scheduled(selected_id, selected_title)
         elif selected_id is not None and resume_task_id:
             self._record_recovery_only(selected_id, notes)
             return CoordinatorTickResult(
@@ -149,6 +170,7 @@ class CoordinatorEngine:
                 recovery=True,
                 selected_task_id=selected_id,
                 selected_task_title=selected_title,
+                skipped_duplicate=skipped_duplicate,
                 active_tasks=active_count,
                 open_pull_requests=tuple(open_prs),
                 auto_merge_attempts=tuple(auto_attempts),
@@ -172,6 +194,7 @@ class CoordinatorEngine:
             recovery=True,
             selected_task_id=selected_id,
             selected_task_title=selected_title,
+            skipped_duplicate=skipped_duplicate,
             active_tasks=active_count,
             open_pull_requests=tuple(open_prs),
             auto_merge_attempts=tuple(auto_attempts),

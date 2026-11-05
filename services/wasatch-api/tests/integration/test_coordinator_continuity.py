@@ -67,9 +67,29 @@ def _reset_coordinator_tables(ops_engine: Engine) -> None:
 
 @pytest.fixture
 def ops_engine() -> Engine:
-    from sqlalchemy import create_engine
+    from sqlalchemy import create_engine, text
 
     url = ensure_development_ops_database(wasatch_development_ops_database_url_for_tests())
+    from sqlalchemy.engine import make_url
+
+    parsed = make_url(url)
+    target = parsed.database or "wasatch_development_ops"
+    admin = create_engine(
+        parsed.set(database="wasatch"),
+        isolation_level="AUTOCOMMIT",
+    )
+    with admin.connect() as connection:
+        connection.execute(
+            text(
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+                "WHERE datname = :name AND pid <> pg_backend_pid()"
+            ),
+            {"name": target},
+        )
+        connection.execute(text(f'DROP DATABASE IF EXISTS "{target}"'))
+        connection.execute(text(f'CREATE DATABASE "{target}"'))
+    admin.dispose()
+    ensure_development_ops_database(url)
     os.environ["DEVELOPMENT_OPS_DATABASE_URL"] = url
     os.environ["WASATCH_DATABASE_URL"] = url
     from alembic import command

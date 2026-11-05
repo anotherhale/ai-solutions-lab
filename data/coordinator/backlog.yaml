@@ -35,5 +35,7 @@ tasks:
 
   - id: DOC-COORD-1
     title: Coordinator continuity operating documentation
-    status: pending
+    status: in_progress
     depends_on: []
+    branch: cursor/coordinator-continuity-ef97
+    pr_number: 37
