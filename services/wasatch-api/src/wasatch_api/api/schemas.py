@@ -29,7 +29,7 @@ from wasatch_api.documents.domain.entities import (
     DocumentExtraction,
     DocumentVersion,
 )
-from wasatch_api.finance.domain.entities import Invoice, InvoiceLine, Money
+from wasatch_api.finance.domain.entities import Invoice, InvoiceLine, Money, Payment
 from wasatch_api.governance.domain.entities import (
     ApprovalDecision,
     ApprovalRequest,
@@ -955,6 +955,38 @@ class MoneyOut(BaseModel):
     @classmethod
     def from_domain(cls, money: Money) -> MoneyOut:
         return cls(amount=f"{money.amount:.2f}", currency=money.currency)
+
+
+class PaymentOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    invoice_id: str
+    amount: MoneyOut
+    method: str
+    status: str
+    received_on: str
+    reference: str | None
+    received_by_employee_id: str | None
+    notes: str | None
+    created_at: str
+    updated_at: str
+
+    @classmethod
+    def from_domain(cls, payment: Payment) -> PaymentOut:
+        return cls(
+            id=payment.id,
+            invoice_id=payment.invoice_id,
+            amount=MoneyOut.from_domain(payment.amount),
+            method=payment.method,
+            status=payment.status,
+            received_on=dump_date(payment.received_on),
+            reference=payment.reference,
+            received_by_employee_id=payment.received_by_employee_id,
+            notes=payment.notes,
+            created_at=dump_datetime(payment.created_at),
+            updated_at=dump_datetime(payment.updated_at),
+        )
 
 
 class InvoiceLineOut(BaseModel):

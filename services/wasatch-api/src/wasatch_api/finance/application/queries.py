@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from wasatch_api.finance.domain.entities import Invoice, InvoiceLine
+from wasatch_api.finance.domain.entities import Invoice, InvoiceLine, Payment
 from wasatch_api.finance.infrastructure.repository import InvoiceRepository
 from wasatch_api.shared.errors import NotFoundError
 from wasatch_api.shared.pagination import (
@@ -10,6 +10,8 @@ from wasatch_api.shared.pagination import (
     parse_page,
     validate_invoice_line_type,
     validate_invoice_status,
+    validate_payment_method,
+    validate_payment_status,
 )
 
 
@@ -63,3 +65,27 @@ class InvoiceQueries:
         if line is None:
             raise NotFoundError(f"invoice line {invoice_line_id} was not found")
         return line
+
+    def list_payments(
+        self,
+        *,
+        page: int | None,
+        page_size: int | None,
+        invoice_id: str | None,
+        status: str | None,
+        method: str | None,
+    ) -> tuple[list[Payment], int, PageRequest]:
+        request = parse_page(page, page_size)
+        items, total = self.repository.list_payments(
+            request,
+            invoice_id=invoice_id,
+            status=validate_payment_status(status),
+            method=validate_payment_method(method),
+        )
+        return items, total, request
+
+    def get_payment(self, payment_id: str) -> Payment:
+        payment = self.repository.get_payment_by_business_id(payment_id)
+        if payment is None:
+            raise NotFoundError(f"payment {payment_id} was not found")
+        return payment
