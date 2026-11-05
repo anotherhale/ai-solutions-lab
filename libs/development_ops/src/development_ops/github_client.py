@@ -150,13 +150,14 @@ class GhCliGitHubClient:
           }
         }
         """
+        # gh passes GraphQL variables as individual -f key=value fields, not a JSON blob.
         result = self._run(
             "api",
             "graphql",
             "-f",
             f"query={mutation}",
             "-f",
-            f"variables={json.dumps({'id': node_id})}",
+            f"id={node_id}",
         )
         raw = (result.stdout or "") + (result.stderr or "")
         if result.returncode != 0:

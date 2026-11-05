@@ -27,6 +27,8 @@ def _heal_stale_coordinator_revision(url: str, config: Config) -> None:
         has_coordinator = "coordinator_tasks" in inspector.get_table_names(
             schema="development_ops"
         )
+        if "alembic_version" not in inspector.get_table_names():
+            return
         with engine.connect() as connection:
             version = connection.execute(
                 text("SELECT version_num FROM alembic_version")
