@@ -15,23 +15,21 @@ tasks:
     depends_on: []
 
   - id: FIN-2
-    title: Read-only invoice line routes (Alembic 0010 on feature branch)
-    status: in_progress
+    title: Read-only invoice line routes (Alembic 0010)
+    status: merged
+    merge_commit: 7ed13ec
     depends_on: [FIN-1]
-    pr_number: 34
-    branch: cursor/fin-2-invoice-lines-read-513c
 
   - id: FIN-3
     title: Read-only payment routes
-    status: in_progress
+    status: merged
+    merge_commit: b0d9c3c
     depends_on: [FIN-2]
-    pr_number: 35
-    branch: cursor/fin-3-payments-read-513c
 
-  - id: FIN-4
-    title: Persist invoice lines table (follow-on after FIN-2 merge)
+  - id: STATUS-1
+    title: Refresh PROJECT_STATUS after FIN-2 and FIN-3 merge
     status: pending
-    depends_on: [FIN-2]
+    depends_on: [FIN-3]
 
   - id: DOC-COORD-1
     title: Coordinator continuity operating documentation
