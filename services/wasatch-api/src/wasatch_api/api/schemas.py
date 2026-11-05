@@ -29,7 +29,7 @@ from wasatch_api.documents.domain.entities import (
     DocumentExtraction,
     DocumentVersion,
 )
-from wasatch_api.finance.domain.entities import Invoice
+from wasatch_api.finance.domain.entities import Invoice, InvoiceLine, Money
 from wasatch_api.governance.domain.entities import (
     ApprovalDecision,
     ApprovalRequest,
@@ -943,7 +943,48 @@ class InvoiceListItemOut(BaseModel):
 
 
 class InvoiceDetailOut(InvoiceListItemOut):
-    """Detail matches list fields until money columns are persisted."""
+    """Invoice header fields without line totals."""
+
+
+class MoneyOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    amount: str
+    currency: str
+
+    @classmethod
+    def from_domain(cls, money: Money) -> MoneyOut:
+        return cls(amount=f"{money.amount:.2f}", currency=money.currency)
+
+
+class InvoiceLineOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    invoice_id: str
+    work_order_id: str | None
+    description: str
+    quantity: float
+    unit_price: MoneyOut
+    line_total: MoneyOut
+    line_type: str
+    created_at: str
+    updated_at: str
+
+    @classmethod
+    def from_domain(cls, line: InvoiceLine) -> InvoiceLineOut:
+        return cls(
+            id=line.id,
+            invoice_id=line.invoice_id,
+            work_order_id=line.work_order_id,
+            description=line.description,
+            quantity=float(line.quantity),
+            unit_price=MoneyOut.from_domain(line.unit_price),
+            line_total=MoneyOut.from_domain(line.line_total),
+            line_type=line.line_type,
+            created_at=dump_datetime(line.created_at),
+            updated_at=dump_datetime(line.updated_at),
+        )
 
 
 class PageOut[T](BaseModel):

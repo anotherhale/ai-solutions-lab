@@ -238,7 +238,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Thin HTTP contract tests | Closed. `tests/api/test_openapi_contract.py` and `openapi_contract_catalog.py` assert the full slice path/method catalog, write-route methods, decision enums, and runtime error envelopes. `tests/unit/test_contract_alignment.py` still aligns JSON Schema status enums. |
 | Downgrade is untested | Closed for revisions `0001`–`0008`. Matrix in `services/wasatch-api/tests/integration/README.md`. Each revision has an integration upgrade/downgrade test, including `test_initial_migration.py` for revision `0001` and `test_invoice_migration.py` for revision `0008`. |
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py` still skips a local run when PostgreSQL is down. CI fails that skip. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` rejects a run that did not execute the database tests. |
-| String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Read routes for persisted invoice rows close the ORM slice for reference data; money columns and payments stay fixture-only until a later migration. |
+| String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Invoice lines are persisted in revision `0010` with read routes; payments stay fixture-only until a later migration. |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
 | Starlette `TestClient` deprecation warning | Closed. Starlette 1.10 uses `anyio.from_thread.BlockingPortal`. `anyio>=4.8.0,<5` matches that bound. The earlier `<4.15` cap applied to Starlette 0.50. |
 | No Compose image smoke test in CI | Closed. `scripts/smoke_compose.sh` runs in the **Compose API smoke** GitHub Actions job. |
@@ -263,11 +263,20 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### FIN-1 — Read-only invoice routes
 
-- Status: in progress (this change)
+- Status: done. Pull request [#33](https://github.com/anotherhale/ai-solutions-lab/pull/33) merged on `develop` as part of the development activity log phase 2 merge.
 - Depends on: revision `0008` and SEC-1
-- `GET /api/v1/invoices` and `GET /api/v1/invoices/{invoice_id}` return persisted reference rows (`business_id`, `customer_id`, `status`, timestamps). Totals and lines stay in JSON fixtures only.
+- `GET /api/v1/invoices` and `GET /api/v1/invoices/{invoice_id}` return persisted reference rows (`business_id`, `customer_id`, `status`, timestamps).
 - No posting, payment tables, or write routes.
 - Acceptance: pytest and OpenAPI contract catalog include the routes; laboratory actor required; CI green.
+
+### FIN-2 — Read-only invoice line routes
+
+- Status: in progress (instrumented autonomous run `79111e6c-ae31-4149-9165-a8c6f5aa46cc`)
+- Depends on: FIN-1, revision `0010`
+- Alembic `0010` persists `invoice_lines` from `data/fixtures/valid/invoice_lines.json` (40 rows). Money columns are reference amounts only.
+- `GET /api/v1/invoices/{invoice_id}/lines` and `GET /api/v1/invoice-lines/{invoice_line_id}` require the laboratory actor.
+- No posting, payment tables, or write routes.
+- Acceptance: migration upgrade/downgrade test, API tests, OpenAPI catalog, CI green.
 
 ## Explicitly out of the next implementation
 
