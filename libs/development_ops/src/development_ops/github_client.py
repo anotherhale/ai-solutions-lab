@@ -150,7 +150,7 @@ class GhCliGitHubClient:
           }
         }
         """
-        # gh passes GraphQL variables as individual -f key=value fields, not a JSON blob.
+        # gh passes GraphQL variables as individual -f key=value fields.
         result = self._run(
             "api",
             "graphql",
