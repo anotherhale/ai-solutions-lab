@@ -42,8 +42,8 @@ def _ensure_disposable_database(admin_url: str, target: str) -> str:
 
 @pytest.fixture(scope="module")
 def disposable_engine() -> Engine:
-    admin_url = os.environ.get(
-        "WASATCH_TEST_DATABASE_URL",
+    admin_url = os.environ.get("WASATCH_TEST_DATABASE_URL") or os.environ.get(
+        "WASATCH_DATABASE_URL",
         "postgresql+psycopg://wasatch:replace-me@localhost:5432/wasatch_test",
     )
     admin_base = admin_url.rsplit("/", 1)[0] + "/wasatch"
