@@ -5,10 +5,15 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export PATH="${HOME}/.local/bin:${PATH}"
-PYTHON="${ROOT}/services/wasatch-api/.venv/bin/python"
+VENV_BIN="${ROOT}/services/wasatch-api/.venv/bin"
+export PATH="${VENV_BIN}:${HOME}/.local/bin:${PATH}"
+PYTHON="${VENV_BIN}/python"
 if [[ ! -x "${PYTHON}" ]]; then
   PYTHON="python3"
+fi
+
+if [[ -x "${PYTHON}" ]] && ! command -v development-ops-record >/dev/null 2>&1; then
+  "${PYTHON}" -m pip install -q -e "${ROOT}/libs/development_ops"
 fi
 
 if [[ -z "${DEVELOPMENT_OPS_RUN_ID:-}" ]]; then

@@ -27,6 +27,7 @@ fi
 . "$ROOT/services/wasatch-api/.venv/bin/activate"
 python -m pip install --upgrade pip
 pip install -e "$ROOT/services/wasatch-api[dev]"
+pip install -e "$ROOT/libs/development_ops"
 
 cd "$ROOT/apps/wasatch-review"
 npm ci
