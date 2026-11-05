@@ -27,8 +27,10 @@ from wasatch_api.shared.database.models import (
     EmployeeORM,
     EquipmentORM,
     InteractionORM,
+    InvoiceLineORM,
     InvoiceORM,
     MessageORM,
+    PaymentORM,
     RoleORM,
     ServiceLocationORM,
     SupportTicketORM,
@@ -326,6 +328,7 @@ def seed_valid_fixtures(
             session, EquipmentORM, record["id"]
         ).id
 
+    invoice_ids: dict[str, uuid.UUID] = {}
     for record in _load_records(fixtures_dir, "invoices.json"):
         action = _upsert(
             session,
@@ -341,6 +344,9 @@ def seed_valid_fixtures(
             },
         )
         tally("invoice", action)
+        invoice_ids[record["id"]] = _get_by_business_id(
+            session, InvoiceORM, record["id"]
+        ).id
 
     work_order_ids: dict[str, uuid.UUID] = {}
     work_order_records = _load_records(fixtures_dir, "work_orders.json")
@@ -393,6 +399,57 @@ def seed_valid_fixtures(
             for item in record.get("equipment_ids", [])
             if _require(equipment_ids, item, "equipment")
         ]
+
+    for record in _load_records(fixtures_dir, "invoice_lines.json"):
+        work_order_ref = record.get("work_order_id")
+        unit = record["unit_price"]
+        total = record["line_total"]
+        action = _upsert(
+            session,
+            InvoiceLineORM,
+            record["id"],
+            {
+                "invoice_id": _require(invoice_ids, record["invoice_id"], "invoice"),
+                "work_order_id": work_order_ids.get(work_order_ref)
+                if work_order_ref
+                else None,
+                "description": record["description"],
+                "quantity": Decimal(str(record["quantity"])),
+                "unit_price_amount": Decimal(unit["amount"]),
+                "unit_price_currency": unit["currency"],
+                "line_total_amount": Decimal(total["amount"]),
+                "line_total_currency": total["currency"],
+                "line_type": record["line_type"],
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("invoice_line", action)
+
+    for record in _load_records(fixtures_dir, "payments.json"):
+        amount = record["amount"]
+        received_by = record.get("received_by_employee_id")
+        action = _upsert(
+            session,
+            PaymentORM,
+            record["id"],
+            {
+                "invoice_id": _require(invoice_ids, record["invoice_id"], "invoice"),
+                "amount": Decimal(amount["amount"]),
+                "amount_currency": amount["currency"],
+                "method": record["method"],
+                "status": record["status"],
+                "received_on": parse_date(record["received_on"]),
+                "reference": record.get("reference"),
+                "received_by_employee_id": employee_ids.get(received_by)
+                if received_by
+                else None,
+                "notes": record.get("notes"),
+                "created_at": parse_datetime(record["created_at"]),
+                "updated_at": parse_datetime(record["updated_at"]),
+            },
+        )
+        tally("payment", action)
 
     for record in _load_records(fixtures_dir, "work_order_tasks.json"):
         assigned = record.get("assigned_employee_id")

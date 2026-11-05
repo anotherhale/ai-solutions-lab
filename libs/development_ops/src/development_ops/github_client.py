@@ -76,7 +76,8 @@ class GhCliGitHubClient:
         checks_green = None
         if checks:
             checks_green = all(
-                (item.get("conclusion") or item.get("state")) in {"SUCCESS", "COMPLETED"}
+                (item.get("conclusion") or item.get("state"))
+                in {"SUCCESS", "COMPLETED"}
                 for item in checks
                 if item.get("__typename") != "CheckRun"
             )
@@ -111,7 +112,9 @@ class GhCliGitHubClient:
             msg = result.stderr.strip() or result.stdout.strip()
             raise RuntimeError(msg)
         numbers = json.loads(result.stdout)
-        return [self.get_pull_request(repository, int(row["number"])) for row in numbers]
+        return [
+            self.get_pull_request(repository, int(row["number"])) for row in numbers
+        ]
 
     def enable_squash_auto_merge(
         self, repository: str, number: int
@@ -208,7 +211,9 @@ def github_client_from_env() -> GitHubClient | None:
     if os.environ.get("DEVELOPMENT_OPS_DISABLE_GITHUB") == "1":
         return None
     if not os.environ.get("GH_TOKEN") and not os.environ.get("GITHUB_TOKEN"):
-        probe = subprocess.run(["gh", "auth", "status"], capture_output=True, check=False)
+        probe = subprocess.run(
+            ["gh", "auth", "status"], capture_output=True, check=False
+        )
         if probe.returncode != 0:
             return None
     return GhCliGitHubClient()

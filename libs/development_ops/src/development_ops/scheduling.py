@@ -79,7 +79,9 @@ def select_next_eligible(
     held: list[CoordinatorTaskView] = []
 
     if active_count >= max_concurrent:
-        return ScheduleDecision(task=None, blocked=tuple(blocked), held_for_dependency=tuple(held))
+        return ScheduleDecision(
+            task=None, blocked=tuple(blocked), held_for_dependency=tuple(held)
+        )
 
     candidates: list[CoordinatorTaskView] = []
     for task in tasks:
@@ -102,7 +104,9 @@ def select_next_eligible(
 
     candidates.sort(key=lambda item: item.task_id)
     chosen = candidates[0] if candidates else None
-    return ScheduleDecision(task=chosen, blocked=tuple(blocked), held_for_dependency=tuple(held))
+    return ScheduleDecision(
+        task=chosen, blocked=tuple(blocked), held_for_dependency=tuple(held)
+    )
 
 
 def merge_backlog_with_runtime(

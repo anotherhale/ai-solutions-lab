@@ -10,7 +10,11 @@ from pathlib import Path
 import pytest
 from development_ops.coordinator_engine import CoordinatorEngine
 from development_ops.database import ensure_development_ops_database
-from development_ops.github_client import AutoMergeAttempt, GitHubClient, PullRequestState
+from development_ops.github_client import (
+    AutoMergeAttempt,
+    GitHubClient,
+    PullRequestState,
+)
 from development_ops.recorder import ActivityRecorder
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
@@ -43,7 +47,9 @@ class FakeGitHub(GitHubClient):
         )
 
 
-def _pr(number: int, *, merged: bool = False, checks_green: bool = True) -> PullRequestState:
+def _pr(
+    number: int, *, merged: bool = False, checks_green: bool = True
+) -> PullRequestState:
     return PullRequestState(
         number=number,
         state="MERGED" if merged else "OPEN",
@@ -69,7 +75,9 @@ def _reset_coordinator_tables(ops_engine: Engine) -> None:
 def ops_engine() -> Engine:
     from sqlalchemy import create_engine, text
 
-    url = ensure_development_ops_database(wasatch_development_ops_database_url_for_tests())
+    url = ensure_development_ops_database(
+        wasatch_development_ops_database_url_for_tests()
+    )
     from sqlalchemy.engine import make_url
 
     parsed = make_url(url)

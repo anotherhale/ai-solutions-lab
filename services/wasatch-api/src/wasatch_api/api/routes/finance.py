@@ -12,7 +12,13 @@ from wasatch_api.api.dependencies import (
     finance_queries,
     require_laboratory_actor,
 )
-from wasatch_api.api.schemas import InvoiceDetailOut, InvoiceListItemOut, PageOut
+from wasatch_api.api.schemas import (
+    InvoiceDetailOut,
+    InvoiceLineOut,
+    InvoiceListItemOut,
+    PageOut,
+    PaymentOut,
+)
 from wasatch_api.finance.application.queries import InvoiceQueries
 
 router = APIRouter(
@@ -56,3 +62,62 @@ def list_invoices(
 @router.get("/invoices/{invoice_id}", response_model=InvoiceDetailOut)
 def get_invoice(invoice_id: str, service: QueriesDep) -> InvoiceDetailOut:
     return InvoiceDetailOut.from_domain(service.get_invoice(invoice_id))
+
+
+@router.get(
+    "/invoices/{invoice_id}/lines",
+    response_model=PageOut[InvoiceLineOut],
+)
+def list_invoice_lines(
+    invoice_id: str,
+    service: QueriesDep,
+    line_type: str | None = None,
+    page: int | None = Query(default=None, ge=1),
+    page_size: int | None = Query(default=None, ge=1, le=100),
+) -> PageOut[InvoiceLineOut]:
+    items, total, request = service.list_invoice_lines(
+        invoice_id,
+        page=page,
+        page_size=page_size,
+        line_type=line_type,
+    )
+    return PageOut(
+        items=[InvoiceLineOut.from_domain(item) for item in items],
+        page=request.page,
+        page_size=request.page_size,
+        total=total,
+    )
+
+
+@router.get("/invoice-lines/{invoice_line_id}", response_model=InvoiceLineOut)
+def get_invoice_line(invoice_line_id: str, service: QueriesDep) -> InvoiceLineOut:
+    return InvoiceLineOut.from_domain(service.get_invoice_line(invoice_line_id))
+
+
+@router.get("/payments", response_model=PageOut[PaymentOut])
+def list_payments(
+    service: QueriesDep,
+    invoice_id: str | None = None,
+    status: str | None = None,
+    method: str | None = None,
+    page: int | None = Query(default=None, ge=1),
+    page_size: int | None = Query(default=None, ge=1, le=100),
+) -> PageOut[PaymentOut]:
+    items, total, request = service.list_payments(
+        page=page,
+        page_size=page_size,
+        invoice_id=invoice_id,
+        status=status,
+        method=method,
+    )
+    return PageOut(
+        items=[PaymentOut.from_domain(item) for item in items],
+        page=request.page,
+        page_size=request.page_size,
+        total=total,
+    )
+
+
+@router.get("/payments/{payment_id}", response_model=PaymentOut)
+def get_payment(payment_id: str, service: QueriesDep) -> PaymentOut:
+    return PaymentOut.from_domain(service.get_payment(payment_id))

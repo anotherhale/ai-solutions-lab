@@ -11,7 +11,11 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from development_ops.backlog import BacklogDocument, load_backlog
-from development_ops.github_client import AutoMergeAttempt, GitHubClient, PullRequestState
+from development_ops.github_client import (
+    AutoMergeAttempt,
+    GitHubClient,
+    PullRequestState,
+)
 from development_ops.models import ActivityEventCreate, GitHubReference
 from development_ops.persistence.coordinator_repository import CoordinatorTaskRepository
 from development_ops.persistence.orm import CoordinatorTaskORM
@@ -198,7 +202,9 @@ class CoordinatorEngine:
             active_tasks=active_count,
             open_pull_requests=tuple(open_prs),
             auto_merge_attempts=tuple(auto_attempts),
-            held_for_dependency=tuple(item.task_id for item in decision.held_for_dependency),
+            held_for_dependency=tuple(
+                item.task_id for item in decision.held_for_dependency
+            ),
             blocked_tasks=tuple(item.task_id for item in decision.blocked),
             notes=tuple(notes),
         )
@@ -236,13 +242,14 @@ class CoordinatorEngine:
     def release_assignment(
         self, task_id: str, *, reason: str, run_id: uuid.UUID | None = None
     ) -> bool:
-        return self._tasks.release_stale_assignment(task_id, reason=reason, run_id=run_id)
+        return self._tasks.release_stale_assignment(
+            task_id, reason=reason, run_id=run_id
+        )
 
     def _task_views(self, document: BacklogDocument) -> list[CoordinatorTaskView]:
         rows = {row.task_id: row for row in self._tasks.list_tasks()}
         runtime = {
-            task_id: RuntimeTaskStatus(row.status)
-            for task_id, row in rows.items()
+            task_id: RuntimeTaskStatus(row.status) for task_id, row in rows.items()
         }
         pr_numbers = {task_id: row.pr_number for task_id, row in rows.items()}
         branches = {task_id: row.branch_name for task_id, row in rows.items()}
@@ -300,7 +307,9 @@ class CoordinatorEngine:
                         f"auto-merge pr #{state.number}: {attempt.error}; continuing"
                     )
 
-    def _record_recovery_only(self, selected_task_id: str | None, notes: list[str]) -> None:
+    def _record_recovery_only(
+        self, selected_task_id: str | None, notes: list[str]
+    ) -> None:
         self._recorder.record(
             ActivityEventCreate(
                 run_id=self._run_id,
@@ -368,7 +377,9 @@ class CoordinatorEngine:
 
     def _record_auto_merge(self, task_id: str, attempt: AutoMergeAttempt) -> None:
         severity = (
-            EventSeverity.INFO if attempt.auto_merge_request_present else EventSeverity.WARNING
+            EventSeverity.INFO
+            if attempt.auto_merge_request_present
+            else EventSeverity.WARNING
         )
         self._recorder.record(
             ActivityEventCreate(
