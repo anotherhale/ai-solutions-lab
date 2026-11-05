@@ -286,6 +286,14 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - `GET /api/v1/payments` and `GET /api/v1/payments/{payment_id}` require the laboratory actor.
 - Acceptance: migration test, API tests, finance guard tests assert payment row count unchanged on unrelated writes.
 
+### CONTRACT-FIN-1 — Finance enum alignment with JSON Schema
+
+- Status: in progress (this change)
+- Depends on: FIN-3
+- Extend `tests/unit/test_contract_alignment.py` so invoice, invoice line, and payment filter enums match `data/schemas/v1/finance/*.schema.json`.
+- No API or migration changes.
+- Acceptance: unit test passes; repository validators unchanged; CI green.
+
 ## Explicitly out of the next implementation
 
 - Rebuilding Phase 2.1.1

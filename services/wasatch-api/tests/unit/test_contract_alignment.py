@@ -15,7 +15,11 @@ from wasatch_api.shared.pagination import (
     DOCUMENT_TYPES,
     EXTRACTION_STATUSES,
     EXTRACTORS,
+    INVOICE_LINE_TYPES,
+    INVOICE_STATUSES,
     MESSAGE_STATUSES,
+    PAYMENT_METHODS,
+    PAYMENT_STATUSES,
     SUPPORT_TICKET_STATUSES,
     WORK_ORDER_STATUSES,
 )
@@ -36,6 +40,9 @@ def test_api_status_filters_match_json_schema() -> None:
     audit = _schema("governance/audit-event.schema.json")
     document = _schema("documents/document.schema.json")
     extraction = _schema("documents/document-extraction.schema.json")
+    invoice = _schema("finance/invoice.schema.json")
+    invoice_line = _schema("finance/invoice-line.schema.json")
+    payment = _schema("finance/payment.schema.json")
     assert CUSTOMER_STATUSES == frozenset(customer["properties"]["status"]["enum"])
     assert WORK_ORDER_STATUSES == frozenset(work_order["properties"]["status"]["enum"])
     assert SUPPORT_TICKET_STATUSES == frozenset(ticket["properties"]["status"]["enum"])
@@ -57,3 +64,9 @@ def test_api_status_filters_match_json_schema() -> None:
     assert EXTRACTION_REVIEW_DECISIONS == frozenset({"accepted", "rejected"})
     assert EXTRACTION_REVIEW_DECISIONS <= EXTRACTION_STATUSES
     assert "posted" not in EXTRACTION_REVIEW_DECISIONS
+    assert INVOICE_STATUSES == frozenset(invoice["properties"]["status"]["enum"])
+    assert INVOICE_LINE_TYPES == frozenset(
+        invoice_line["properties"]["line_type"]["enum"]
+    )
+    assert PAYMENT_METHODS == frozenset(payment["properties"]["method"]["enum"])
+    assert PAYMENT_STATUSES == frozenset(payment["properties"]["status"]["enum"])
