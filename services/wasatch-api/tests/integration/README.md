@@ -14,5 +14,8 @@ Each revision below has a dedicated integration test that downgrades one step (o
 | `0006` | `0006_procedure_embeddings.py` | `test_procedure_embedding_migration.py` |
 | `0007` | `0007_follow_up_visits.py` | `test_follow_up_visit_migration.py` |
 | `0008` | `0008_work_order_invoice_fk.py` | `test_invoice_migration.py` |
+| `0009` | `0009_development_ops_activity_log.py` | `test_development_ops_activity_log.py` |
+| `0010` | `0010_invoice_lines.py` | `test_invoice_line_migration.py` |
+| `0011` | `0011_payments.py` | `test_payment_migration.py` |
 
 Add a row to this table when a new Alembic revision ships. Downgrade coverage is required when `downgrade()` is implemented and safe on the synthetic database.
