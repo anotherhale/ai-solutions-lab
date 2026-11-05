@@ -107,6 +107,7 @@ jobs:
         working-directory: services/wasatch-api
         env:
           WASATCH_DATABASE_URL: postgresql+psycopg://wasatch:wasatch@localhost:5432/wasatch_test
+          WASATCH_TEST_DATABASE_URL: postgresql+psycopg://wasatch:wasatch@localhost:5432/wasatch_test
           WASATCH_REQUIRE_DATABASE: "1"
         run: |
           pytest_status=0

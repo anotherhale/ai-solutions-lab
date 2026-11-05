@@ -82,21 +82,30 @@ def ops_engine() -> Engine:
 
     parsed = make_url(url)
     target = parsed.database or "wasatch_development_ops"
-    admin = create_engine(
-        parsed.set(database="wasatch"),
-        isolation_level="AUTOCOMMIT",
-    )
-    with admin.connect() as connection:
-        connection.execute(
-            text(
-                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
-                "WHERE datname = :name AND pid <> pg_backend_pid()"
-            ),
-            {"name": target},
+    for admin_name in ("wasatch", "postgres"):
+        if admin_name == target:
+            continue
+        admin = create_engine(
+            parsed.set(database=admin_name),
+            isolation_level="AUTOCOMMIT",
+            pool_pre_ping=True,
         )
-        connection.execute(text(f'DROP DATABASE IF EXISTS "{target}"'))
-        connection.execute(text(f'CREATE DATABASE "{target}"'))
-    admin.dispose()
+        try:
+            with admin.connect() as connection:
+                connection.execute(
+                    text(
+                        "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+                        "WHERE datname = :name AND pid <> pg_backend_pid()"
+                    ),
+                    {"name": target},
+                )
+                connection.execute(text(f'DROP DATABASE IF EXISTS "{target}"'))
+                connection.execute(text(f'CREATE DATABASE "{target}"'))
+            break
+        except Exception:
+            continue
+        finally:
+            admin.dispose()
     ensure_development_ops_database(url)
     os.environ["DEVELOPMENT_OPS_DATABASE_URL"] = url
     os.environ["WASATCH_DATABASE_URL"] = url

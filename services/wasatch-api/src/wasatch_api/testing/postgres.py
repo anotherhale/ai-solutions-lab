@@ -37,12 +37,15 @@ def wasatch_development_ops_database_url_for_tests() -> str:
     explicit = os.environ.get("DEVELOPMENT_OPS_DATABASE_URL", "").strip()
     if explicit:
         return explicit
+    legacy = os.environ.get("WASATCH_DATABASE_URL", "").strip()
+    if legacy:
+        try:
+            if make_url(legacy).database == "wasatch_development_ops":
+                return legacy
+        except Exception:
+            pass
     test_url = wasatch_test_database_url()
     parsed = make_url(test_url)
-    if parsed.database == "wasatch_test":
-        return parsed.set(database="wasatch_development_ops").render_as_string(
-            hide_password=False
-        )
-    return (
-        "postgresql+psycopg://wasatch:replace-me@localhost:5432/wasatch_development_ops"
+    return parsed.set(database="wasatch_development_ops").render_as_string(
+        hide_password=False
     )
