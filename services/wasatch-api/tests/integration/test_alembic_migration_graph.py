@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+
 import pytest
 from alembic import command
 from alembic.config import Config

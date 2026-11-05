@@ -20,10 +20,10 @@ os.environ.pop("OTEL_EXPORTER_OTLP_ENDPOINT", None)
 os.environ.pop("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", None)
 
 from wasatch_api.config import get_settings  # noqa: E402
-from wasatch_api.testing.postgres import wasatch_test_database_url  # noqa: E402
 from wasatch_api.main import create_app  # noqa: E402
 from wasatch_api.shared.database.session import reset_engine
 from wasatch_api.shared.seed import seed_valid_fixtures
+from wasatch_api.testing.postgres import wasatch_test_database_url  # noqa: E402
 from wasatch_api.workforce.infrastructure.local_authenticator import (
     LABORATORY_ACTOR_HEADER,
 )

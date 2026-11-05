@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from development_ops.backlog import BacklogDocument, BacklogTask, BacklogTaskStatus
+from development_ops.backlog import BacklogDocument, BacklogTaskStatus
 from development_ops.persistence.orm import CoordinatorTaskORM
 from development_ops.scheduling import RuntimeTaskStatus
 

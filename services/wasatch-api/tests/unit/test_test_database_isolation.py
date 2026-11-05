@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import os
-
 from wasatch_api.testing.postgres import wasatch_test_database_url
 
 
