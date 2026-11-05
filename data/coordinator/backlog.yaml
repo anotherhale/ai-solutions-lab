@@ -39,3 +39,10 @@ tasks:
     depends_on: []
     branch: cursor/coordinator-continuity-ef97
     pr_number: 37
+
+  - id: CONTRACT-FIN-1
+    title: Finance enum alignment with JSON Schema
+    status: in_progress
+    depends_on: [FIN-3]
+    branch: cursor/contract-fin-1-513c
+    pr_number: 39
