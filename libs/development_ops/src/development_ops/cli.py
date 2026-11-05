@@ -9,13 +9,21 @@ import sys
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
+from development_ops.backlog import default_backlog_path
+from development_ops.coordinator_engine import CoordinatorEngine
+from development_ops.database import (
+    development_ops_database_url,
+    ensure_development_ops_database,
+)
 from development_ops.errors import PersistenceError
+from development_ops.github_client import github_client_from_env
 from development_ops.models import ActivityEventCreate, GitHubReference
 from development_ops.recorder import ActivityRecorder, RecordResult
 from development_ops.taxonomy import EventSeverity, EventType
@@ -42,10 +50,7 @@ class CliRecordOutcome:
 
 
 def _database_url() -> str:
-    return os.environ.get(
-        "WASATCH_DATABASE_URL",
-        "postgresql+psycopg://wasatch:replace-me@localhost:5432/wasatch",
-    )
+    return development_ops_database_url()
 
 
 def _run_id(value: str | None) -> uuid.UUID:
@@ -157,6 +162,37 @@ def _outcome_from_result(result: RecordResult, *, run_id: str) -> CliRecordOutco
     )
 
 
+def coordinator_tick_command(args: argparse.Namespace) -> int:
+    ensure_development_ops_database()
+    run_id = _run_id(args.run_id)
+    repository = (
+        args.github_repository
+        or os.environ.get("DEVELOPMENT_OPS_GITHUB_REPOSITORY", "").strip()
+        or "anotherhale/ai-solutions-lab"
+    )
+    factory = _session_factory()
+    session = factory()
+    try:
+        recorder = ActivityRecorder(session, notify_slack=args.notify_slack)
+        engine = CoordinatorEngine(
+            session,
+            github=github_client_from_env(),
+            recorder=recorder,
+            run_id=run_id,
+            repository=repository,
+            backlog_path=Path(args.backlog) if args.backlog else None,
+        )
+        result = engine.tick()
+        print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        return EXIT_OK
+    except SQLAlchemyError as exc:
+        session.rollback()
+        print(json.dumps({"error": f"persistence failed: {exc}"}), file=sys.stderr)
+        return EXIT_PERSISTENCE_FAILED
+    finally:
+        session.close()
+
+
 def confirm_slack_command(args: argparse.Namespace) -> int:
     event_id = uuid.UUID(args.event_id)
     factory = _session_factory()
@@ -257,6 +293,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="Mark delivery as duplicate replay",
     )
     confirm.set_defaults(func=confirm_slack_command)
+
+    coordinator = sub.add_parser(
+        "coordinator",
+        help="Coordinator reconciliation and scheduling",
+    )
+    coordinator_sub = coordinator.add_subparsers(
+        dest="coordinator_command",
+        required=True,
+    )
+    tick = coordinator_sub.add_parser(
+        "tick",
+        help="Reconcile PRs, attempt auto-merge, select next eligible task",
+    )
+    tick.add_argument("--run-id", help="Coordinator run UUID")
+    tick.add_argument("--github-repository")
+    tick.add_argument(
+        "--backlog",
+        help=f"Backlog YAML (default: {default_backlog_path()})",
+    )
+    tick.add_argument(
+        "--notify-slack",
+        action="store_true",
+        help="Attempt Slack notifications for recorded events",
+    )
+    tick.set_defaults(func=coordinator_tick_command)
 
     return parser
 

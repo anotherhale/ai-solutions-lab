@@ -24,7 +24,7 @@ Prior chat is not a source of status. The tree and the documents above are. If a
 
 Create feature branches from an up-to-date `develop`. `develop` was created from `main` at `881cfc0`. Do not recreate it.
 
-Never merge to `main`. Never force-push `main` or `develop`. A normal fast-forward or a pull-request merge on `develop` is the integration path. The coordinator owns merges. An agent opens the pull request and stops.
+Never merge to `main`. Never force-push `main` or `develop`. A normal fast-forward or a pull-request merge on `develop` is the integration path. The coordinator owns merges. After opening a pull request, an agent records `pr-opened`, attempts the approved GraphQL auto-merge when appropriate, and **does not wait for merge** before the coordinator selects the next independent backlog task. See [../operations/COORDINATOR_CONTINUITY.md](../operations/COORDINATOR_CONTINUITY.md).
 
 Repository branch prefixes in [../DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) remain the human convention: `feature/`, `fix/`, `docs/`, `chore/`, `adr/`. Cloud-agent branches in this program use the `cursor/` prefix required by the agent runtime, still based on `develop`.
 

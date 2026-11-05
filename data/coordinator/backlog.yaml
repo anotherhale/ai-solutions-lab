@@ -1,0 +1,39 @@
+# Machine-readable backlog for the development coordinator.
+# Human narrative remains in ENGINEERING_BACKLOG.md at the repository root.
+#
+# status: merged | in_progress | pending | blocked
+# depends_on: task ids that must reach merged before this task is eligible
+
+repository: anotherhale/ai-solutions-lab
+integration_branch: develop
+
+tasks:
+  - id: FIN-1
+    title: Read-only invoice routes
+    status: merged
+    merge_commit: fdb3947
+    depends_on: []
+
+  - id: FIN-2
+    title: Read-only invoice line routes (Alembic 0010 on feature branch)
+    status: in_progress
+    depends_on: [FIN-1]
+    pr_number: 34
+    branch: cursor/fin-2-invoice-lines-read-513c
+
+  - id: FIN-3
+    title: Read-only payment routes
+    status: in_progress
+    depends_on: [FIN-2]
+    pr_number: 35
+    branch: cursor/fin-3-payments-read-513c
+
+  - id: FIN-4
+    title: Persist invoice lines table (follow-on after FIN-2 merge)
+    status: pending
+    depends_on: [FIN-2]
+
+  - id: DOC-COORD-1
+    title: Coordinator continuity operating documentation
+    status: pending
+    depends_on: []

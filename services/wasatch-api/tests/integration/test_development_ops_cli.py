@@ -6,7 +6,9 @@ import json
 import os
 import subprocess
 import uuid
+from pathlib import Path
 
+from development_ops.database import ensure_development_ops_database
 from development_ops.persistence.repository import (
     ActivityEventQuery,
     ActivityEventRepository,
@@ -14,16 +16,30 @@ from development_ops.persistence.repository import (
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
+from wasatch_api.testing.postgres import wasatch_development_ops_database_url_for_tests
+
 REPO_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..", "..")
 )
+API_ROOT = Path(REPO_ROOT) / "services" / "wasatch-api"
 
 
 def _run_cli(
     engine: Engine, *args: str, env: dict[str, str] | None = None
 ) -> subprocess.CompletedProcess[str]:
+    from alembic import command
+    from alembic.config import Config
+
     run_env = os.environ.copy()
-    run_env["WASATCH_DATABASE_URL"] = engine.url.render_as_string(hide_password=False)
+    ops_url = ensure_development_ops_database(
+        wasatch_development_ops_database_url_for_tests()
+    )
+    alembic_cfg = Config(str(API_ROOT / "alembic.ini"))
+    alembic_cfg.set_main_option("sqlalchemy.url", ops_url)
+    alembic_cfg.set_main_option("script_location", str(API_ROOT / "alembic"))
+    command.upgrade(alembic_cfg, "head")
+    run_env["DEVELOPMENT_OPS_DATABASE_URL"] = ops_url
+    run_env["WASATCH_DATABASE_URL"] = ops_url
     run_env["PYTHONPATH"] = os.path.join(REPO_ROOT, "libs", "development_ops", "src")
     if env:
         run_env.update(env)
@@ -95,13 +111,20 @@ def test_cli_records_correlated_run_lifecycle(engine: Engine) -> None:
         assert payload["persisted"] is True
         assert payload["run_id"] == str(run_id)
 
-    session = sessionmaker(bind=engine)()
+    from sqlalchemy import create_engine
+
+    ops_url = ensure_development_ops_database(
+        wasatch_development_ops_database_url_for_tests()
+    )
+    ops_engine = create_engine(ops_url, pool_pre_ping=True)
+    session = sessionmaker(bind=ops_engine, autoflush=False)()
     try:
         events = ActivityEventRepository(session).search(
             ActivityEventQuery(run_id=run_id, limit=100)
         )
     finally:
         session.close()
+        ops_engine.dispose()
     assert len(events) == len(steps)
     types = {event.event_type.value for event in events}
     assert "run.started" in types
@@ -149,7 +172,7 @@ def test_cli_persistence_failure_exits_nonzero() -> None:
         env={
             **os.environ,
             "PYTHONPATH": os.path.join(repo_root, "libs", "development_ops", "src"),
-            "WASATCH_DATABASE_URL": "postgresql+psycopg://invalid:invalid@127.0.0.1:1/none",
+            "DEVELOPMENT_OPS_DATABASE_URL": "postgresql+psycopg://invalid:invalid@127.0.0.1:1/none",
         },
         check=False,
     )

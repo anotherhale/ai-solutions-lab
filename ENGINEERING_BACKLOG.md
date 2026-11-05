@@ -263,7 +263,9 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### FIN-1 — Read-only invoice routes
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/31
+- Merge: `fdb3947`
 - Depends on: revision `0008` and SEC-1
 - `GET /api/v1/invoices` and `GET /api/v1/invoices/{invoice_id}` return persisted reference rows (`business_id`, `customer_id`, `status`, timestamps). Totals and lines stay in JSON fixtures only.
 - No posting, payment tables, or write routes.
