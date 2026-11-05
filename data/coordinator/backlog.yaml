@@ -28,8 +28,10 @@ tasks:
 
   - id: STATUS-1
     title: Refresh PROJECT_STATUS after FIN-2 and FIN-3 merge
-    status: pending
+    status: in_progress
     depends_on: [FIN-3]
+    pr_number: 38
+    branch: cursor/project-status-fin-merge-ef97
 
   - id: DOC-COORD-1
     title: Coordinator continuity operating documentation
