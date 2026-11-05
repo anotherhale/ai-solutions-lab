@@ -18,12 +18,10 @@ from development_ops.github_client import (
 )
 from development_ops.models import ActivityEventCreate, GitHubReference
 from development_ops.persistence.coordinator_repository import CoordinatorTaskRepository
-from development_ops.persistence.orm import CoordinatorTaskORM
 from development_ops.recorder import ActivityRecorder
 from development_ops.scheduling import (
     CoordinatorTaskView,
     RuntimeTaskStatus,
-    ScheduleDecision,
     merge_backlog_with_runtime,
     select_next_eligible,
 )
