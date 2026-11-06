@@ -137,6 +137,25 @@ scripts/coordinator_activity.sh implementation "CLI for activity recording"
 If `development-ops-record` exits `1`, persistence failed — report the failure in
 Slack and do not claim the milestone was recorded.
 
+Use `DEVELOPMENT_OPS_DATABASE_URL` (default database `wasatch_development_ops`) for
+activity and coordinator state. Pytest uses `wasatch_test` and must not destroy
+operational telemetry.
+
+## Coordinator continuity (mandatory)
+
+Open pull requests must **not** block unrelated backlog work. After opening a PR:
+
+1. Record `pr-opened` and verify CI when possible.
+2. Attempt GraphQL `enablePullRequestAutoMerge` (squash) only through the coordinator
+   or documented tooling; verify `autoMergeRequest` is non-null when enabling succeeds.
+3. If auto-merge fails, record the exact GitHub error and continue.
+4. Run `scripts/coordinator_tick.sh` (or `development-ops-record coordinator tick`) so
+   the next **eligible** independent task is selected without waiting for merge.
+
+Do not serialize the entire backlog behind one open PR. Respect `depends_on` in
+`data/coordinator/backlog.yaml`. See
+[docs/operations/COORDINATOR_CONTINUITY.md](docs/operations/COORDINATOR_CONTINUITY.md).
+
 ## Definition of Honest Completion
 
 A task is complete only when the requested change is in the repository, relevant documents are consistent, and verification that could be run was run. If something remains unfinished, list it explicitly.

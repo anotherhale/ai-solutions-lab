@@ -11,6 +11,9 @@ Repository maintenance scripts. These are not application services.
 | `activity_report.py` | Summarize `development_ops.activity_events` by date, run, or filters |
 | `coordinator_record_activity.sh` | Wrapper for `development-ops-record` |
 | `coordinator_activity.sh` | Coordinator lifecycle shorthand (run-start, tests-passed, pr-opened, …) |
+| `coordinator_tick.sh` | Reconcile PRs, optional auto-merge, select next eligible backlog task |
+| `coordinator_automation_entrypoint.sh` | Automation entry: tick + delegate JSON for implementation agents |
+| `prepare_development_ops_database.py` | Create/migrate `wasatch_development_ops` database |
 | `bootstrap_laboratory.sh` | Postgres, Python venv, review app, and Playwright setup |
 | `prepare_wasatch_database.py` | Create DB, migrate, and seed for CI or host-run API |
 | `run_wasatch_api_host.sh` | Prepare database and serve API on port 8000 (no reload) |

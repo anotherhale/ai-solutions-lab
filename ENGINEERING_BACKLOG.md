@@ -270,19 +270,20 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 - Status: done
 - Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/34 merged as `7ed13ec`
-- Depends on: FIN-1, Alembic `0010`
-- Forty seeded `invoice_lines`; list and detail read routes.
+- Depends on: FIN-1, revision `0010`
+- Alembic `0010` persists `invoice_lines` from `data/fixtures/valid/invoice_lines.json` (40 rows). Money columns are reference amounts only.
+- `GET /api/v1/invoices/{invoice_id}/lines` and `GET /api/v1/invoice-lines/{invoice_line_id}` require the laboratory actor.
+- No posting, payment tables, or write routes.
+- Acceptance: migration upgrade/downgrade test, API tests, OpenAPI catalog, CI green.
 
 ### FIN-3 — Read-only payment routes
 
 - Status: done
 - Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/35 merged as `b0d9c3c`
-- Depends on: FIN-2, Alembic `0011`
-- Twenty seeded `payments`; list and detail read routes; finance guard tests on unrelated writes.
-
-## Next
-
-Coordinator continuity (DOC-COORD-1) is open as pull request [#37](https://github.com/anotherhale/ai-solutions-lab/pull/37). No new application slice is queued until the backlog gains the next scoped item.
+- Depends on: FIN-2, revision `0011`
+- Alembic `0011` persists `payments` from fixtures (20 rows). Reference amounts only; no posting command.
+- `GET /api/v1/payments` and `GET /api/v1/payments/{payment_id}` require the laboratory actor.
+- Acceptance: migration test, API tests, finance guard tests assert payment row count unchanged on unrelated writes.
 
 ## Explicitly out of the next implementation
 

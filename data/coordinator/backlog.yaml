@@ -1,0 +1,48 @@
+# Machine-readable backlog for the development coordinator.
+# Human narrative remains in ENGINEERING_BACKLOG.md at the repository root.
+#
+# status: merged | in_progress | pending | blocked
+# depends_on: task ids that must reach merged before this task is eligible
+
+repository: anotherhale/ai-solutions-lab
+integration_branch: develop
+
+tasks:
+  - id: FIN-1
+    title: Read-only invoice routes
+    status: merged
+    merge_commit: fdb3947
+    depends_on: []
+
+  - id: FIN-2
+    title: Read-only invoice line routes (Alembic 0010)
+    status: merged
+    merge_commit: 7ed13ec
+    depends_on: [FIN-1]
+
+  - id: FIN-3
+    title: Read-only payment routes
+    status: merged
+    merge_commit: b0d9c3c
+    depends_on: [FIN-2]
+
+  - id: STATUS-1
+    title: Refresh PROJECT_STATUS after FIN-2 and FIN-3 merge
+    status: in_progress
+    depends_on: [FIN-3]
+    pr_number: 38
+    branch: cursor/project-status-fin-merge-ef97
+
+  - id: DOC-COORD-1
+    title: Coordinator continuity operating documentation
+    status: in_progress
+    depends_on: []
+    branch: cursor/coordinator-continuity-ef97
+    pr_number: 37
+
+  - id: CONTRACT-FIN-1
+    title: Finance enum alignment with JSON Schema
+    status: in_progress
+    depends_on: [FIN-3]
+    branch: cursor/contract-fin-1-513c
+    pr_number: 39
