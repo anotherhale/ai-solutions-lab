@@ -238,7 +238,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Thin HTTP contract tests | Closed. `tests/api/test_openapi_contract.py` and `openapi_contract_catalog.py` assert the full slice path/method catalog, write-route methods, decision enums, and runtime error envelopes. `tests/unit/test_contract_alignment.py` still aligns JSON Schema status enums. |
 | Downgrade is untested | Closed for revisions `0001`–`0008`. Matrix in `services/wasatch-api/tests/integration/README.md`. Each revision has an integration upgrade/downgrade test, including `test_initial_migration.py` for revision `0001` and `test_invoice_migration.py` for revision `0008`. |
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py` still skips a local run when PostgreSQL is down. CI fails that skip. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` rejects a run that did not execute the database tests. |
-| String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Invoice and payment JSON fixtures are not full ORM slices yet. |
+| String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Invoice lines are persisted in revision `0010` with read routes; payments stay fixture-only until a later migration. |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
 | Starlette `TestClient` deprecation warning | Closed. Starlette 1.10 uses `anyio.from_thread.BlockingPortal`. `anyio>=4.8.0,<5` matches that bound. The earlier `<4.15` cap applied to Starlette 0.50. |
 | No Compose image smoke test in CI | Closed. `scripts/smoke_compose.sh` runs in the **Compose API smoke** GitHub Actions job. |
@@ -246,7 +246,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | No browser suite for review workflows | Closed. Playwright specs in `tests/e2e/` run in **Review workbench browser tests**. |
 | No dependency-audit tool | Closed. `scripts/audit_wasatch_dependencies.sh` runs `pip-audit` on the installed Wasatch API environment in CI. |
 | Starlette PYSEC advisories on the pinned FastAPI stack | Closed by SEC-1. ADR 0007 is Accepted. The audit script does not ignore Starlette IDs. |
-| GitHub required checks on `develop` | Open for repository administrators. Agents documented the ruleset in `docs/operations/github-branch-protection.md`. Cloud tokens cannot read or set protection on this repository. |
+| GitHub required checks on `develop` | Closed. Ruleset `develop-protection` is active with all five **Repository Validation** job names required (verified 2026-11-04 via GitHub rulesets API). |
 
 ### SEC-1 — Implement ADR 0007 (FastAPI / Starlette remediation)
 
@@ -259,9 +259,39 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - ADR 0007 is Accepted. OpenTelemetry instrumentation stays `0.66b2`. Uvicorn stays `>=0.32.1,<0.38`.
 - Acceptance: full pytest with `WASATCH_REQUIRE_DATABASE=1` passed locally (198 passed, 0 skipped). `pip-audit` was clean. Repository Validation on the pull request is the remaining check for the five jobs. No customer delivery and no financial posting.
 
-## Next
+### FIN-1 — Read-only invoice routes
 
-No numbered item is ready. GitHub required checks on `develop` stay an administrator task. Do not treat that row as an agent implementation item. Do not add a second Starlette upgrade or a second pip-audit change.
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/31 (`fdb3947`); also on `develop` via [#33](https://github.com/anotherhale/ai-solutions-lab/pull/33)
+- Depends on: revision `0008` and SEC-1
+- Read-only invoice list and detail routes; no posting.
+
+### FIN-2 — Read-only invoice line routes
+
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/34 merged as `7ed13ec`
+- Depends on: FIN-1, revision `0010`
+- Alembic `0010` persists `invoice_lines` from `data/fixtures/valid/invoice_lines.json` (40 rows). Money columns are reference amounts only.
+- `GET /api/v1/invoices/{invoice_id}/lines` and `GET /api/v1/invoice-lines/{invoice_line_id}` require the laboratory actor.
+- No posting, payment tables, or write routes.
+- Acceptance: migration upgrade/downgrade test, API tests, OpenAPI catalog, CI green.
+
+### FIN-3 — Read-only payment routes
+
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/35 merged as `b0d9c3c`
+- Depends on: FIN-2, revision `0011`
+- Alembic `0011` persists `payments` from fixtures (20 rows). Reference amounts only; no posting command.
+- `GET /api/v1/payments` and `GET /api/v1/payments/{payment_id}` require the laboratory actor.
+- Acceptance: migration test, API tests, finance guard tests assert payment row count unchanged on unrelated writes.
+
+### CONTRACT-FIN-1 — Finance enum alignment with JSON Schema
+
+- Status: in progress (this change)
+- Depends on: FIN-3
+- Extend `tests/unit/test_contract_alignment.py` so invoice, invoice line, and payment filter enums match `data/schemas/v1/finance/*.schema.json`.
+- No API or migration changes.
+- Acceptance: unit test passes; repository validators unchanged; CI green.
 
 ## Explicitly out of the next implementation
 

@@ -175,6 +175,57 @@ class InvoiceORM(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     customer: Mapped[CustomerORM] = relationship()
+    lines: Mapped[list[InvoiceLineORM]] = relationship(back_populates="invoice")
+
+
+class InvoiceLineORM(Base):
+    __tablename__ = "invoice_lines"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    invoice_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("invoices.id", ondelete="RESTRICT"), index=True
+    )
+    work_order_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("work_orders.id", ondelete="SET NULL"), index=True
+    )
+    description: Mapped[str] = mapped_column(Text)
+    quantity: Mapped[Decimal] = mapped_column(Numeric(12, 4))
+    unit_price_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2))
+    unit_price_currency: Mapped[str] = mapped_column(String(3))
+    line_total_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2))
+    line_total_currency: Mapped[str] = mapped_column(String(3))
+    line_type: Mapped[str] = mapped_column(String(32), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    invoice: Mapped[InvoiceORM] = relationship(back_populates="lines")
+    work_order: Mapped[WorkOrderORM | None] = relationship()
+
+
+class PaymentORM(Base):
+    __tablename__ = "payments"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[str] = mapped_column(String(16), unique=True)
+    invoice_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("invoices.id", ondelete="RESTRICT"), index=True
+    )
+    amount: Mapped[Decimal] = mapped_column(Numeric(14, 2))
+    amount_currency: Mapped[str] = mapped_column(String(3))
+    method: Mapped[str] = mapped_column(String(32), index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    received_on: Mapped[date] = mapped_column(Date)
+    reference: Mapped[str | None] = mapped_column(String(128))
+    received_by_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("employees.id", ondelete="SET NULL"), index=True
+    )
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    invoice: Mapped[InvoiceORM] = relationship()
+    received_by: Mapped[EmployeeORM | None] = relationship()
 
 
 class EmployeeORM(Base):

@@ -70,6 +70,10 @@ Defaults: `page=1`, `page_size=20`, maximum `page_size=100`. Ordering is by busi
 | GET | `/api/v1/service-locations/{location_id}` | Location plus owning customer |
 | GET | `/api/v1/work-orders` | Filter by customer, status, employee, location |
 | GET | `/api/v1/work-orders/{work_order_id}` | Work order plus tasks, appointments, equipment |
+| GET | `/api/v1/invoices` | Filter by customer or invoice status |
+| GET | `/api/v1/invoices/{invoice_id}` | Invoice reference row (status and customer link only) |
+| GET | `/api/v1/invoices/{invoice_id}/lines` | Paginated invoice lines for one invoice; optional `line_type` filter |
+| GET | `/api/v1/invoice-lines/{invoice_line_id}` | One persisted invoice line (reference amounts only) |
 | GET | `/api/v1/support-tickets` | Filter by customer, status, location, employee |
 | GET | `/api/v1/support-tickets/{ticket_id}` | Ticket plus messages |
 | GET | `/api/v1/support-tickets/{ticket_id}/retrieval` | That customer's history and matching procedure pages |

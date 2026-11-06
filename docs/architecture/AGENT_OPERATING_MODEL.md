@@ -24,7 +24,7 @@ Prior chat is not a source of status. The tree and the documents above are. If a
 
 Create feature branches from an up-to-date `develop`. `develop` was created from `main` at `881cfc0`. Do not recreate it.
 
-Never merge to `main`. Never force-push `main` or `develop`. A normal fast-forward or a pull-request merge on `develop` is the integration path. The coordinator owns merges. An agent opens the pull request and stops.
+Never merge to `main`. Never force-push `main` or `develop`. A normal fast-forward or a pull-request merge on `develop` is the integration path. The coordinator owns merges. After opening a pull request, an agent records `pr-opened`, attempts the approved GraphQL auto-merge when appropriate, and **does not wait for merge** before the coordinator selects the next independent backlog task. See [../operations/COORDINATOR_CONTINUITY.md](../operations/COORDINATOR_CONTINUITY.md).
 
 Repository branch prefixes in [../DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) remain the human convention: `feature/`, `fix/`, `docs/`, `chore/`, `adr/`. Cloud-agent branches in this program use the `cursor/` prefix required by the agent runtime, still based on `develop`.
 
@@ -95,6 +95,31 @@ After this planning set:
 1. RUFF-1, CI-1, ADR-1, and DOC-1 are done.
 2. The first application change is CS-1 from the backlog. Phase 2.1.1 is already implemented.
 3. Later phases follow [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
+
+## Development activity log (coordinator mandatory)
+
+Every coordinator-led run MUST set `DEVELOPMENT_OPS_RUN_ID` before work begins and
+record milestones with `scripts/coordinator_activity.sh` or
+`development-ops-record`. Required events when applicable:
+
+1. `run-start` before editing
+2. `task-selected` when taking a backlog item
+3. `implementation` for coherent build milestones
+4. `tests-start` / `tests-passed` or `tests-failed` after verification
+5. `review-start` / `review-complete` when review is requested or received
+6. `pr-opened` / `pr-updated` / `pr-merged` using GitHub as authority for PR/CI state
+7. `blocker` when progress stops (including missing review, failed CI, or persistence errors)
+8. `run-complete` or `run-failed` before stopping
+
+Slack `#ai-development` (`C0CFJDH7PTJ`): persist first, post second, then
+`development-ops-record confirm-slack --event-id … --channel-id … --message-ts …`.
+Exit code `1` from the recorder means the database does not have the event — report
+that explicitly; do not claim success.
+
+Query a run: `python3 scripts/activity_report.py --run-id <uuid>`.
+
+See [../operations/DEVELOPMENT_ACTIVITY_LOG.md](../operations/DEVELOPMENT_ACTIVITY_LOG.md)
+and [../../AGENTS.md](../../AGENTS.md).
 
 ## Honest completion
 

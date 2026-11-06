@@ -101,6 +101,61 @@ Docker Compose Postgres, the FastAPI service, and the review screen are the runn
 
 From `services/wasatch-api`, `pytest` uses that Postgres and creates the `wasatch_test` database. On a Cloud Agent workstation the start command launches Docker, Postgres, migrations, seed, and the API on port 8000. That workstation is not an Azure deployment.
 
+## Development activity log (mandatory)
+
+Autonomous agents and coordinators MUST record meaningful development milestones in
+PostgreSQL `development_ops` using `development-ops-record` or
+`scripts/coordinator_activity.sh`. Do not log chain-of-thought, hidden reasoning, or
+every tool invocation.
+
+| Milestone | When to record |
+|---|---|
+| `run.started` / `run.completed` / `run.failed` | Start, successful finish, or abort of an agent run |
+| `task.selected` / `task.delegated` | Coordinator picks or assigns work |
+| `implementation.milestone` | Coherent implementation progress (not each edit) |
+| `test.started` / `test.completed` / `test.failed` | Verification attempts and outcomes |
+| `review.started` / `review.completed` | Independent review requested or finished |
+| `pr.opened` / `pr.updated` / `pr.merged` | GitHub PR lifecycle (use GitHub as source of truth) |
+| `blocker.reported` | Blockers and failures that stop progress |
+
+Set `DEVELOPMENT_OPS_RUN_ID` for the whole run and reuse it for every event in that
+run. Set `DEVELOPMENT_OPS_TASK_ID` when working a specific backlog item. Persist
+**before** Slack. Post to `#ai-development` (`C0CFJDH7PTJ`) via the authorized Slack
+integration, then call `development-ops-record confirm-slack` with the returned
+`channel_id` and `message_ts`. Never treat missing telemetry or unconfirmed Slack as
+success. See [docs/operations/DEVELOPMENT_ACTIVITY_LOG.md](docs/operations/DEVELOPMENT_ACTIVITY_LOG.md).
+
+Example:
+
+```bash
+export DEVELOPMENT_OPS_RUN_ID="$(uuidgen)"
+export DEVELOPMENT_OPS_GITHUB_REPOSITORY="anotherhale/ai-solutions-lab"
+scripts/coordinator_activity.sh run-start "Phase 2 agent instrumentation"
+scripts/coordinator_activity.sh implementation "CLI for activity recording"
+```
+
+If `development-ops-record` exits `1`, persistence failed — report the failure in
+Slack and do not claim the milestone was recorded.
+
+Use `DEVELOPMENT_OPS_DATABASE_URL` (default database `wasatch_development_ops`) for
+activity and coordinator state. Pytest uses `wasatch_test` and must not destroy
+operational telemetry.
+
+## Coordinator continuity (mandatory)
+
+Open pull requests must **not** block unrelated backlog work. After opening a PR:
+
+1. Record `pr-opened` and verify CI when possible.
+2. Attempt GraphQL `enablePullRequestAutoMerge` (squash) only through the coordinator
+   or documented tooling; verify `autoMergeRequest` is non-null when enabling succeeds.
+3. If auto-merge fails, record the exact GitHub error and continue.
+4. Run `scripts/coordinator_tick.sh` (or `development-ops-record coordinator tick`) so
+   the next **eligible** independent task is selected without waiting for merge.
+
+Do not serialize the entire backlog behind one open PR. Respect `depends_on` in
+`data/coordinator/backlog.yaml`. See
+[docs/operations/COORDINATOR_CONTINUITY.md](docs/operations/COORDINATOR_CONTINUITY.md).
+
 ## Definition of Honest Completion
 
 A task is complete only when the requested change is in the repository, relevant documents are consistent, and verification that could be run was run. If something remains unfinished, list it explicitly.
