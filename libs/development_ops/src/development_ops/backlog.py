@@ -33,7 +33,7 @@ class BacklogDocument(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     repository: str
-    integration_branch: str = "develop"
+    integration_branch: str = "ai-dev"
     tasks: list[BacklogTask]
 
 

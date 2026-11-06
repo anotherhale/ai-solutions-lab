@@ -54,9 +54,14 @@ class CoordinatorTaskORM(DevelopmentOpsBase):
     blocked_reason: Mapped[str | None] = mapped_column(Text())
     active_run_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     branch_name: Mapped[str | None] = mapped_column(String(255))
+    base_branch: Mapped[str | None] = mapped_column(String(255))
     pr_number: Mapped[int | None] = mapped_column(Integer())
     owner_agent: Mapped[str | None] = mapped_column(String(128))
     merge_commit_sha: Mapped[str | None] = mapped_column(String(64))
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attempt_count: Mapped[int] = mapped_column(Integer(), default=0)
+    last_error: Mapped[str | None] = mapped_column(Text())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
