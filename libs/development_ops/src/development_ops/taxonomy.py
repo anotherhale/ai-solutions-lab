@@ -23,6 +23,9 @@ class EventType(StrEnum):
     PROGRESS_REPORT = "progress.report"
     BLOCKER_REPORTED = "blocker.reported"
     MILESTONE_REACHED = "milestone.reached"
+    COORDINATOR_RECOVERY = "coordinator.recovery"
+    COORDINATOR_SCHEDULED = "coordinator.scheduled"
+    COORDINATOR_AUTO_MERGE = "coordinator.auto_merge"
 
 
 class EventSeverity(StrEnum):

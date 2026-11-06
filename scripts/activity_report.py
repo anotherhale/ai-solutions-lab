@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT / "libs" / "development_ops" / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "libs" / "development_ops" / "src"))
 
+from development_ops.database import development_ops_database_url  # noqa: E402
 from development_ops.persistence.repository import ActivityEventQuery  # noqa: E402
 from development_ops.reporting import (  # noqa: E402
     daily_summary,
@@ -30,10 +31,7 @@ from development_ops.taxonomy import EventSeverity, EventType  # noqa: E402
 
 
 def _database_url() -> str:
-    return os.environ.get(
-        "WASATCH_DATABASE_URL",
-        "postgresql+psycopg://wasatch:replace-me@localhost:5432/wasatch",
-    )
+    return development_ops_database_url()
 
 
 def _parse_day(value: str, tz: ZoneInfo) -> datetime:
