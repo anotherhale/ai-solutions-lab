@@ -259,16 +259,12 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - ADR 0007 is Accepted. OpenTelemetry instrumentation stays `0.66b2`. Uvicorn stays `>=0.32.1,<0.38`.
 - Acceptance: full pytest with `WASATCH_REQUIRE_DATABASE=1` passed locally (198 passed, 0 skipped). `pip-audit` was clean. Repository Validation on the pull request is the remaining check for the five jobs. No customer delivery and no financial posting.
 
-## Next
-
 ### FIN-1 — Read-only invoice routes
 
 - Status: done
 - Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/31 (`fdb3947`); also on `develop` via [#33](https://github.com/anotherhale/ai-solutions-lab/pull/33)
 - Depends on: revision `0008` and SEC-1
-- `GET /api/v1/invoices` and `GET /api/v1/invoices/{invoice_id}` return persisted reference rows (`business_id`, `customer_id`, `status`, timestamps).
-- No posting, payment tables, or write routes.
-- Acceptance: pytest and OpenAPI contract catalog include the routes; laboratory actor required; CI green.
+- Read-only invoice list and detail routes; no posting.
 
 ### FIN-2 — Read-only invoice line routes
 
