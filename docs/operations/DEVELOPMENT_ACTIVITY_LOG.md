@@ -52,7 +52,8 @@ after insert; event content remains append-only.
 
 | Variable | Purpose |
 |---|---|
-| `WASATCH_DATABASE_URL` | PostgreSQL URL (same instance as Wasatch) |
+| `DEVELOPMENT_OPS_DATABASE_URL` | PostgreSQL URL for activity + coordinator state (default `wasatch_development_ops`) |
+| `WASATCH_DATABASE_URL` | Wasatch API only; do **not** point laboratory agents at `wasatch_test` |
 | `DEVELOPMENT_OPS_RUN_ID` | Correlate all events in one agent/coordinator run |
 | `DEVELOPMENT_OPS_TASK_ID` | Active backlog/task identifier |
 | `DEVELOPMENT_OPS_GITHUB_REPOSITORY` | `owner/repo` for PR links |
@@ -125,6 +126,15 @@ status per event.
 ### Sample run report
 
 See [samples/run-correlation-sample.md](samples/run-correlation-sample.md).
+
+## Coordinator continuity
+
+Scheduling and recovery: [COORDINATOR_CONTINUITY.md](COORDINATOR_CONTINUITY.md).
+
+```bash
+scripts/coordinator_tick.sh
+development-ops-record coordinator tick --notify-slack
+```
 
 ## Recovery
 

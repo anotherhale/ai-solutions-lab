@@ -263,7 +263,8 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### FIN-1 — Read-only invoice routes
 
-- Status: done. Pull request [#33](https://github.com/anotherhale/ai-solutions-lab/pull/33) merged on `develop` as part of the development activity log phase 2 merge.
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/31 (`fdb3947`); also on `develop` via [#33](https://github.com/anotherhale/ai-solutions-lab/pull/33)
 - Depends on: revision `0008` and SEC-1
 - `GET /api/v1/invoices` and `GET /api/v1/invoices/{invoice_id}` return persisted reference rows (`business_id`, `customer_id`, `status`, timestamps).
 - No posting, payment tables, or write routes.
@@ -271,7 +272,8 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### FIN-2 — Read-only invoice line routes
 
-- Status: in progress — PR [#34](https://github.com/anotherhale/ai-solutions-lab/pull/34) open (CI green, Bugbot clean; auto-merge blocked)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/34 merged as `7ed13ec`
 - Depends on: FIN-1, revision `0010`
 - Alembic `0010` persists `invoice_lines` from `data/fixtures/valid/invoice_lines.json` (40 rows). Money columns are reference amounts only.
 - `GET /api/v1/invoices/{invoice_id}/lines` and `GET /api/v1/invoice-lines/{invoice_line_id}` require the laboratory actor.
@@ -280,8 +282,9 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### FIN-3 — Read-only payment routes
 
-- Status: in progress (instrumented autonomous run `6f9a1817-b6b0-4573-91d9-17f054034ffa`)
-- Depends on: FIN-1; branches from FIN-2 branch for Alembic `0010` → `0011`
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/35 merged as `b0d9c3c`
+- Depends on: FIN-2, revision `0011`
 - Alembic `0011` persists `payments` from fixtures (20 rows). Reference amounts only; no posting command.
 - `GET /api/v1/payments` and `GET /api/v1/payments/{payment_id}` require the laboratory actor.
 - Acceptance: migration test, API tests, finance guard tests assert payment row count unchanged on unrelated writes.
