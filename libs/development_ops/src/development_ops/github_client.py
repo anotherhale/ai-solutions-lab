@@ -8,6 +8,20 @@ import subprocess
 from dataclasses import dataclass
 from typing import Protocol
 
+# Autonomy may only integrate into the autonomous development branch. ``main``
+# is human-controlled and every other base is out of scope for auto-merge.
+AUTONOMOUS_INTEGRATION_BRANCH = "ai-dev"
+
+# A pull request must expose at least one check. Zero checks means "unknown",
+# never "green".
+_CHECKS_GREEN = "green"
+_CHECKS_FAILED = "failed"
+_CHECKS_PENDING = "pending"
+_CHECKS_NONE = "none"
+
+_PASSING_CONCLUSIONS = {"SUCCESS", "NEUTRAL", "SKIPPED"}
+_PENDING_CONCLUSIONS = {"PENDING", "QUEUED", "IN_PROGRESS", "WAITING", "EXPECTED"}
+
 
 @dataclass(frozen=True, slots=True)
 class PullRequestState:
@@ -21,6 +35,16 @@ class PullRequestState:
     auto_merge_enabled: bool
     checks_green: bool | None
     review_decision: str | None
+    closed: bool = False
+    checks_state: str = _CHECKS_NONE
+
+    @property
+    def targets_integration_branch(self) -> bool:
+        return self.base_ref == AUTONOMOUS_INTEGRATION_BRANCH
+
+    @property
+    def closed_unmerged(self) -> bool:
+        return self.closed and not self.merged
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,11 +66,47 @@ class GitHubClient(Protocol):
     ) -> AutoMergeAttempt: ...
 
 
+def _classify_checks(rollup: list[dict]) -> str:
+    """Classify a status check rollup.
+
+    GitHub reports two node kinds: ``CheckRun`` (GitHub Actions) and
+    ``StatusContext`` (legacy commit statuses). Both carry a conclusion or a
+    state, and both must be considered. A missing or empty rollup is unknown,
+    not green.
+    """
+    if not rollup:
+        return _CHECKS_NONE
+    saw_pending = False
+    for item in rollup:
+        typename = item.get("__typename")
+        if typename == "CheckRun":
+            if item.get("status") not in {None, "COMPLETED"}:
+                saw_pending = True
+                continue
+            conclusion = (item.get("conclusion") or "").upper()
+            if conclusion in _PASSING_CONCLUSIONS:
+                continue
+            if conclusion in _PENDING_CONCLUSIONS or conclusion == "":
+                saw_pending = True
+                continue
+            return _CHECKS_FAILED
+        # StatusContext or unknown node: use ``state``/``conclusion``.
+        raw = (item.get("conclusion") or item.get("state") or "").upper()
+        if raw in _PASSING_CONCLUSIONS:
+            continue
+        if raw in _PENDING_CONCLUSIONS or raw == "":
+            saw_pending = True
+            continue
+        return _CHECKS_FAILED
+    return _CHECKS_PENDING if saw_pending else _CHECKS_GREEN
+
+
 class GhCliGitHubClient:
     """Read-only and auto-merge operations via ``gh`` (no REST merge)."""
 
-    def __init__(self, *, gh_path: str = "gh") -> None:
+    def __init__(self, *, gh_path: str = "gh", page_size: int = 50) -> None:
         self._gh = gh_path
+        self._page_size = page_size
 
     def _run(self, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
@@ -72,16 +132,10 @@ class GhCliGitHubClient:
             raise RuntimeError(msg)
         payload = json.loads(result.stdout)
         auto = payload.get("autoMergeRequest")
-        checks = payload.get("statusCheckRollup") or []
-        checks_green = None
-        if checks:
-            checks_green = all(
-                (item.get("conclusion") or item.get("state"))
-                in {"SUCCESS", "COMPLETED"}
-                for item in checks
-                if item.get("__typename") != "CheckRun"
-            )
+        rollup = payload.get("statusCheckRollup") or []
+        checks_state = _classify_checks(rollup)
         merged = payload.get("mergedAt") is not None or payload.get("state") == "MERGED"
+        closed = payload.get("state") == "CLOSED" or merged
         return PullRequestState(
             number=int(payload["number"]),
             state=str(payload.get("state") or "OPEN"),
@@ -91,11 +145,18 @@ class GhCliGitHubClient:
             base_ref=str(payload.get("baseRefName") or ""),
             node_id=str(payload.get("id") or "") or None,
             auto_merge_enabled=auto is not None,
-            checks_green=checks_green,
+            checks_green=checks_state == _CHECKS_GREEN,
             review_decision=payload.get("reviewDecision"),
+            closed=bool(closed),
+            checks_state=checks_state,
         )
 
     def list_open_pull_requests(self, repository: str) -> list[PullRequestState]:
+        """List open pull requests.
+
+        ``gh pr list --limit`` follows the REST pagination internally, so a limit
+        above one page returns every open pull request up to that bound.
+        """
         result = self._run(
             "pr",
             "list",
@@ -106,7 +167,7 @@ class GhCliGitHubClient:
             "--json",
             "number",
             "--limit",
-            "50",
+            str(self._page_size),
         )
         if result.returncode != 0:
             msg = result.stderr.strip() or result.stdout.strip()
@@ -126,6 +187,33 @@ class GhCliGitHubClient:
                 requested=False,
                 auto_merge_request_present=False,
                 error="pull request already merged",
+            )
+        if pr.closed:
+            return AutoMergeAttempt(
+                pull_number=number,
+                requested=False,
+                auto_merge_request_present=False,
+                error="pull request is closed without merge",
+            )
+        if not pr.targets_integration_branch:
+            return AutoMergeAttempt(
+                pull_number=number,
+                requested=False,
+                auto_merge_request_present=False,
+                error=(
+                    f"auto-merge refused: base branch '{pr.base_ref}' is not "
+                    f"'{AUTONOMOUS_INTEGRATION_BRANCH}'"
+                ),
+            )
+        if pr.checks_green is not True:
+            return AutoMergeAttempt(
+                pull_number=number,
+                requested=False,
+                auto_merge_request_present=False,
+                error=(
+                    "auto-merge refused: required checks are not all passing "
+                    f"(state: {pr.checks_state})"
+                ),
             )
         if pr.auto_merge_enabled:
             return AutoMergeAttempt(

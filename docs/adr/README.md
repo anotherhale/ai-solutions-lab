@@ -63,3 +63,4 @@ Optional sections such as related ADRs or rollback notes may be added when they 
 | [0007](0007-starlette-security-remediation.md) | Starlette security advisories and remediation plan | Accepted |
 | [0008](0008-development-activity-log-schema.md) | Development activity log schema | Accepted |
 | [0009](0009-coordinator-continuity-scheduling.md) | Coordinator continuity scheduling | Accepted |
+| [0010](0010-autonomous-integration-branch.md) | Autonomous integration on `ai-dev` and merge safety | Accepted |

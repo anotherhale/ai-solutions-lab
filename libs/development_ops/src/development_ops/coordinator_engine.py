@@ -12,20 +12,25 @@ from sqlalchemy.orm import Session
 
 from development_ops.backlog import BacklogDocument, load_backlog
 from development_ops.github_client import (
+    AUTONOMOUS_INTEGRATION_BRANCH,
     AutoMergeAttempt,
     GitHubClient,
     PullRequestState,
 )
 from development_ops.models import ActivityEventCreate, GitHubReference
 from development_ops.persistence.coordinator_repository import CoordinatorTaskRepository
+from development_ops.persistence.orm import CoordinatorTaskORM
 from development_ops.recorder import ActivityRecorder
 from development_ops.scheduling import (
+    IN_FLIGHT_STATUSES,
     CoordinatorTaskView,
     RuntimeTaskStatus,
     merge_backlog_with_runtime,
     select_next_eligible,
 )
 from development_ops.taxonomy import EventSeverity, EventType
+
+IN_FLIGHT_STATUSES_VALUES = frozenset(status.value for status in IN_FLIGHT_STATUSES)
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,23 +79,12 @@ class CoordinatorEngine:
         document = load_backlog(self._backlog_path)
         self._tasks.sync_catalog(document)
         self._session.expire_all()
+        reclaimed: list[str] = []
         if os.environ.get("DEVELOPMENT_OPS_RECLAIM_STALE") == "1":
-            for row in self._tasks.list_tasks():
-                if (
-                    row.active_run_id
-                    and row.active_run_id != self._run_id
-                    and row.status
-                    in {
-                        RuntimeTaskStatus.IN_PROGRESS.value,
-                        RuntimeTaskStatus.PR_OPEN.value,
-                    }
-                ):
-                    self._tasks.release_stale_assignment(
-                        row.task_id,
-                        reason="stale assignment reclaimed on coordinator recovery",
-                        run_id=row.active_run_id,
-                    )
+            reclaimed = self._tasks.reclaim_expired_leases()
         notes: list[str] = []
+        if reclaimed:
+            notes.append("reclaimed expired leases: " + ", ".join(sorted(reclaimed)))
         open_prs: list[int] = []
         auto_attempts: list[AutoMergeAttempt] = []
 
@@ -109,12 +103,9 @@ class CoordinatorEngine:
             notes.append("github client unavailable; using persisted task state only")
 
         views = self._task_views(document)
-        active_count = sum(
-            1
-            for view in views
-            if view.runtime_status
-            in {RuntimeTaskStatus.IN_PROGRESS, RuntimeTaskStatus.PR_OPEN}
-        )
+        # Only tasks actively being implemented consume a slot. Open PRs and
+        # tasks awaiting merge have released their implementer.
+        active_count = self._tasks.count_slot_consuming()
         max_concurrent = int(os.environ.get("DEVELOPMENT_OPS_MAX_CONCURRENT", "3"))
         resume_task_id = os.environ.get("DEVELOPMENT_OPS_TASK_ID", "").strip()
         selected_id: str | None = None
@@ -125,10 +116,7 @@ class CoordinatorEngine:
                 (view for view in views if view.task_id == resume_task_id),
                 None,
             )
-            if resume_view and resume_view.runtime_status in {
-                RuntimeTaskStatus.IN_PROGRESS,
-                RuntimeTaskStatus.PR_OPEN,
-            }:
+            if resume_view and resume_view.runtime_status in IN_FLIGHT_STATUSES:
                 selected_id = resume_view.task_id
                 selected_title = resume_view.title
                 notes.append(f"resumed in-flight task {resume_task_id}")
@@ -141,13 +129,8 @@ class CoordinatorEngine:
             existing = self._tasks.get(decision.task.task_id)
             if (
                 existing is not None
-                and existing.status
-                in {
-                    RuntimeTaskStatus.IN_PROGRESS.value,
-                    RuntimeTaskStatus.PR_OPEN.value,
-                }
+                and existing.status in IN_FLIGHT_STATUSES_VALUES
                 and existing.active_run_id != self._run_id
-                and os.environ.get("DEVELOPMENT_OPS_RECLAIM_STALE") != "1"
             ):
                 skipped_duplicate = True
                 notes.append(
@@ -155,16 +138,25 @@ class CoordinatorEngine:
                     f"(owned by run {existing.active_run_id})"
                 )
             else:
-                selected_id = decision.task.task_id
-                selected_title = decision.task.title
-                self._tasks.mark_in_progress(
-                    selected_id,
+                claimed = self._tasks.claim_for_implementation(
+                    decision.task.task_id,
                     run_id=self._run_id,
                     owner_agent=os.environ.get(
                         "DEVELOPMENT_OPS_AGENT_NAME", "coordinator"
                     ),
                 )
-                self._record_scheduled(selected_id, selected_title)
+                if claimed:
+                    selected_id = decision.task.task_id
+                    selected_title = decision.task.title
+                    self._record_scheduled(selected_id, selected_title)
+                else:
+                    # Lost the race to a concurrent tick, or the row became
+                    # ineligible between selection and claim.
+                    skipped_duplicate = True
+                    notes.append(
+                        f"skipped duplicate assignment for "
+                        f"{decision.task.task_id} (claim lost)"
+                    )
         elif selected_id is not None and resume_task_id:
             self._record_recovery_only(selected_id, notes)
             return CoordinatorTickResult(
@@ -214,6 +206,8 @@ class CoordinatorEngine:
         pull_number: int,
         branch_name: str,
         title: str,
+        base_branch: str | None = None,
+        awaiting_merge: bool = False,
     ) -> None:
         self._tasks.mark_pr_open(
             task_id,
@@ -221,6 +215,8 @@ class CoordinatorEngine:
             branch_name=branch_name,
             pr_number=pull_number,
             owner_agent=os.environ.get("DEVELOPMENT_OPS_AGENT_NAME"),
+            base_branch=base_branch,
+            awaiting_merge=awaiting_merge,
         )
         self._recorder.record(
             ActivityEventCreate(
@@ -238,10 +234,15 @@ class CoordinatorEngine:
         )
 
     def release_assignment(
-        self, task_id: str, *, reason: str, run_id: uuid.UUID | None = None
+        self,
+        task_id: str,
+        *,
+        reason: str,
+        run_id: uuid.UUID | None = None,
+        force: bool = False,
     ) -> bool:
         return self._tasks.release_stale_assignment(
-            task_id, reason=reason, run_id=run_id
+            task_id, reason=reason, run_id=run_id, force=force
         )
 
     def _task_views(self, document: BacklogDocument) -> list[CoordinatorTaskView]:
@@ -269,17 +270,24 @@ class CoordinatorEngine:
     ) -> None:
         by_pr = {state.number: state for state in pr_states}
         for task in document.tasks:
-            if task.pr_number is None:
-                continue
-            state = by_pr.get(task.pr_number)
             row = self._tasks.get(task.id)
+            pr_number = task.pr_number or (row.pr_number if row else None)
+            if pr_number is None:
+                continue
+            state = by_pr.get(pr_number)
             if state is None:
-                if row and row.status == RuntimeTaskStatus.PR_OPEN.value:
-                    notes.append(f"pr #{task.pr_number} closed or merged externally")
-                    self._tasks.mark_merged(task.id, merge_commit_sha=task.merge_commit)
+                self._reconcile_missing_pull_request(
+                    task.id, pr_number, row, task.merge_commit, notes
+                )
                 continue
             if state.merged:
                 self._tasks.mark_merged(task.id, merge_commit_sha=None)
+                continue
+            if state.closed_unmerged:
+                self._tasks.mark_blocked(
+                    task.id, f"pull request #{pr_number} closed without merge"
+                )
+                notes.append(f"pr #{pr_number} closed without merge; task blocked")
                 continue
             if row is not None and row.status == RuntimeTaskStatus.PENDING.value:
                 self._tasks.mark_pr_open(
@@ -288,22 +296,81 @@ class CoordinatorEngine:
                     branch_name=state.head_ref,
                     pr_number=state.number,
                     owner_agent=row.owner_agent,
+                    base_branch=state.base_ref,
                 )
-            if (
-                state.checks_green
-                and not state.auto_merge_enabled
-                and os.environ.get("DEVELOPMENT_OPS_ATTEMPT_AUTO_MERGE", "1") == "1"
-            ):
-                attempt = self._github.enable_squash_auto_merge(  # type: ignore[union-attr]
-                    self._repository,
-                    state.number,
-                )
-                auto_attempts.append(attempt)
-                self._record_auto_merge(task.id, attempt)
-                if attempt.error:
-                    notes.append(
-                        f"auto-merge pr #{state.number}: {attempt.error}; continuing"
-                    )
+            self._maybe_attempt_auto_merge(task.id, state, auto_attempts, notes)
+
+    def _reconcile_missing_pull_request(
+        self,
+        task_id: str,
+        pr_number: int,
+        row: CoordinatorTaskORM | None,
+        catalog_merge_commit: str | None,
+        notes: list[str],
+    ) -> None:
+        """A task PR that is absent from the open list is merged or closed.
+
+        Distinguish the two by fetching the pull request directly. Merged work is
+        terminal and clears ownership; a closed-without-merge PR blocks the task
+        for human attention instead of silently claiming success.
+        """
+        if row is None or row.status not in IN_FLIGHT_STATUSES_VALUES:
+            return
+        if self._github is None:
+            return
+        try:
+            state = self._github.get_pull_request(self._repository, pr_number)
+        except RuntimeError as exc:
+            notes.append(f"pr #{pr_number} lookup failed: {exc}")
+            return
+        if state.merged:
+            self._tasks.mark_merged(task_id, merge_commit_sha=catalog_merge_commit)
+            notes.append(f"pr #{pr_number} merged externally")
+            return
+        if state.closed_unmerged:
+            self._tasks.mark_blocked(
+                task_id, f"pull request #{pr_number} closed without merge"
+            )
+            notes.append(f"pr #{pr_number} closed without merge; task blocked")
+            return
+        notes.append(f"pr #{pr_number} is not open but not merged; leaving task state")
+
+    def _maybe_attempt_auto_merge(
+        self,
+        task_id: str,
+        state: PullRequestState,
+        auto_attempts: list[AutoMergeAttempt],
+        notes: list[str],
+    ) -> None:
+        """Attempt squash auto-merge only for green PRs targeting ``ai-dev``.
+
+        Auto-merge into ``main`` or any other branch is never attempted, even if
+        the base-branch guard is later relaxed elsewhere.
+        """
+        if os.environ.get("DEVELOPMENT_OPS_ATTEMPT_AUTO_MERGE", "1") != "1":
+            return
+        if state.auto_merge_enabled:
+            return
+        if not state.targets_integration_branch:
+            notes.append(
+                f"auto-merge skipped for pr #{state.number}: base "
+                f"'{state.base_ref}' is not {AUTONOMOUS_INTEGRATION_BRANCH}"
+            )
+            return
+        if state.checks_green is not True:
+            notes.append(
+                f"auto-merge skipped for pr #{state.number}: checks "
+                f"{state.checks_state}"
+            )
+            return
+        attempt = self._github.enable_squash_auto_merge(  # type: ignore[union-attr]
+            self._repository,
+            state.number,
+        )
+        auto_attempts.append(attempt)
+        self._record_auto_merge(task_id, attempt)
+        if attempt.error:
+            notes.append(f"auto-merge pr #{state.number}: {attempt.error}; continuing")
 
     def _record_recovery_only(
         self, selected_task_id: str | None, notes: list[str]

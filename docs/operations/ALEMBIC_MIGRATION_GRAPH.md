@@ -1,12 +1,13 @@
 # Alembic migration graph (integration branch)
 
-Linear chain on `develop` after open feature work lands:
+Linear chain on the integration branch after open feature work lands:
 
 ```
 0001 → … → 0009 (development_ops.activity_events)
   → 0010 (invoice_lines — FIN-2, PR #34)
   → 0011 (payments — FIN-3, PR #35)
   → 0012 (development_ops.coordinator_tasks — PR #37)
+  → 0013 (coordinator slot accounting, leases, awaiting-merge — Phase A)
 ```
 
 ## Conflicts resolved
