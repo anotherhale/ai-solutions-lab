@@ -74,6 +74,13 @@ cd services/wasatch-api && pytest
 
 GitHub Actions runs that pytest command against PostgreSQL with pgvector. The session applies Alembic migrations and loads `data/fixtures/valid/`. Integration and API tests are required on that job: a skip fails the run. Locally, pytest still skips those tests when PostgreSQL is not running.
 
+Coordinator tests that need the development-ops schema run against the disposable
+`wasatch_development_ops_test` database, never the operational
+`wasatch_development_ops` database, even when `DEVELOPMENT_OPS_DATABASE_URL`
+points at the operational database. Destructive helpers refuse operational and
+maintenance database names before running any SQL. See
+[ADR 0011](../adr/0011-test-database-isolation.md).
+
 ## First application (local)
 
 1. Run `scripts/bootstrap_laboratory.sh` once, or manually: copy `.env.example` to `.env`, start PostgreSQL, create the API venv, and `npm ci` in `apps/wasatch-review`.

@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import os
 import textwrap
 import uuid
 from pathlib import Path
 
 import pytest
 from development_ops.coordinator_engine import CoordinatorEngine
-from development_ops.database import ensure_development_ops_database
 from development_ops.github_client import (
     AutoMergeAttempt,
     GitHubClient,
@@ -24,7 +22,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
-from wasatch_api.testing.postgres import wasatch_development_ops_database_url_for_tests
+from wasatch_api.testing.postgres import assert_engine_is_disposable
 
 
 class FakeGitHub(GitHubClient):
@@ -78,63 +76,17 @@ def _pr(
 
 @pytest.fixture(autouse=True)
 def _reset_coordinator_tables(ops_engine: Engine) -> None:
+    # Clean only the disposable ops-test database this fixture created.
+    assert_engine_is_disposable(ops_engine)
     with ops_engine.begin() as connection:
         connection.execute(text("DELETE FROM development_ops.activity_events"))
         connection.execute(text("DELETE FROM development_ops.coordinator_tasks"))
 
 
 @pytest.fixture
-def ops_engine() -> Engine:
-    from sqlalchemy import create_engine, text
-
-    url = ensure_development_ops_database(
-        wasatch_development_ops_database_url_for_tests()
-    )
-    from sqlalchemy.engine import make_url
-
-    parsed = make_url(url)
-    target = parsed.database or "wasatch_development_ops"
-    for admin_name in ("wasatch", "postgres"):
-        if admin_name == target:
-            continue
-        admin = create_engine(
-            parsed.set(database=admin_name),
-            isolation_level="AUTOCOMMIT",
-            pool_pre_ping=True,
-        )
-        try:
-            with admin.connect() as connection:
-                connection.execute(
-                    text(
-                        "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
-                        "WHERE datname = :name AND pid <> pg_backend_pid()"
-                    ),
-                    {"name": target},
-                )
-                connection.execute(text(f'DROP DATABASE IF EXISTS "{target}"'))
-                connection.execute(text(f'CREATE DATABASE "{target}"'))
-            break
-        except Exception:
-            continue
-        finally:
-            admin.dispose()
-    ensure_development_ops_database(url)
-    os.environ["DEVELOPMENT_OPS_DATABASE_URL"] = url
-    os.environ["WASATCH_DATABASE_URL"] = url
-    from alembic import command
-    from alembic.config import Config
-
-    from wasatch_api.config import REPO_ROOT, get_settings
-
-    api_root = REPO_ROOT / "services" / "wasatch-api"
-    get_settings.cache_clear()
-    cfg = Config(str(api_root / "alembic.ini"))
-    cfg.set_main_option("sqlalchemy.url", url)
-    cfg.set_main_option("script_location", str(api_root / "alembic"))
-    command.upgrade(cfg, "head")
-    engine = create_engine(url, pool_pre_ping=True)
-    yield engine
-    engine.dispose()
+def ops_engine(ops_test_engine: Engine) -> Engine:
+    """The disposable ops-test engine; coordinator code uses the passed session."""
+    return ops_test_engine
 
 
 @pytest.fixture

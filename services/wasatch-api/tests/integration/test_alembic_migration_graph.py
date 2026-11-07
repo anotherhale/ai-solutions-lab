@@ -11,12 +11,17 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
 from wasatch_api.config import REPO_ROOT, get_settings
+from wasatch_api.testing.postgres import (
+    assert_disposable_test_database,
+    wasatch_test_database_url,
+)
 
 API_ROOT = REPO_ROOT / "services" / "wasatch-api"
 DISPOSABLE_DB = "wasatch_alembic_disposable"
 
 
 def _ensure_disposable_database(admin_url: str, target: str) -> str:
+    assert_disposable_test_database(f"{admin_url.rsplit('/', 1)[0]}/{target}")
     admin = create_engine(admin_url, isolation_level="AUTOCOMMIT", pool_pre_ping=True)
     try:
         with admin.connect() as connection:
@@ -42,10 +47,7 @@ def _ensure_disposable_database(admin_url: str, target: str) -> str:
 
 @pytest.fixture(scope="module")
 def disposable_engine() -> Engine:
-    admin_url = os.environ.get("WASATCH_TEST_DATABASE_URL") or os.environ.get(
-        "WASATCH_DATABASE_URL",
-        "postgresql+psycopg://wasatch:replace-me@localhost:5432/wasatch_test",
-    )
+    admin_url = wasatch_test_database_url()
     admin_base = admin_url.rsplit("/", 1)[0] + "/wasatch"
     url = _ensure_disposable_database(admin_base, DISPOSABLE_DB)
     os.environ["WASATCH_DATABASE_URL"] = url
