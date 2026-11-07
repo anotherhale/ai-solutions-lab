@@ -141,6 +141,15 @@ Use `DEVELOPMENT_OPS_DATABASE_URL` (default database `wasatch_development_ops`) 
 activity and coordinator state. Pytest uses `wasatch_test` and must not destroy
 operational telemetry.
 
+Pytest coordinator tests use a separate disposable database,
+`wasatch_development_ops_test`, resolved by
+`wasatch_api.testing.postgres.wasatch_development_ops_test_database_url()`. That
+helper never returns `wasatch_development_ops`, even when
+`DEVELOPMENT_OPS_DATABASE_URL` points at it, and `drop_and_recreate_test_database`
+refuses operational and maintenance database names before running any SQL. See
+[ADR 0011](docs/adr/0011-test-database-isolation.md). Do not add tests that
+resolve a database URL by hand; request the `ops_test_engine` fixture instead.
+
 ## Coordinator continuity (mandatory)
 
 Open pull requests must **not** block unrelated backlog work. After opening a PR:
