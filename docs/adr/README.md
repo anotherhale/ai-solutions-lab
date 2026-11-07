@@ -65,3 +65,4 @@ Optional sections such as related ADRs or rollback notes may be added when they 
 | [0009](0009-coordinator-continuity-scheduling.md) | Coordinator continuity scheduling | Accepted |
 | [0010](0010-autonomous-integration-branch.md) | Autonomous integration on `ai-dev` and merge safety | Accepted |
 | [0011](0011-test-database-isolation.md) | Test database isolation for operational telemetry | Accepted |
+| [0012](0012-isolated-worktrees-for-child-agents.md) | Isolated Git worktrees for coordinator child agents | Accepted |

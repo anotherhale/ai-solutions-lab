@@ -31,6 +31,25 @@ Repository branch prefixes in [../DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFL
 
 [../DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) keeps `main` as the production branch. Do not force-push any protected branch.
 
+### Isolated worktrees for child agents
+
+Each autonomous task must run in its own Git worktree and branch, cut from the latest `origin/ai-dev`, so two agents never share a writable working directory and no agent can move the primary checkout's branch. The coordinator manages this explicitly rather than using the agent runtime's built-in worktree isolation.
+
+**Why not the built-in isolation.** OpenHands local worktree isolation (`worktree: true`) starts a child from the repository default branch (`refs/remotes/origin/HEAD`, which is `main` here) and derives both the worktree path (`<worktree_root>/<conversation_id>/<repo>`) and the branch name (`openhands/<conversation-uuid>`) itself. It therefore cannot start from the required `ai-dev` baseline, and the coordinator cannot predict the path or branch to register, recover, or clean up. Verified against agent-server 1.60.1.
+
+**Coordinator-managed approach.** The coordinator creates the worktree itself and launches the child with the conversation workspace pointed at it and worktree creation disabled (`worktree: false`). Implemented lifecycle:
+
+1. Fetch `origin` so the base is the latest `origin/ai-dev`.
+2. Create a task-specific branch, `cursor/<task-id>`, from that base.
+3. Create an isolated worktree outside the primary checkout.
+4. Launch the child agent inside that worktree.
+5. Track task, branch, worktree path, and conversation identity in the worktree registry (`development_ops.agent_worktrees`, migration `0014`).
+6. The child opens a pull request against `ai-dev`.
+7. Reconcile merge status against GitHub.
+8. Remove the worktree and branch only after the merge is confirmed and the working tree is clean; leave unmerged or dirty worktrees in place.
+
+The capability is wired into the coordinator (`CoordinatorEngine` prepares a worktree when it claims a task and cleans up after a GitHub-verified merge) and the CLI (`development-ops worktree list|status|prepare|launch|cleanup`, plus `coordinator tick --worktrees`). Cleanup re-verifies the merge against GitHub and requires the pull request to target `ai-dev`; a caller-supplied merge flag is never trusted. A per-task advisory lock serializes `prepare` and `cleanup`, and a duplicate launch returns the existing child conversation instead of starting a second one. See ADR 0012 and [../operations/COORDINATOR_CONTINUITY.md](../operations/COORDINATOR_CONTINUITY.md).
+
 ## Pull request gate
 
 A pull request is ready to merge only when all of these are true:
