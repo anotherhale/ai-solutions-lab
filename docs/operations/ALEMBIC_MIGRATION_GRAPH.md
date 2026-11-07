@@ -8,6 +8,7 @@ Linear chain on the integration branch after open feature work lands:
   → 0011 (payments — FIN-3, PR #35)
   → 0012 (development_ops.coordinator_tasks — PR #37)
   → 0013 (coordinator slot accounting, leases, awaiting-merge — Phase A)
+  → 0014 (development_ops.agent_worktrees — Phase C)
 ```
 
 ## Conflicts resolved

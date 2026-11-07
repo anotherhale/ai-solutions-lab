@@ -67,3 +67,34 @@ class CoordinatorTaskORM(DevelopmentOpsBase):
         server_default=func.now(),
         onupdate=func.now(),
     )
+
+
+class AgentWorktreeORM(DevelopmentOpsBase):
+    """Durable association of a task, its worktree, and its child conversation.
+
+    One row per task. The unique branch and worktree path make the registry the
+    source of truth for cleanup, so an interrupted launch can be recovered and
+    merged work can be reaped without guessing paths.
+    """
+
+    __tablename__ = "agent_worktrees"
+    __table_args__ = {"schema": "development_ops"}
+
+    task_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    branch_name: Mapped[str] = mapped_column(String(255), unique=True)
+    worktree_path: Mapped[str] = mapped_column(String(1024), unique=True)
+    base_ref: Mapped[str] = mapped_column(String(255))
+    base_sha: Mapped[str | None] = mapped_column(String(64))
+    conversation_id: Mapped[str | None] = mapped_column(String(128))
+    run_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    state: Mapped[str] = mapped_column(String(32), index=True)
+    pr_number: Mapped[int | None] = mapped_column(Integer())
+    notes: Mapped[str | None] = mapped_column(Text())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )

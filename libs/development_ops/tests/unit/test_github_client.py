@@ -218,3 +218,86 @@ def test_list_open_pull_requests_uses_configured_page_size() -> None:
     list_calls = [call for call in runner.calls if call[:2] == ("pr", "list")]
     assert list_calls
     assert "123" in list_calls[0]
+
+
+# --- merge verification for worktree cleanup ---------------------------------
+
+
+class _StubPRClient:
+    def __init__(self, prs: dict[int, PullRequestState], fail: bool = False) -> None:
+        self._prs = prs
+        self._fail = fail
+
+    def get_pull_request(self, repository: str, number: int) -> PullRequestState:
+        if self._fail:
+            raise RuntimeError("lookup failed")
+        return self._prs[number]
+
+    def list_open_pull_requests(self, repository: str) -> list[PullRequestState]:
+        return list(self._prs.values())
+
+    def enable_squash_auto_merge(self, repository, number):  # pragma: no cover
+        raise NotImplementedError
+
+
+def _state(
+    number: int, *, merged: bool, base_ref: str = "ai-dev", closed: bool = False
+) -> PullRequestState:
+    return PullRequestState(
+        number=number,
+        state="MERGED" if merged else ("CLOSED" if closed else "OPEN"),
+        merged=merged,
+        mergeable="MERGEABLE",
+        head_ref=f"cursor/task-{number}",
+        base_ref=base_ref,
+        node_id=f"PR_node_{number}",
+        auto_merge_enabled=False,
+        checks_green=True,
+        review_decision=None,
+        closed=closed or merged,
+    )
+
+
+def test_verify_merged_into_ai_dev_is_verified() -> None:
+    from development_ops.github_client import verify_pull_request_merged
+
+    client = _StubPRClient({1: _state(1, merged=True)})
+    result = verify_pull_request_merged(client, repository="o/r", pull_number=1)
+    assert result.verified is True
+    assert result.merged is True
+
+
+def test_verify_open_pr_is_not_verified() -> None:
+    from development_ops.github_client import verify_pull_request_merged
+
+    client = _StubPRClient({2: _state(2, merged=False)})
+    result = verify_pull_request_merged(client, repository="o/r", pull_number=2)
+    assert result.verified is False
+    assert "not merged" in result.reason
+
+
+def test_verify_closed_unmerged_is_not_verified() -> None:
+    from development_ops.github_client import verify_pull_request_merged
+
+    client = _StubPRClient({3: _state(3, merged=False, closed=True)})
+    result = verify_pull_request_merged(client, repository="o/r", pull_number=3)
+    assert result.verified is False
+
+
+def test_verify_merged_into_main_is_not_verified() -> None:
+    """Autonomous cleanup must never accept a merge into a non-ai-dev branch."""
+    from development_ops.github_client import verify_pull_request_merged
+
+    client = _StubPRClient({4: _state(4, merged=True, base_ref="main")})
+    result = verify_pull_request_merged(client, repository="o/r", pull_number=4)
+    assert result.verified is False
+    assert "ai-dev" in result.reason
+
+
+def test_verify_lookup_failure_fails_closed() -> None:
+    from development_ops.github_client import verify_pull_request_merged
+
+    client = _StubPRClient({}, fail=True)
+    result = verify_pull_request_merged(client, repository="o/r", pull_number=9)
+    assert result.verified is False
+    assert "lookup failed" in result.reason

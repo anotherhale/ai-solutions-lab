@@ -66,6 +66,85 @@ class GitHubClient(Protocol):
     ) -> AutoMergeAttempt: ...
 
 
+@dataclass(frozen=True, slots=True)
+class MergeVerification:
+    """The result of checking whether a pull request is safely merged.
+
+    Cleanup depends on this: a worktree is removed only when the *specific*
+    pull request is confirmed merged into the autonomous integration branch of
+    the expected repository. Anything else (open, closed-unmerged, wrong base,
+    unknown) is ``verified=False`` with a human-readable ``reason``.
+    """
+
+    pull_number: int
+    repository: str
+    merged: bool
+    base_ref: str
+    state: str
+    verified: bool
+    reason: str
+
+
+def verify_pull_request_merged(
+    client: GitHubClient,
+    *,
+    repository: str,
+    pull_number: int,
+    integration_branch: str = AUTONOMOUS_INTEGRATION_BRANCH,
+) -> MergeVerification:
+    """Confirm a PR merged into ``integration_branch`` for ``repository``.
+
+    Fails closed: any lookup error or ambiguity yields ``verified=False`` so a
+    caller never deletes a worktree on an unverified merge.
+    """
+    try:
+        state = client.get_pull_request(repository, pull_number)
+    except RuntimeError as exc:
+        return MergeVerification(
+            pull_number=pull_number,
+            repository=repository,
+            merged=False,
+            base_ref="",
+            state="UNKNOWN",
+            verified=False,
+            reason=f"pull request lookup failed: {exc}",
+        )
+    if not state.merged:
+        return MergeVerification(
+            pull_number=pull_number,
+            repository=repository,
+            merged=False,
+            base_ref=state.base_ref,
+            state=state.state,
+            verified=False,
+            reason=(
+                f"pull request #{pull_number} is not merged (state: {state.state})"
+            ),
+        )
+    if state.base_ref != integration_branch:
+        return MergeVerification(
+            pull_number=pull_number,
+            repository=repository,
+            merged=True,
+            base_ref=state.base_ref,
+            state=state.state,
+            verified=False,
+            reason=(
+                f"pull request #{pull_number} merged into '{state.base_ref}', "
+                f"not '{integration_branch}'"
+            ),
+        )
+    return MergeVerification(
+        pull_number=pull_number,
+        repository=repository,
+        merged=True,
+        base_ref=state.base_ref,
+        state=state.state,
+        verified=True,
+        reason=f"pull request #{pull_number} merged into {integration_branch}",
+    )
+
+
 def _classify_checks(rollup: list[dict]) -> str:
     """Classify a status check rollup.
 

@@ -17,6 +17,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
 from development_ops.backlog import default_backlog_path
+from development_ops.child_agents import (
+    DEFAULT_AGENT_SERVER_URL,
+    ChildAgentLauncher,
+    ChildAgentLaunchError,
+    HttpChildAgentLauncher,
+)
 from development_ops.coordinator_engine import CoordinatorEngine
 from development_ops.database import (
     development_ops_database_url,
@@ -26,7 +32,12 @@ from development_ops.errors import PersistenceError
 from development_ops.github_client import github_client_from_env
 from development_ops.models import ActivityEventCreate, GitHubReference
 from development_ops.recorder import ActivityRecorder, RecordResult
+from development_ops.task_worktrees import (
+    TaskWorktreeOrchestrator,
+    worktree_manager_from_env,
+)
 from development_ops.taxonomy import EventSeverity, EventType
+from development_ops.worktrees import WorktreeError
 
 EXIT_OK = 0
 EXIT_PERSISTENCE_FAILED = 1
@@ -174,6 +185,16 @@ def coordinator_tick_command(args: argparse.Namespace) -> int:
     session = factory()
     try:
         recorder = ActivityRecorder(session, notify_slack=args.notify_slack)
+        worktrees = None
+        if getattr(args, "worktrees", False):
+            worktrees = TaskWorktreeOrchestrator(
+                session,
+                worktree_manager_from_env(),
+                repository=repository,
+                launcher=None,
+                github=github_client_from_env(),
+                run_id=run_id,
+            )
         engine = CoordinatorEngine(
             session,
             github=github_client_from_env(),
@@ -181,6 +202,7 @@ def coordinator_tick_command(args: argparse.Namespace) -> int:
             run_id=run_id,
             repository=repository,
             backlog_path=Path(args.backlog) if args.backlog else None,
+            worktrees=worktrees,
         )
         result = engine.tick()
         print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
@@ -228,6 +250,193 @@ def confirm_slack_command(args: argparse.Namespace) -> int:
         return EXIT_OK
     except SQLAlchemyError as exc:
         print(json.dumps({"persisted": False, "error": str(exc)}), file=sys.stderr)
+        return EXIT_PERSISTENCE_FAILED
+    finally:
+        session.close()
+
+
+def _worktree_orchestrator(
+    session: Session,
+    args: argparse.Namespace,
+    *,
+    launcher: ChildAgentLauncher | None = None,
+) -> TaskWorktreeOrchestrator:
+    repository = (
+        getattr(args, "github_repository", None)
+        or os.environ.get("DEVELOPMENT_OPS_GITHUB_REPOSITORY", "").strip()
+        or "anotherhale/ai-solutions-lab"
+    )
+    manager = worktree_manager_from_env()
+    return TaskWorktreeOrchestrator(
+        session,
+        manager,
+        repository=repository,
+        launcher=launcher,
+        github=github_client_from_env(),
+    )
+
+
+def _child_agent_launcher_from_env(
+    args: argparse.Namespace,
+) -> HttpChildAgentLauncher:
+    base_url = (
+        getattr(args, "agent_server_url", None)
+        or os.environ.get("DEVELOPMENT_OPS_AGENT_SERVER_URL")
+        or DEFAULT_AGENT_SERVER_URL
+    )
+    return HttpChildAgentLauncher(
+        base_url=base_url,
+        api_key=os.environ.get("OPENHANDS_SESSION_API_KEY"),
+    )
+
+
+def _worktree_record_dict(record: Any) -> dict[str, Any]:
+    return {
+        "task_id": record.task_id,
+        "state": record.state.value,
+        "branch_name": record.branch_name,
+        "worktree_path": record.worktree_path,
+        "base_ref": record.base_ref,
+        "base_sha": record.base_sha,
+        "conversation_id": record.conversation_id,
+        "pr_number": record.pr_number,
+        "notes": record.notes,
+    }
+
+
+def worktree_list_command(args: argparse.Namespace) -> int:
+    factory = _session_factory()
+    session = factory()
+    try:
+        orchestrator = _worktree_orchestrator(session, args)
+        records = orchestrator.registry.list_all()
+        print(
+            json.dumps(
+                {"worktrees": [_worktree_record_dict(r) for r in records]},
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return EXIT_OK
+    finally:
+        session.close()
+
+
+def worktree_status_command(args: argparse.Namespace) -> int:
+    factory = _session_factory()
+    session = factory()
+    try:
+        orchestrator = _worktree_orchestrator(session, args)
+        record = orchestrator.registry.get(args.task_id)
+        if record is None:
+            print(
+                json.dumps({"error": f"no worktree registered for {args.task_id}"}),
+                file=sys.stderr,
+            )
+            return EXIT_USAGE
+        payload = _worktree_record_dict(record)
+        status = orchestrator.manager.status(args.task_id)
+        payload["filesystem"] = {
+            "exists": status.exists,
+            "dirty": status.dirty,
+            "head_sha": status.head_sha,
+            "merged_into_base": status.merged_into_base,
+        }
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return EXIT_OK
+    finally:
+        session.close()
+
+
+def worktree_prepare_command(args: argparse.Namespace) -> int:
+    factory = _session_factory()
+    session = factory()
+    try:
+        orchestrator = _worktree_orchestrator(session, args)
+        record = orchestrator.prepare(args.task_id, title=args.title or "")
+        print(json.dumps(_worktree_record_dict(record), indent=2, sort_keys=True))
+        return EXIT_OK
+    except WorktreeError as exc:
+        print(json.dumps({"error": str(exc)}), file=sys.stderr)
+        return EXIT_PERSISTENCE_FAILED
+    finally:
+        session.close()
+
+
+def worktree_launch_command(args: argparse.Namespace) -> int:
+    """Launch a child conversation inside a task's worktree.
+
+    This starts a real agent conversation and therefore must be invoked
+    explicitly with ``--agent-settings``; it is never triggered by a bare tick.
+    """
+    settings_path = Path(args.agent_settings)
+    if not settings_path.exists():
+        print(
+            json.dumps({"error": f"agent settings not found: {settings_path}"}),
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    try:
+        agent_settings = json.loads(settings_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        print(json.dumps({"error": f"invalid agent settings: {exc}"}), file=sys.stderr)
+        return EXIT_USAGE
+
+    factory = _session_factory()
+    session = factory()
+    try:
+        orchestrator = _worktree_orchestrator(
+            session, args, launcher=_child_agent_launcher_from_env(args)
+        )
+        result = orchestrator.launch(
+            args.task_id,
+            title=args.title or args.task_id,
+            agent_settings=agent_settings,
+            extra_instructions=args.instructions,
+        )
+        print(
+            json.dumps(
+                {
+                    "task_id": result.task_id,
+                    "conversation_id": result.conversation_id,
+                    "worktree_path": str(result.worktree_path),
+                    "branch_name": result.branch_name,
+                    "launched": result.launched,
+                    "notes": list(result.notes),
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return EXIT_OK
+    except (WorktreeError, ChildAgentLaunchError) as exc:
+        print(json.dumps({"error": str(exc)}), file=sys.stderr)
+        return EXIT_PERSISTENCE_FAILED
+    finally:
+        session.close()
+
+
+def worktree_cleanup_command(args: argparse.Namespace) -> int:
+    factory = _session_factory()
+    session = factory()
+    try:
+        orchestrator = _worktree_orchestrator(session, args)
+        outcome = orchestrator.cleanup_after_merge(args.task_id)
+        print(
+            json.dumps(
+                {
+                    "task_id": outcome.task_id,
+                    "cleaned": outcome.cleaned,
+                    "verified_merge": outcome.verified_merge,
+                    "reason": outcome.reason,
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return EXIT_OK if outcome.cleaned else EXIT_PERSISTENCE_FAILED
+    except WorktreeError as exc:
+        print(json.dumps({"error": str(exc)}), file=sys.stderr)
         return EXIT_PERSISTENCE_FAILED
     finally:
         session.close()
@@ -317,7 +526,65 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Attempt Slack notifications for recorded events",
     )
+    tick.add_argument(
+        "--worktrees",
+        action="store_true",
+        help="Prepare isolated worktrees for claimed tasks and clean up merged ones",
+    )
     tick.set_defaults(func=coordinator_tick_command)
+
+    worktree = sub.add_parser(
+        "worktree",
+        help="Inspect and operate isolated agent worktrees",
+    )
+    worktree_sub = worktree.add_subparsers(
+        dest="worktree_command",
+        required=True,
+    )
+    wt_list = worktree_sub.add_parser("list", help="List registered worktrees")
+    wt_list.add_argument("--github-repository")
+    wt_list.set_defaults(func=worktree_list_command)
+
+    wt_status = worktree_sub.add_parser(
+        "status", help="Show a task's registry row and filesystem state"
+    )
+    wt_status.add_argument("task_id")
+    wt_status.add_argument("--github-repository")
+    wt_status.set_defaults(func=worktree_status_command)
+
+    wt_prepare = worktree_sub.add_parser(
+        "prepare", help="Create the task's branch and worktree from origin/ai-dev"
+    )
+    wt_prepare.add_argument("task_id")
+    wt_prepare.add_argument("--title", help="Human-readable task title")
+    wt_prepare.add_argument("--github-repository")
+    wt_prepare.set_defaults(func=worktree_prepare_command)
+
+    wt_launch = worktree_sub.add_parser(
+        "launch",
+        help="Launch a child agent conversation inside the task's worktree",
+    )
+    wt_launch.add_argument("task_id")
+    wt_launch.add_argument("--title", help="Human-readable task title")
+    wt_launch.add_argument(
+        "--agent-settings",
+        required=True,
+        help="Path to a JSON file with the child agent_settings payload",
+    )
+    wt_launch.add_argument(
+        "--instructions", help="Extra instructions appended to the child prompt"
+    )
+    wt_launch.add_argument("--agent-server-url")
+    wt_launch.add_argument("--github-repository")
+    wt_launch.set_defaults(func=worktree_launch_command)
+
+    wt_cleanup = worktree_sub.add_parser(
+        "cleanup",
+        help="Remove a worktree after GitHub confirms its pull request merged",
+    )
+    wt_cleanup.add_argument("task_id")
+    wt_cleanup.add_argument("--github-repository")
+    wt_cleanup.set_defaults(func=worktree_cleanup_command)
 
     return parser
 

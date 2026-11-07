@@ -28,7 +28,9 @@ from development_ops.scheduling import (
     merge_backlog_with_runtime,
     select_next_eligible,
 )
+from development_ops.task_worktrees import TaskWorktreeOrchestrator
 from development_ops.taxonomy import EventSeverity, EventType
+from development_ops.worktrees import WorktreeError
 
 IN_FLIGHT_STATUSES_VALUES = frozenset(status.value for status in IN_FLIGHT_STATUSES)
 
@@ -46,6 +48,9 @@ class CoordinatorTickResult:
     held_for_dependency: tuple[str, ...]
     blocked_tasks: tuple[str, ...]
     notes: tuple[str, ...]
+    prepared_worktree: str | None = None
+    recovered_worktrees: tuple[str, ...] = ()
+    cleaned_worktrees: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -66,6 +71,7 @@ class CoordinatorEngine:
         run_id: uuid.UUID,
         repository: str,
         backlog_path: Path | None = None,
+        worktrees: TaskWorktreeOrchestrator | None = None,
     ) -> None:
         self._session = session
         self._github = github
@@ -74,6 +80,9 @@ class CoordinatorEngine:
         self._repository = repository
         self._backlog_path = backlog_path
         self._tasks = CoordinatorTaskRepository(session)
+        # Optional: worktree isolation for child agents. When absent the
+        # coordinator schedules and reconciles exactly as before.
+        self._worktrees = worktrees
 
     def tick(self) -> CoordinatorTickResult:
         document = load_backlog(self._backlog_path)
@@ -87,6 +96,9 @@ class CoordinatorEngine:
             notes.append("reclaimed expired leases: " + ", ".join(sorted(reclaimed)))
         open_prs: list[int] = []
         auto_attempts: list[AutoMergeAttempt] = []
+        prepared_worktree: str | None = None
+        recovered_worktrees: list[str] = []
+        cleaned_worktrees: list[str] = []
 
         github_reconciled = False
         if self._github is not None:
@@ -99,6 +111,7 @@ class CoordinatorEngine:
             open_prs = [pr.number for pr in pr_states]
             if github_reconciled:
                 self._reconcile_pull_requests(document, pr_states, auto_attempts, notes)
+                cleaned_worktrees = self._reconcile_worktrees(notes)
         else:
             notes.append("github client unavailable; using persisted task state only")
 
@@ -149,6 +162,9 @@ class CoordinatorEngine:
                     selected_id = decision.task.task_id
                     selected_title = decision.task.title
                     self._record_scheduled(selected_id, selected_title)
+                    prepared_worktree = self._prepare_worktree_for(
+                        selected_id, selected_title, notes
+                    )
                 else:
                     # Lost the race to a concurrent tick, or the row became
                     # ineligible between selection and claim.
@@ -173,6 +189,9 @@ class CoordinatorEngine:
                 ),
                 blocked_tasks=tuple(item.task_id for item in decision.blocked),
                 notes=tuple(notes),
+                prepared_worktree=prepared_worktree,
+                recovered_worktrees=tuple(recovered_worktrees),
+                cleaned_worktrees=tuple(cleaned_worktrees),
             )
 
         self._record_recovery(
@@ -197,6 +216,9 @@ class CoordinatorEngine:
             ),
             blocked_tasks=tuple(item.task_id for item in decision.blocked),
             notes=tuple(notes),
+            prepared_worktree=prepared_worktree,
+            recovered_worktrees=tuple(recovered_worktrees),
+            cleaned_worktrees=tuple(cleaned_worktrees),
         )
 
     def register_pull_request_opened(
@@ -232,6 +254,53 @@ class CoordinatorEngine:
                 ),
             )
         )
+        # Record the PR on the worktree registry so cleanup can verify the exact
+        # PR later. Tasks without a worktree registration (legacy work) are
+        # unaffected.
+        if self._worktrees is not None:
+            record = self._worktrees.registry.get(task_id)
+            if record is not None:
+                self._worktrees.register_pull_request(task_id, pull_number)
+
+    def _prepare_worktree_for(
+        self, task_id: str, title: str, notes: list[str]
+    ) -> str | None:
+        """Create the isolated worktree for a freshly claimed task.
+
+        Returns the worktree path, or ``None`` when worktree isolation is not
+        configured. A failure is recorded as a note and does not abort the tick:
+        the task stays claimed and the operator sees the reason.
+        """
+        if self._worktrees is None:
+            return None
+        try:
+            record = self._worktrees.prepare(task_id, title=title)
+        except WorktreeError as exc:
+            notes.append(f"worktree prepare failed for {task_id}: {exc}")
+            return None
+        notes.append(f"prepared worktree for {task_id} at {record.worktree_path}")
+        return record.worktree_path
+
+    def _reconcile_worktrees(self, notes: list[str]) -> list[str]:
+        """Clean up worktrees whose PRs GitHub confirms merged.
+
+        Returns the task ids cleaned. A worktree is removed only after the
+        orchestrator re-verifies the merge against GitHub; unmerged or dirty
+        worktrees are left in place and surfaced in the notes.
+        """
+        if self._worktrees is None:
+            return []
+        cleaned: list[str] = []
+        for record in self._worktrees.registry.list_all():
+            if record.pr_number is None or record.state.value == "merged":
+                continue
+            outcome = self._worktrees.cleanup_after_merge(record.task_id)
+            if outcome.cleaned:
+                cleaned.append(record.task_id)
+                notes.append(f"cleaned worktree for {record.task_id}: {outcome.reason}")
+            elif outcome.verified_merge:
+                notes.append(f"worktree cleanup skipped for {record.task_id}")
+        return cleaned
 
     def release_assignment(
         self,
