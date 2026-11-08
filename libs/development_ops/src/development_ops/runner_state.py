@@ -54,7 +54,22 @@ class RunnerState:
             "last_recovery_at",
             "recovery_events",
         }
-        extra = {key: value for key, value in data.items() if key not in known}
+        # ``extra`` must be excluded from the unknown-key sweep: otherwise the
+        # persisted ``extra`` key is captured as an unknown key and re-wrapped one
+        # level deeper on every save, growing the state file without bound.
+        extra = {
+            key: value
+            for key, value in data.items()
+            if key not in known and key != "extra"
+        }
+        persisted_extra = data.get("extra")
+        # Heal files written by earlier builds that nested ``extra`` per save.
+        while isinstance(persisted_extra, dict) and isinstance(
+            persisted_extra.get("extra"), dict
+        ):
+            persisted_extra = persisted_extra["extra"]
+        if isinstance(persisted_extra, dict):
+            extra = {**persisted_extra, **extra}
         return cls(
             paused=bool(data.get("paused", False)),
             paused_at=data.get("paused_at"),

@@ -194,6 +194,45 @@ def test_state_survives_corrupt_file(tmp_path: Path) -> None:
     assert RunnerStateStore(path).load().paused is False
 
 
+def test_repeated_saves_do_not_nest_extra(tmp_path: Path) -> None:
+    """Regression: every save used to wrap the persisted ``extra`` key one level
+    deeper, growing the state file without bound until ``json.dumps`` raised
+    ``RecursionError``. Many save cycles must keep ``extra`` flat."""
+    path = tmp_path / "runner-state.json"
+    store = RunnerStateStore(path)
+    for _ in range(500):
+        store.record_tick_started(run_id="run")
+        store.record_tick_completed(run_id="run")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert data["extra"] == {}
+    depth = 0
+    node: object = data
+    while isinstance(node, dict) and "extra" in node:
+        depth += 1
+        node = node["extra"]
+    assert depth == 1
+
+
+def test_load_heals_legacy_nested_extra(tmp_path: Path) -> None:
+    """A state file written by a buggy build (``extra`` nested N deep) loads as a
+    flat ``extra`` and is rewritten flat on the next save."""
+    path = tmp_path / "runner-state.json"
+    nested: dict[str, object] = {"paused": True}
+    node = nested
+    for _ in range(25):
+        child: dict[str, object] = {}
+        node["extra"] = child
+        node = child
+    path.write_text(json.dumps(nested), encoding="utf-8")
+    store = RunnerStateStore(path)
+    state = store.load()
+    assert state.paused is True
+    assert state.extra == {}
+    store.resume()
+    healed = json.loads(path.read_text(encoding="utf-8"))
+    assert healed["extra"] == {}
+
+
 # --- runner loop -------------------------------------------------------------
 
 
