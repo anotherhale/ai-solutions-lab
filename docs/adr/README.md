@@ -66,3 +66,4 @@ Optional sections such as related ADRs or rollback notes may be added when they 
 | [0010](0010-autonomous-integration-branch.md) | Autonomous integration on `ai-dev` and merge safety | Accepted |
 | [0011](0011-test-database-isolation.md) | Test database isolation for operational telemetry | Accepted |
 | [0012](0012-isolated-worktrees-for-child-agents.md) | Isolated Git worktrees for coordinator child agents | Accepted |
+| [0013](0013-persistent-coordinator-runner.md) | Persistent coordinator runner with single-workstation ownership | Accepted |

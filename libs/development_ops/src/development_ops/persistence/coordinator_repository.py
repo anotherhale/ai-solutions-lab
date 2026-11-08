@@ -171,14 +171,13 @@ class CoordinatorTaskRepository:
         """Release in-flight tasks whose lease expired (crashed or stalled run).
 
         Only tasks with a lease at or before ``now`` are released. A live run
-        with a fresh heartbeat is never touched.
+        with a fresh heartbeat is never touched. ``pr_open`` and
+        ``awaiting_merge`` rows are preserved: a task with an open pull request
+        is finished work, not an abandoned worker, so reclaiming it would lose
+        the PR tracking that merge reconciliation depends on.
         """
         moment = now or _utc_now()
-        in_flight = [
-            RuntimeTaskStatus.IN_PROGRESS.value,
-            RuntimeTaskStatus.PR_OPEN.value,
-            RuntimeTaskStatus.AWAITING_MERGE.value,
-        ]
+        in_flight = [RuntimeTaskStatus.IN_PROGRESS.value]
         stmt = select(CoordinatorTaskORM).where(
             CoordinatorTaskORM.status.in_(in_flight),
             CoordinatorTaskORM.lease_expires_at.is_not(None),
@@ -197,6 +196,70 @@ class CoordinatorTaskRepository:
         if released:
             self._session.commit()
         return released
+
+    def list_active_leases(
+        self, *, now: datetime | None = None
+    ) -> list[CoordinatorTaskORM]:
+        """Tasks holding a live (unexpired) lease.
+
+        Used by the runner to renew heartbeats for work it owns and by the
+        status command to show current leases.
+        """
+        moment = now or _utc_now()
+        stmt = (
+            select(CoordinatorTaskORM)
+            .where(CoordinatorTaskORM.lease_expires_at.is_not(None))
+            .where(CoordinatorTaskORM.lease_expires_at > moment)
+            .order_by(CoordinatorTaskORM.task_id)
+        )
+        return list(self._session.scalars(stmt).all())
+
+    def renew_leases(self, *, run_id: uuid.UUID) -> list[str]:
+        """Extend the lease for every in-flight task owned by ``run_id``.
+
+        A coordinator tick is periodic, so a live run must re-stamp the leases it
+        holds or a long task would look abandoned. Only rows still owned by this
+        run are renewed; nothing else is touched.
+        """
+        now = _utc_now()
+        owned = [
+            RuntimeTaskStatus.IN_PROGRESS.value,
+            RuntimeTaskStatus.PR_OPEN.value,
+            RuntimeTaskStatus.AWAITING_MERGE.value,
+        ]
+        stmt = (
+            update(CoordinatorTaskORM)
+            .where(CoordinatorTaskORM.active_run_id == run_id)
+            .where(CoordinatorTaskORM.status.in_(owned))
+            .values(
+                heartbeat_at=now,
+                lease_expires_at=now + timedelta(seconds=lease_seconds_from_env()),
+                updated_at=now,
+            )
+        )
+        result = self._session.execute(stmt)
+        self._session.commit()
+        if result.rowcount == 0:
+            return []
+        rows = self._session.scalars(
+            select(CoordinatorTaskORM.task_id)
+            .where(CoordinatorTaskORM.active_run_id == run_id)
+            .where(CoordinatorTaskORM.status.in_(owned))
+        ).all()
+        return [str(task_id) for task_id in rows]
+
+    def list_awaiting_pull_request(self) -> list[CoordinatorTaskORM]:
+        """Tasks waiting on a pull request to merge (finished implementation)."""
+        waiting = [
+            RuntimeTaskStatus.PR_OPEN.value,
+            RuntimeTaskStatus.AWAITING_MERGE.value,
+        ]
+        stmt = (
+            select(CoordinatorTaskORM)
+            .where(CoordinatorTaskORM.status.in_(waiting))
+            .order_by(CoordinatorTaskORM.task_id)
+        )
+        return list(self._session.scalars(stmt).all())
 
     # -- transitions -------------------------------------------------------
 

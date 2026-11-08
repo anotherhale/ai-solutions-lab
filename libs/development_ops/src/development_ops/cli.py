@@ -32,6 +32,8 @@ from development_ops.errors import PersistenceError
 from development_ops.github_client import github_client_from_env
 from development_ops.models import ActivityEventCreate, GitHubReference
 from development_ops.recorder import ActivityRecorder, RecordResult
+from development_ops.runner_config import RunnerConfig
+from development_ops.runner_status import collect_status
 from development_ops.task_worktrees import (
     TaskWorktreeOrchestrator,
     worktree_manager_from_env,
@@ -442,6 +444,95 @@ def worktree_cleanup_command(args: argparse.Namespace) -> int:
         session.close()
 
 
+def _runner_config(args: argparse.Namespace) -> RunnerConfig:
+    from development_ops.runner_config import RunnerConfig, RunnerConfigError
+
+    try:
+        return RunnerConfig.from_env(
+            repository=getattr(args, "github_repository", None)
+        )
+    except RunnerConfigError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
+def runner_run_command(args: argparse.Namespace) -> int:
+    """Run the persistent coordinator loop until SIGTERM/SIGINT."""
+    from development_ops.instance_lock import InstanceLockedError
+    from development_ops.runner_logging import configure_logging
+    from development_ops.runner_service import build_runner_from_env, ensure_database
+
+    config = _runner_config(args)
+    logger = configure_logging(level=config.log_level, fmt=config.log_format)
+    ensure_database()
+    runner, _factory = build_runner_from_env(config)
+    runner.install_signal_handlers()
+    max_ticks = getattr(args, "max_ticks", None)
+    try:
+        ticks = runner.run(max_ticks=max_ticks)
+    except InstanceLockedError as exc:
+        logger.error(
+            "another coordinator runner is already active",
+            extra={"event": "runner.lock_held", "error": str(exc)},
+        )
+        print(json.dumps({"error": str(exc)}), file=sys.stderr)
+        return EXIT_USAGE
+    print(json.dumps({"ticks": ticks, "run_id": str(runner.run_id)}))
+    return EXIT_OK
+
+
+def runner_once_command(args: argparse.Namespace) -> int:
+    """Run exactly one coordinator tick through the runner's recovery path."""
+    return runner_run_command(_with_max_ticks(args, 1))
+
+
+def _with_max_ticks(args: argparse.Namespace, ticks: int) -> argparse.Namespace:
+    args.max_ticks = ticks
+    return args
+
+
+def runner_status_command(args: argparse.Namespace) -> int:
+    """Print a read-only runner/coordinator status snapshot."""
+    from development_ops.runner_service import _session_factory, ensure_database
+
+    config = _runner_config(args)
+    try:
+        ensure_database()
+    except Exception as exc:  # noqa: BLE001 - status must still render
+        print(
+            json.dumps({"error": f"database unavailable: {exc}"}),
+            file=sys.stderr,
+        )
+    status = collect_status(config, session_factory=_session_factory())
+    print(json.dumps(status.to_dict(), indent=2, sort_keys=True, default=str))
+    return EXIT_OK
+
+
+def runner_pause_command(args: argparse.Namespace) -> int:
+    """Durably pause new task claims. Running work is preserved."""
+    from development_ops.runner_service import ensure_database
+    from development_ops.runner_state import RunnerStateStore
+
+    config = _runner_config(args)
+    ensure_database()
+    store = RunnerStateStore(config.state_dir / "runner-state.json")
+    state = store.pause(by=args.by, reason=args.reason)
+    print(json.dumps(state.to_dict(), indent=2, sort_keys=True))
+    return EXIT_OK
+
+
+def runner_resume_command(args: argparse.Namespace) -> int:
+    """Clear a durable pause and re-enable normal scheduling."""
+    from development_ops.runner_service import ensure_database
+    from development_ops.runner_state import RunnerStateStore
+
+    config = _runner_config(args)
+    ensure_database()
+    store = RunnerStateStore(config.state_dir / "runner-state.json")
+    state = store.resume()
+    print(json.dumps(state.to_dict(), indent=2, sort_keys=True))
+    return EXIT_OK
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Record development activity in development_ops.activity_events."
@@ -585,6 +676,52 @@ def build_parser() -> argparse.ArgumentParser:
     wt_cleanup.add_argument("task_id")
     wt_cleanup.add_argument("--github-repository")
     wt_cleanup.set_defaults(func=worktree_cleanup_command)
+
+    runner = sub.add_parser(
+        "runner",
+        help="Persistent, restart-safe coordinator runner",
+    )
+    runner_sub = runner.add_subparsers(
+        dest="runner_command",
+        required=True,
+    )
+    r_run = runner_sub.add_parser(
+        "run", help="Run the coordinator loop until SIGTERM/SIGINT"
+    )
+    r_run.add_argument("--github-repository")
+    r_run.add_argument(
+        "--max-ticks",
+        type=int,
+        default=None,
+        help="Stop after N ticks (default: run until signalled)",
+    )
+    r_run.set_defaults(func=runner_run_command)
+
+    r_once = runner_sub.add_parser(
+        "once", help="Run one recovery + tick cycle and exit"
+    )
+    r_once.add_argument("--github-repository")
+    r_once.set_defaults(func=runner_once_command)
+
+    r_status = runner_sub.add_parser(
+        "status", help="Read-only runner and coordinator health snapshot"
+    )
+    r_status.add_argument("--github-repository")
+    r_status.set_defaults(func=runner_status_command)
+
+    r_pause = runner_sub.add_parser(
+        "pause", help="Durably stop new task claims (running work is preserved)"
+    )
+    r_pause.add_argument("--by", help="Operator identity for the audit record")
+    r_pause.add_argument("--reason", help="Why the runner was paused")
+    r_pause.add_argument("--github-repository")
+    r_pause.set_defaults(func=runner_pause_command)
+
+    r_resume = runner_sub.add_parser(
+        "resume", help="Clear a durable pause and re-enable scheduling"
+    )
+    r_resume.add_argument("--github-repository")
+    r_resume.set_defaults(func=runner_resume_command)
 
     return parser
 

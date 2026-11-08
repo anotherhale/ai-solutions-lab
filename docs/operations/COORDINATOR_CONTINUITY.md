@@ -96,6 +96,36 @@ The coordinator prepares worktrees automatically, but launching a real (paid) ch
 explicit operator action: `development-ops worktree launch` requires `--agent-settings`. See
 [../architecture/AGENT_OPERATING_MODEL.md](../architecture/AGENT_OPERATING_MODEL.md) and ADR 0012.
 
+### Persistent runner (Phase B — implemented)
+
+The tick above is driven by a long-running, restart-safe runner. It owns process
+lifecycle only; scheduling policy stays in the engine.
+
+| Concern | Implementation | Status |
+|---|---|---|
+| Loop, single-flight ticks, SIGTERM/SIGINT | `development_ops.runner.CoordinatorRunner` | Implemented, unit- and integration-tested |
+| Single-instance ownership (`flock`) | `development_ops.instance_lock.CoordinatorInstanceLock` | Implemented, integration-tested |
+| Durable pause/resume | `development_ops.runner_state.RunnerStateStore` | Implemented, integration-tested |
+| Config + fail-fast validation | `development_ops.runner_config.RunnerConfig` | Implemented, unit-tested |
+| Startup recovery, lease heartbeat | `runner_service.py` + `CoordinatorTaskRepository` | Implemented, integration-tested |
+| Structured JSON logs | `development_ops.runner_logging` | Implemented, unit-tested |
+| Read-only health | `development-ops runner status` | Implemented, integration-tested |
+| launchd integration | `infrastructure/launchd/` + `scripts/coordinator_runner.sh` | Template provided; **not** activated by CI |
+| Decision recorded in an ADR | `docs/adr/0013-persistent-coordinator-runner.md` | Written |
+
+```bash
+development-ops-record runner run      # loop until signalled
+development-ops-record runner once     # one recovery + tick cycle
+development-ops-record runner status   # read-only health
+development-ops-record runner pause --by "$USER" --reason maintenance
+development-ops-record runner resume
+```
+
+Ownership is a `flock` on a lock file, not a PID file: the kernel releases it when
+the owner dies, so a crash never leaves a permanent lock. This is a
+**single-workstation** guarantee and gives no protection across machines. See
+[COORDINATOR_RUNNER.md](COORDINATOR_RUNNER.md).
+
 ### Recovery
 
 | Variable | Purpose |
