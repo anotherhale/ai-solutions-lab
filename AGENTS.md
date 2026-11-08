@@ -165,6 +165,14 @@ Do not serialize the entire backlog behind one open PR. Respect `depends_on` in
 `data/coordinator/backlog.yaml`. See
 [docs/operations/COORDINATOR_CONTINUITY.md](docs/operations/COORDINATOR_CONTINUITY.md).
 
+The tick can be driven by a persistent, restart-safe runner:
+`development-ops-record runner run` (loop), `runner once` (one cycle),
+`runner status` (read-only health), and `runner pause`/`runner resume` (durable,
+non-destructive pause). Ownership is a single-workstation `flock`; the launchd
+LaunchAgent in `infrastructure/launchd/` is a template and is not activated by
+CI. See [docs/operations/COORDINATOR_RUNNER.md](docs/operations/COORDINATOR_RUNNER.md)
+and [ADR 0013](docs/adr/0013-persistent-coordinator-runner.md).
+
 ## Definition of Honest Completion
 
 A task is complete only when the requested change is in the repository, relevant documents are consistent, and verification that could be run was run. If something remains unfinished, list it explicitly.

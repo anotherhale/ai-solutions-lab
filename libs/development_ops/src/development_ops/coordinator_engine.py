@@ -84,12 +84,28 @@ class CoordinatorEngine:
         # coordinator schedules and reconciles exactly as before.
         self._worktrees = worktrees
 
-    def tick(self) -> CoordinatorTickResult:
+    def tick(
+        self,
+        *,
+        max_concurrent: int | None = None,
+        reclaim_expired: bool | None = None,
+    ) -> CoordinatorTickResult:
+        """Run one reconciliation/scheduling cycle.
+
+        ``max_concurrent`` and ``reclaim_expired`` override the environment
+        defaults so a persistent runner can pass explicit policy (for example,
+        ``max_concurrent=0`` while paused) without mutating process state.
+        """
         document = load_backlog(self._backlog_path)
         self._tasks.sync_catalog(document)
         self._session.expire_all()
         reclaimed: list[str] = []
-        if os.environ.get("DEVELOPMENT_OPS_RECLAIM_STALE") == "1":
+        should_reclaim = (
+            reclaim_expired
+            if reclaim_expired is not None
+            else os.environ.get("DEVELOPMENT_OPS_RECLAIM_STALE") == "1"
+        )
+        if should_reclaim:
             reclaimed = self._tasks.reclaim_expired_leases()
         notes: list[str] = []
         if reclaimed:
@@ -119,7 +135,11 @@ class CoordinatorEngine:
         # Only tasks actively being implemented consume a slot. Open PRs and
         # tasks awaiting merge have released their implementer.
         active_count = self._tasks.count_slot_consuming()
-        max_concurrent = int(os.environ.get("DEVELOPMENT_OPS_MAX_CONCURRENT", "3"))
+        max_concurrent = (
+            max_concurrent
+            if max_concurrent is not None
+            else int(os.environ.get("DEVELOPMENT_OPS_MAX_CONCURRENT", "3"))
+        )
         resume_task_id = os.environ.get("DEVELOPMENT_OPS_TASK_ID", "").strip()
         selected_id: str | None = None
         selected_title: str | None = None
