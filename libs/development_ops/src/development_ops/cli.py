@@ -573,6 +573,124 @@ def runner_resume_command(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _child_orchestrator_from_args(args: argparse.Namespace) -> Any:
+    from development_ops.child_config import ChildOrchestrationConfig
+    from development_ops.child_orchestration import (
+        ChildOrchestrator,
+        agent_settings_loader_from_env,
+        observer_from_env,
+    )
+    from development_ops.recorder import ActivityRecorder
+    from development_ops.runner_config import RunnerConfig
+    from development_ops.task_worktrees import worktree_manager_from_env
+
+    config = RunnerConfig.from_env(repository=getattr(args, "github_repository", None))
+    factory = _session_factory()
+    session = factory()
+    repository = config.repository
+    worktrees = TaskWorktreeOrchestrator(
+        session,
+        worktree_manager_from_env(),
+        repository=repository,
+        launcher=None,
+        github=github_client_from_env(),
+    )
+    orchestrator = ChildOrchestrator(
+        session,
+        config=ChildOrchestrationConfig.from_env(),
+        worktrees=worktrees,
+        recorder=ActivityRecorder(session, notify_slack=False),
+        run_id=uuid.uuid4(),
+        repository=repository,
+        observer=observer_from_env(),
+        settings_loader=agent_settings_loader_from_env(),
+        owner_agent=os.environ.get("DEVELOPMENT_OPS_AGENT_NAME", "operator"),
+    )
+    return orchestrator, session
+
+
+def _child_status_dict(status: Any) -> dict[str, Any]:
+    return {
+        "enabled": status.enabled,
+        "enabled_reason": status.enabled_reason,
+        "max_concurrent": status.max_concurrent,
+        "active_children": status.active_children,
+        "available_slots": status.available_slots,
+        "agent_server_reachable": status.agent_server_reachable,
+        "counts_by_state": status.counts_by_state,
+        "children": [
+            {
+                "execution_id": view.execution_id,
+                "task_id": view.task_id,
+                "state": view.state,
+                "attempt": view.attempt,
+                "conversation_id": view.conversation_id,
+                "worktree_path": view.worktree_path,
+                "branch_name": view.branch_name,
+                "pr_number": view.pr_number,
+                "active": view.active,
+                "stalled": view.stalled,
+                "operator_intervention": view.operator_intervention,
+                "last_heartbeat_at": view.last_heartbeat_at,
+                "last_progress_at": view.last_progress_at,
+                "progress_seq": view.progress_seq,
+                "last_event_count": view.last_event_count,
+                "lease_expires_at": view.lease_expires_at,
+                "retry_count": view.retry_count,
+                "failure_reason": view.failure_reason,
+            }
+            for view in status.children
+        ],
+    }
+
+
+def child_status_command(args: argparse.Namespace) -> int:
+    """Read-only status of child-agent execution and concurrency."""
+    from development_ops.runner_service import ensure_database
+
+    ensure_database()
+    orchestrator, session = _child_orchestrator_from_args(args)
+    try:
+        print(
+            json.dumps(
+                _child_status_dict(orchestrator.status()),
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return EXIT_OK
+    finally:
+        session.close()
+
+
+def child_enable_command(args: argparse.Namespace) -> int:
+    """Durably enable child-agent execution (explicit operator action)."""
+    from development_ops.runner_service import ensure_database
+
+    ensure_database()
+    orchestrator, session = _child_orchestrator_from_args(args)
+    try:
+        status = orchestrator.set_enabled(True, by=args.by, reason=args.reason)
+        print(json.dumps(_child_status_dict(status), indent=2, sort_keys=True))
+        return EXIT_OK
+    finally:
+        session.close()
+
+
+def child_disable_command(args: argparse.Namespace) -> int:
+    """Durably disable child execution. Active work is preserved, not killed."""
+    from development_ops.runner_service import ensure_database
+
+    ensure_database()
+    orchestrator, session = _child_orchestrator_from_args(args)
+    try:
+        status = orchestrator.set_enabled(False, by=args.by, reason=args.reason)
+        print(json.dumps(_child_status_dict(status), indent=2, sort_keys=True))
+        return EXIT_OK
+    finally:
+        session.close()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Record development activity in development_ops.activity_events."
@@ -777,6 +895,35 @@ def build_parser() -> argparse.ArgumentParser:
     )
     r_resume.add_argument("--github-repository")
     r_resume.set_defaults(func=runner_resume_command)
+
+    child = sub.add_parser(
+        "child",
+        help="Bounded child-agent execution: status and enable/disable controls",
+    )
+    child_sub = child.add_subparsers(dest="child_command", required=True)
+
+    c_status = child_sub.add_parser(
+        "status", help="Read-only child execution, concurrency, and health status"
+    )
+    c_status.add_argument("--github-repository")
+    c_status.set_defaults(func=child_status_command)
+
+    c_enable = child_sub.add_parser(
+        "enable", help="Durably enable child-agent execution (operator action)"
+    )
+    c_enable.add_argument("--by", help="Operator identity for the audit record")
+    c_enable.add_argument("--reason", help="Why child execution was enabled")
+    c_enable.add_argument("--github-repository")
+    c_enable.set_defaults(func=child_enable_command)
+
+    c_disable = child_sub.add_parser(
+        "disable",
+        help="Durably disable child execution (active work is preserved, not killed)",
+    )
+    c_disable.add_argument("--by", help="Operator identity for the audit record")
+    c_disable.add_argument("--reason", help="Why child execution was disabled")
+    c_disable.add_argument("--github-repository")
+    c_disable.set_defaults(func=child_disable_command)
 
     return parser
 
