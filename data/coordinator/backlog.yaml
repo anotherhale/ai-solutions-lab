@@ -61,8 +61,12 @@ tasks:
     title: Document finance tables in DATABASE_MAPPING.md
     status: pending
     depends_on: [COORD-SYNC-1]
+    branch: cursor/doc-dbmap-1-finance
+    pr_number: 49
 
   - id: DOC-DEBT-MIG-1
     title: Align downgrade technical-debt note through Alembic 0011
     status: pending
     depends_on: [COORD-SYNC-1]
+    branch: cursor/doc-debt-mig-1-1104
+    pr_number: 50

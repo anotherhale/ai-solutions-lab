@@ -306,7 +306,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### DOC-DBMAP-1 — Finance persistence in DATABASE_MAPPING.md
 
-- Status: pending
+- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/49
 - Depends on: COORD-SYNC-1
 - Update `docs/architecture/DATABASE_MAPPING.md` for Alembic `0008`, `0010`, and `0011`: `invoices`, `invoice_lines`, and `payments` seeded from `data/fixtures/valid/`. Remove the stale deferred-entity note for Invoice, InvoiceLine, and Payment.
 - Document `NUMERIC` money columns as reference amounts only. Read routes do not post finance.
@@ -315,7 +315,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### DOC-DEBT-MIG-1 — Downgrade coverage note through revision 0011
 
-- Status: pending
+- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/50
 - Depends on: COORD-SYNC-1
 - Update the technical-debt table in this file so downgrade coverage cites revisions `0001`–`0011` and points at `services/wasatch-api/tests/integration/README.md` for `0010` and `0011`.
 - Documentation only.
