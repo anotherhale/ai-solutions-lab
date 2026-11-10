@@ -112,9 +112,7 @@ class CoordinatorEngine:
         # Open pull requests awaiting human review stay PR_OPEN; they must not
         # consume implementation concurrency slots (see COORDINATOR_CONTINUITY.md).
         active_count = sum(
-            1
-            for view in views
-            if view.runtime_status == RuntimeTaskStatus.IN_PROGRESS
+            1 for view in views if view.runtime_status == RuntimeTaskStatus.IN_PROGRESS
         )
         max_concurrent = int(os.environ.get("DEVELOPMENT_OPS_MAX_CONCURRENT", "3"))
         resume_task_id = os.environ.get("DEVELOPMENT_OPS_TASK_ID", "").strip()
