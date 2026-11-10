@@ -27,8 +27,9 @@ The coordinator runs as a **tick** (library, CLI, or `scripts/coordinator_tick.s
    Record the exact error when `autoMergeRequest` stays null; **do not block**
    unrelated tasks.
 4. Select the next **eligible** task (respecting `depends_on` and
-   `DEVELOPMENT_OPS_MAX_CONCURRENT`). Open PRs on other tasks do not serialize the
-   entire backlog.
+   `DEVELOPMENT_OPS_MAX_CONCURRENT`). Only `in_progress` assignments count toward the
+   concurrency limit; `pr_open` tasks waiting on human review do not. Open PRs on
+   other tasks do not serialize the entire backlog.
 5. Persist `coordinator.recovery`, `coordinator.scheduled`, and `task.selected`
    events before Slack notification.
 
