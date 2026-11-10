@@ -52,7 +52,8 @@ tasks:
 
   - id: COORD-SYNC-1
     title: Reconcile backlog catalog and status docs after CONTRACT-FIN-1
-    status: in_progress
+    status: merged
+    merge_commit: a5f46e7
     depends_on: [CONTRACT-FIN-1]
     branch: cursor/coordinator-backlog-reconcile-1104
     pr_number: 48
