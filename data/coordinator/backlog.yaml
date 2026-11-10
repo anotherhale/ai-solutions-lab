@@ -55,3 +55,4 @@ tasks:
     status: in_progress
     depends_on: [CONTRACT-FIN-1]
     branch: cursor/coordinator-backlog-reconcile-1104
+    pr_number: 48
