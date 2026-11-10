@@ -76,7 +76,7 @@ Revision `0006` downgrade drops `procedure_page_embeddings`. That is safe on the
 
 Revision `0007` downgrade drops `follow_up_visits`. That is safe on the synthetic database. It does not update or delete audit events. The insert-only trigger on `audit_events` stays in place. The revision does not add a vector column.
 
-Revision `0008` downgrade drops the foreign key from `work_orders.invoice_id`, copies invoice business ids back onto `work_orders`, then drops `invoices`. Reload `data/fixtures/valid/` after that downgrade.
+Revision `0008` downgrade drops the foreign key on `work_orders.invoice_id` (values stay invoice business id strings), then drops `invoices`. Reload `data/fixtures/valid/` after that downgrade.
 
 Revision `0009` is the development-activity log schema in `wasatch_development_ops`. Wasatch API pytest does not downgrade it on the synthetic application database.
 
