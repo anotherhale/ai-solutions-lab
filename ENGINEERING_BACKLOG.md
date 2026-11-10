@@ -236,7 +236,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Unauthenticated reads of synthetic customer and employee data | Closed by CS-3. `/api/v1` reads require the `X-Laboratory-Actor` header. |
 | No structured logs | Closed by CS-3. `APP_LOG_LEVEL` configures JSON logs of actor, action, subject, and outcome. Message bodies and secrets are omitted. |
 | Thin HTTP contract tests | Closed. `tests/api/test_openapi_contract.py` and `openapi_contract_catalog.py` assert the full slice path/method catalog, write-route methods, decision enums, and runtime error envelopes. `tests/unit/test_contract_alignment.py` still aligns JSON Schema status enums. |
-| Downgrade is untested | Closed for revisions `0001`–`0008`. Matrix in `services/wasatch-api/tests/integration/README.md`. Each revision has an integration upgrade/downgrade test, including `test_initial_migration.py` for revision `0001` and `test_invoice_migration.py` for revision `0008`. |
+| Downgrade is untested | Closed for revisions `0001`–`0011`. Matrix in `services/wasatch-api/tests/integration/README.md`. Each revision has an integration upgrade/downgrade test through `test_payment_migration.py` for revision `0011`. Revisions `0010` and `0011` are `test_invoice_line_migration.py` and `test_payment_migration.py`. Revision `0009` is `test_development_ops_activity_log.py`. |
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py` still skips a local run when PostgreSQL is down. CI fails that skip. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` rejects a run that did not execute the database tests. |
 | String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Revisions `0010` and `0011` persist `invoice_lines` and `payments` with read-only routes (FIN-2, FIN-3). |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
@@ -296,7 +296,8 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-SYNC-1 — Reconcile coordinator backlog catalog after finance slice
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/48 merged as `a5f46e7`
 - Depends on: CONTRACT-FIN-1
 - Mark `data/coordinator/backlog.yaml` tasks merged for pull requests [#37](https://github.com/anotherhale/ai-solutions-lab/pull/37), [#38](https://github.com/anotherhale/ai-solutions-lab/pull/38), and [#39](https://github.com/anotherhale/ai-solutions-lab/pull/39).
 - Record CONTRACT-FIN-1 and coordinator continuity documentation in `PROJECT_STATUS.md`. Close the stale technical-debt note that payments are fixture-only.
