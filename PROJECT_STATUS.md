@@ -1,6 +1,6 @@
 # Project Status
 
-Snapshot of AI Solutions Lab as verified on 2026-11-04. Wasatch Business Systems is a fictional company. All business records in this repository are synthetic.
+Snapshot of AI Solutions Lab as verified on 2026-11-10. Wasatch Business Systems is a fictional company. All business records in this repository are synthetic.
 
 This file records what is in the repository and what was run. Forward work is in [ENGINEERING_BACKLOG.md](ENGINEERING_BACKLOG.md). Phase design is in [docs/architecture/IMPLEMENTATION_PLAN.md](docs/architecture/IMPLEMENTATION_PLAN.md). Contributor and agent rules for integration are in [docs/architecture/AGENT_OPERATING_MODEL.md](docs/architecture/AGENT_OPERATING_MODEL.md).
 
@@ -10,11 +10,11 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 | Item | Value |
 |---|---|
-| Assessed commit | `881cfc08db1fc609e531a3f0be3230938d07f561` |
-| Commit subject | Keep the Wasatch API test database password visible (#1) |
-| Integration branch | `develop` at that commit |
-| Production branch | `main` at that commit |
-| Relationship | `develop` and `main` point at the same commit. `develop` was created from `main` with a normal push. |
+| Assessed commit | `3c9a933b9a6f35b688e773f72a44b6c295c5bed7` |
+| Commit subject | Merge pull request #39 from anotherhale/cursor/contract-fin-1-513c |
+| Integration branch | `develop` at `3c9a933` |
+| Production branch | `main` at `881cfc0` (unchanged at assessment) |
+| Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
 
 `main` is the production branch. Work integrates on `develop`. Merges to `main` are out of scope for laboratory agents.
 
@@ -100,6 +100,10 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | FIN-1 read-only invoice routes | Done. Pull request [#31](https://github.com/anotherhale/ai-solutions-lab/pull/31) / [#33](https://github.com/anotherhale/ai-solutions-lab/pull/33) (`fdb3947`). `GET /api/v1/invoices` and `GET /api/v1/invoices/{invoice_id}` return persisted reference rows only. No posting. |
 | FIN-2 read-only invoice line routes | Done. Pull request [#34](https://github.com/anotherhale/ai-solutions-lab/pull/34) merged as `7ed13ec`. Alembic `0010` persists `invoice_lines` (40 rows). Read routes list lines per invoice and fetch one line by id. Reference amounts only. |
 | FIN-3 read-only payment routes | Done. Pull request [#35](https://github.com/anotherhale/ai-solutions-lab/pull/35) merged as `b0d9c3c`. Alembic `0011` persists `payments` (20 rows). `GET /api/v1/payments` and `GET /api/v1/payments/{payment_id}` require the laboratory actor. No posting command. |
+| Coordinator continuity (ADR 0009) | Done. Pull request [#37](https://github.com/anotherhale/ai-solutions-lab/pull/37) merged as `c0ed984`. Scheduling tick, `wasatch_development_ops`, and `data/coordinator/backlog.yaml`. See [docs/operations/COORDINATOR_CONTINUITY.md](docs/operations/COORDINATOR_CONTINUITY.md). |
+| CONTRACT-FIN-1 finance enum alignment | Done. Pull request [#39](https://github.com/anotherhale/ai-solutions-lab/pull/39) merged as `3c9a933`. Unit contract tests align finance filter enums with `data/schemas/v1/finance/*.schema.json`. |
+
+Open pull request [#47](https://github.com/anotherhale/ai-solutions-lab/pull/47) targets `ai-dev` (Phase D child orchestration). It does not block `develop` integration.
 
 Seeded document counts: 30 documents, 31 document versions, and 18 extractions. `doc_0004` has two versions and current version `dv_0031`. Needs-review extractions are `dx_0003`, `dx_0009`, and `dx_0015`. Seeded governance counts: 10 approval requests, 11 decision-history rows, and 50 audit events. `msg_0016` (`pending_approval`, `requires_approval` true) references `apr_0001`. Audit rows are insert-only: revision `0003` installs a trigger that rejects `UPDATE` and `DELETE`. The customer-message decision, the extraction-review decision, and each follow-up transition insert one new audit row and do not update or delete audit events. A second seed skips existing audit rows. Seed copies fixture extraction status and does not accept a low-confidence or financial row.
 
