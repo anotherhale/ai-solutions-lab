@@ -73,8 +73,10 @@ tasks:
 
   - id: DOC-API-FIN-1
     title: Document payment read routes in API_CONVENTIONS.md
-    status: pending
+    status: in_progress
     depends_on: [FIN-3]
+    branch: cursor/doc-api-fin-1
+    pr_number: 54
 
   - id: PORT-CASE-FIN-1
     title: Align laboratory case study with finance read routes

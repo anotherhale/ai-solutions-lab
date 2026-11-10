@@ -331,7 +331,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### DOC-API-FIN-1 — Payment read routes in API_CONVENTIONS.md
 
-- Status: pending
+- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/54
 - Depends on: FIN-3 (merged)
 - Add `GET /api/v1/payments` and `GET /api/v1/payments/{payment_id}` to the route catalog in `docs/architecture/API_CONVENTIONS.md`, with laboratory-actor requirement and reference-amounts-only wording consistent with invoice routes.
 - Documentation only; no API changes.
