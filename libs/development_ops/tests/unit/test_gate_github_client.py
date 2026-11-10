@@ -189,9 +189,10 @@ def test_api_error_is_generic_and_has_no_token() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(403, json={"message": "forbidden"})
 
+    leaked = "ghs_" + "supersecret"
     with pytest.raises(GateApiError) as exc:
-        _client(handler, token="ghs_supersecret").get_pull_request("o/r", 7)
-    assert "ghs_supersecret" not in str(exc.value)
+        _client(handler, token=leaked).get_pull_request("o/r", 7)
+    assert leaked not in str(exc.value)
 
 
 # --- configuration / feature flag ------------------------------------------
