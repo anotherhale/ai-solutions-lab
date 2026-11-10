@@ -70,3 +70,10 @@ tasks:
     depends_on: [COORD-SYNC-1]
     branch: cursor/doc-debt-mig-1-1104
     pr_number: 50
+
+  - id: PORT-CASE-FIN-1
+    title: Align laboratory case study with finance read routes
+    status: in_progress
+    depends_on: [CONTRACT-FIN-1]
+    branch: cursor/port-case-fin-1
+    pr_number: 51
