@@ -5,7 +5,16 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text, func
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID  # noqa: TC002
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -167,4 +176,35 @@ class OrchestrationSettingORM(DevelopmentOpsBase):
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
+    )
+
+
+class ReviewVerdictORM(DevelopmentOpsBase):
+    """Audit/cache mirror of a reviewer verdict (canonical source is GitHub)."""
+
+    __tablename__ = "review_verdicts"
+    __table_args__ = (
+        UniqueConstraint(
+            "repository",
+            "pull_number",
+            "head_sha",
+            "review_id",
+            name="uq_review_verdicts_identity",
+        ),
+        {"schema": "development_ops"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    repository: Mapped[str] = mapped_column(String(255), index=True)
+    pull_number: Mapped[int] = mapped_column(Integer(), index=True)
+    head_sha: Mapped[str] = mapped_column(String(64), index=True)
+    review_id: Mapped[int] = mapped_column(BigInteger())
+    reviewer_login: Mapped[str] = mapped_column(String(255))
+    reviewer_user_id: Mapped[int] = mapped_column(BigInteger())
+    verdict: Mapped[str] = mapped_column(String(32))
+    blocking_count: Mapped[int] = mapped_column(Integer())
+    policy_version: Mapped[str] = mapped_column(String(32))
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
     )

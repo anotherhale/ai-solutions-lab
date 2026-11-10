@@ -45,6 +45,11 @@ class EventType(StrEnum):
     CHILD_MERGED = "child.merged"
     CHILD_OPERATOR_INTERVENTION = "child.operator_intervention"
     CHILD_EXECUTION_TOGGLED = "child.execution_toggled"
+    REVIEW_VERDICT_RECORDED = "review.verdict_recorded"
+    GATE_PUBLISHED = "gate.published"
+    GATE_REJECTED = "gate.rejected"
+    GATE_PUBLISH_FAILED = "gate.publish_failed"
+    GATE_STALE = "gate.stale"
 
 
 class EventSeverity(StrEnum):

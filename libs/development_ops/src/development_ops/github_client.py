@@ -41,6 +41,7 @@ class PullRequestState:
     merge_state_status: str | None = None
     is_draft: bool = False
     unresolved_threads: int = 0
+    head_sha: str = ""
 
     @property
     def targets_integration_branch(self) -> bool:
@@ -97,6 +98,17 @@ class AutoMergeAttempt:
     raw_response: str | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class ReviewCheck:
+    """A check run as seen by the coordinator's independent verification."""
+
+    name: str
+    app_id: int
+    head_sha: str
+    status: str
+    conclusion: str | None
+
+
 class GitHubClient(Protocol):
     def get_pull_request(self, repository: str, number: int) -> PullRequestState: ...
 
@@ -105,6 +117,12 @@ class GitHubClient(Protocol):
     def enable_squash_auto_merge(
         self, repository: str, number: int
     ) -> AutoMergeAttempt: ...
+
+    def get_review_check(
+        self, repository: str, ref: str, check_name: str
+    ) -> ReviewCheck | None:
+        """Return the named check run on ``ref`` for coordinator verification."""
+        ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -245,8 +263,8 @@ class GhCliGitHubClient:
             repository,
             "--json",
             "number,state,mergedAt,mergeable,mergeStateStatus,isDraft,"
-            "headRefName,baseRefName,id,autoMergeRequest,statusCheckRollup,"
-            "reviewDecision",
+            "headRefName,headRefOid,baseRefName,id,autoMergeRequest,"
+            "statusCheckRollup,reviewDecision",
         )
         if result.returncode != 0:
             msg = result.stderr.strip() or result.stdout.strip()
@@ -287,6 +305,7 @@ class GhCliGitHubClient:
             merge_state_status=payload.get("mergeStateStatus"),
             is_draft=bool(payload.get("isDraft")),
             unresolved_threads=threads,
+            head_sha=str(payload.get("headRefOid") or ""),
         )
 
     def count_unresolved_threads(self, repository: str, number: int) -> int:
@@ -460,6 +479,32 @@ class GhCliGitHubClient:
             error=None if present else "autoMergeRequest remained null after GraphQL",
             raw_response=raw,
         )
+
+    def get_review_check(
+        self, repository: str, ref: str, check_name: str
+    ) -> ReviewCheck | None:
+        """Fetch the named check run on ``ref`` for independent verification."""
+        result = self._run(
+            "api",
+            f"repos/{repository}/commits/{ref}/check-runs"
+            f"?check_name={check_name}&per_page=100",
+        )
+        if result.returncode != 0:
+            msg = result.stderr.strip() or result.stdout.strip()
+            raise RuntimeError(msg)
+        payload = json.loads(result.stdout)
+        runs = payload.get("check_runs") or []
+        for item in runs:
+            app = item.get("app") or {}
+            if str(item.get("name")) == check_name:
+                return ReviewCheck(
+                    name=str(item.get("name") or ""),
+                    app_id=int(app.get("id") or 0),
+                    head_sha=str(item.get("head_sha") or ""),
+                    status=str(item.get("status") or ""),
+                    conclusion=item.get("conclusion"),
+                )
+        return None
 
 
 def github_client_from_env() -> GitHubClient | None:

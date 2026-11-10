@@ -36,7 +36,9 @@ from development_ops.integration import (
     delegation_instruction,
 )
 from development_ops.models import ActivityEventCreate, GitHubReference
+from development_ops.persistence.verdict_repository import ReviewVerdictRepository
 from development_ops.recorder import ActivityRecorder, RecordResult
+from development_ops.review_gate import build_gate_from_env
 from development_ops.runner_config import RunnerConfig
 from development_ops.runner_status import collect_status
 from development_ops.task_worktrees import (
@@ -202,6 +204,7 @@ def coordinator_tick_command(args: argparse.Namespace) -> int:
                 github=github_client_from_env(),
                 run_id=run_id,
             )
+        gate, gate_config = build_gate_from_env(repository=repository)
         engine = CoordinatorEngine(
             session,
             github=github_client_from_env(),
@@ -217,6 +220,9 @@ def coordinator_tick_command(args: argparse.Namespace) -> int:
                 if getattr(args, "update_catalog", False)
                 else None
             ),
+            gate=gate,
+            verdicts=ReviewVerdictRepository(session),
+            gate_enabled=gate_config.enabled,
         )
         result = engine.tick()
         print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
