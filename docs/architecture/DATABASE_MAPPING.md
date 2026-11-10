@@ -20,7 +20,7 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 |---|---|
 | Internal primary key | UUID |
 | External API identifier | Existing business id (`cust_0001`, `wo_0001`) stored uniquely as `business_id` |
-| Money | Not mapped in this slice. Future finance tables will use `NUMERIC(12,2)` plus a currency column |
+| Money | `invoice_lines` and `payments` use `NUMERIC` amount columns plus a currency column for laboratory reference data. Read routes return those values. No command posts a payment or changes an invoice total |
 | Timestamps | `TIMESTAMPTZ` |
 | Addresses | Discrete columns, not JSON documents |
 | Lists of enumerations | PostgreSQL `TEXT[]` (employee certifications) |
@@ -54,12 +54,11 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 | `document_extractions` | `document_extractions.json` | `extracted_fields` is JSONB. The review command updates `status`, `reviewed_by_employee_id`, `reviewed_at`, `review_notes`, and `updated_at`. It does not change `extracted_fields` or the document `invoice_id`. No vector column. Unaccepted, `needs_review`, low-confidence, and financial rows are not copied into `procedure_page_embeddings` |
 | `procedure_page_embeddings` | `data/documents/procedures/` | Not seeded from `data/fixtures/valid/`. `embedding` is `vector(8)`. One row per synthetic procedure page after the fill service runs. Document version bytes are not stored |
 | `follow_up_visits` | Created by the follow-up command, not by seed | One row per approved customer-message approval after a dispatcher opens it. Status is `unscheduled`, `confirmed`, or `cancelled`. No technician column, no appointment, and no vector column. Confirm and cancel do not post finance |
+| `invoices` | `invoices.json` | UUID primary key and unique `business_id`. `customer_id` references `customers`. Status only in this slice; totals stay on lines and fixtures. Read routes do not post finance |
+| `invoice_lines` | `invoice_lines.json` | `invoice_id` references `invoices`. Optional `work_order_id` references `work_orders`. `quantity`, `unit_price_*`, and `line_total_*` are `NUMERIC` reference amounts. `line_type` is indexed for filters |
+| `payments` | `payments.json` | `invoice_id` references `invoices`. `amount` and `amount_currency` are reference values. Optional `received_by_employee_id` references `employees`. Read routes do not post finance |
 
-## Deferred entities
-
-Not mapped yet: Invoice, InvoiceLine, Payment.
-
-Add them in later slices with the same UUID + `business_id` pattern. Do not load `data/fixtures/quality-issues/` into this database.
+Do not load `data/fixtures/quality-issues/` into this database.
 
 ## Retrieval
 
@@ -76,6 +75,14 @@ Revision `0005` downgrade drops `document_extractions`, `document_versions`, and
 Revision `0006` downgrade drops `procedure_page_embeddings`. That is safe on the synthetic database. Procedure pages remain files. The revision does not embed document version bytes or extractions.
 
 Revision `0007` downgrade drops `follow_up_visits`. That is safe on the synthetic database. It does not update or delete audit events. The insert-only trigger on `audit_events` stays in place. The revision does not add a vector column.
+
+Revision `0008` downgrade drops the foreign key from `work_orders.invoice_id`, copies invoice business ids back onto `work_orders`, then drops `invoices`. Reload `data/fixtures/valid/` after that downgrade.
+
+Revision `0009` is the development-activity log schema in `wasatch_development_ops`. Wasatch API pytest does not downgrade it on the synthetic application database.
+
+Revision `0010` downgrade drops `invoice_lines`. Reload `data/fixtures/valid/` after that downgrade.
+
+Revision `0011` downgrade drops `payments`. Reload `data/fixtures/valid/` after that downgrade.
 
 ## Contract layers
 

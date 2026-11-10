@@ -296,7 +296,8 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-SYNC-1 — Reconcile coordinator backlog catalog after finance slice
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/48 merged as `a5f46e7`
 - Depends on: CONTRACT-FIN-1
 - Mark `data/coordinator/backlog.yaml` tasks merged for pull requests [#37](https://github.com/anotherhale/ai-solutions-lab/pull/37), [#38](https://github.com/anotherhale/ai-solutions-lab/pull/38), and [#39](https://github.com/anotherhale/ai-solutions-lab/pull/39).
 - Record CONTRACT-FIN-1 and coordinator continuity documentation in `PROJECT_STATUS.md`. Close the stale technical-debt note that payments are fixture-only.
