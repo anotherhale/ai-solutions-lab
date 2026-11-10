@@ -56,3 +56,13 @@ tasks:
     depends_on: [CONTRACT-FIN-1]
     branch: cursor/coordinator-backlog-reconcile-1104
     pr_number: 48
+
+  - id: DOC-DBMAP-1
+    title: Document finance tables in DATABASE_MAPPING.md
+    status: pending
+    depends_on: [COORD-SYNC-1]
+
+  - id: DOC-DEBT-MIG-1
+    title: Align downgrade technical-debt note through Alembic 0011
+    status: pending
+    depends_on: [COORD-SYNC-1]
