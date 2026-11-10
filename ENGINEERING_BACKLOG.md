@@ -304,6 +304,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Register follow-on `pending` tasks in `data/coordinator/backlog.yaml` so the coordinator can schedule after merge.
 - No application code or migration changes.
 - Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select the next pending catalog task.
+- Follow-on catalog: `DOC-README-FIN-1` and `STATUS-2` are registered as `pending` in `data/coordinator/backlog.yaml` (pull request [#55](https://github.com/anotherhale/ai-solutions-lab/pull/55)).
 
 ### DOC-DBMAP-1 — Finance persistence in DATABASE_MAPPING.md
 
@@ -337,6 +338,22 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Add `GET /api/v1/payments` and `GET /api/v1/payments/{payment_id}` to the route catalog in `docs/architecture/API_CONVENTIONS.md`, with laboratory-actor requirement and reference-amounts-only wording consistent with invoice routes.
 - Documentation only; no API changes.
 - Acceptance: `python3 scripts/validate_repo.py` passes; the table matches `openapi_contract_catalog.py`.
+
+### DOC-README-FIN-1 — Finance read routes in services/wasatch-api README
+
+- Status: pending
+- Depends on: FIN-3 (merged)
+- Summarize read-only invoice, invoice-line, and payment list/detail routes in `services/wasatch-api/README.md`. State laboratory-actor requirement and reference amounts only; no posting.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### STATUS-2 — PROJECT_STATUS after finance documentation PRs
+
+- Status: pending
+- Depends on: DOC-DBMAP-1, DOC-DEBT-MIG-1, DOC-API-FIN-1, and PORT-CASE-FIN-1 merged
+- Update `PROJECT_STATUS.md` verification and current-work tables after the finance documentation pull requests integrate on `develop`.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
 
 ## Explicitly out of the next implementation
 
