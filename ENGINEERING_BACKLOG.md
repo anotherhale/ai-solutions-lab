@@ -321,6 +321,14 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
+### PORT-CASE-FIN-1 — Case study finance read slice
+
+- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/51
+- Depends on: CONTRACT-FIN-1 (merged)
+- Update `docs/case-studies/wasatch-laboratory-slice.md` so finance capabilities match FIN-1–FIN-3: read-only invoices, lines, and payments; no posting.
+- Documentation only; independent of COORD-SYNC-1.
+- Acceptance: `python3 scripts/validate_repo.py` passes; case study matches `develop` behavior.
+
 ## Explicitly out of the next implementation
 
 - Rebuilding Phase 2.1.1
