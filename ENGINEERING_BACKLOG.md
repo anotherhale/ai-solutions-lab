@@ -307,7 +307,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 ### DOC-DBMAP-1 — Finance persistence in DATABASE_MAPPING.md
 
 - Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/49
-- Depends on: COORD-SYNC-1
+- Depends on: CONTRACT-FIN-1 (merged); catalog reconciles on COORD-SYNC-1
 - Update `docs/architecture/DATABASE_MAPPING.md` for Alembic `0008`, `0010`, and `0011`: `invoices`, `invoice_lines`, and `payments` seeded from `data/fixtures/valid/`. Remove the stale deferred-entity note for Invoice, InvoiceLine, and Payment.
 - Document `NUMERIC` money columns as reference amounts only. Read routes do not post finance.
 - No schema, migration, or API changes.
@@ -316,7 +316,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 ### DOC-DEBT-MIG-1 — Downgrade coverage note through revision 0011
 
 - Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/50
-- Depends on: COORD-SYNC-1
+- Depends on: CONTRACT-FIN-1 (merged); catalog reconciles on COORD-SYNC-1
 - Update the technical-debt table in this file so downgrade coverage cites revisions `0001`–`0011` and points at `services/wasatch-api/tests/integration/README.md` for `0010` and `0011`.
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
@@ -328,6 +328,14 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Update `docs/case-studies/wasatch-laboratory-slice.md` so finance capabilities match FIN-1–FIN-3: read-only invoices, lines, and payments; no posting.
 - Documentation only; independent of COORD-SYNC-1.
 - Acceptance: `python3 scripts/validate_repo.py` passes; case study matches `develop` behavior.
+
+### DOC-API-FIN-1 — Payment read routes in API_CONVENTIONS.md
+
+- Status: pending
+- Depends on: FIN-3 (merged)
+- Add `GET /api/v1/payments` and `GET /api/v1/payments/{payment_id}` to the route catalog in `docs/architecture/API_CONVENTIONS.md`, with laboratory-actor requirement and reference-amounts-only wording consistent with invoice routes.
+- Documentation only; no API changes.
+- Acceptance: `python3 scripts/validate_repo.py` passes; the table matches `openapi_contract_catalog.py`.
 
 ## Explicitly out of the next implementation
 

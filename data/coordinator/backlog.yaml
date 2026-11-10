@@ -59,17 +59,22 @@ tasks:
 
   - id: DOC-DBMAP-1
     title: Document finance tables in DATABASE_MAPPING.md
-    status: pending
-    depends_on: [COORD-SYNC-1]
+    status: in_progress
+    depends_on: [CONTRACT-FIN-1]
     branch: cursor/doc-dbmap-1-finance
     pr_number: 49
 
   - id: DOC-DEBT-MIG-1
     title: Align downgrade technical-debt note through Alembic 0011
-    status: pending
-    depends_on: [COORD-SYNC-1]
+    status: in_progress
+    depends_on: [CONTRACT-FIN-1]
     branch: cursor/doc-debt-mig-1-1104
     pr_number: 50
+
+  - id: DOC-API-FIN-1
+    title: Document payment read routes in API_CONVENTIONS.md
+    status: pending
+    depends_on: [FIN-3]
 
   - id: PORT-CASE-FIN-1
     title: Align laboratory case study with finance read routes
