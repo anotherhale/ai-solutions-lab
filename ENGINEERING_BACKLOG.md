@@ -307,7 +307,8 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### DOC-DBMAP-1 — Finance persistence in DATABASE_MAPPING.md
 
-- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/49
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/49 merged as `76e6e3f`
 - Depends on: CONTRACT-FIN-1 (merged); catalog reconciles on COORD-SYNC-1
 - Update `docs/architecture/DATABASE_MAPPING.md` for Alembic `0008`, `0010`, and `0011`: `invoices`, `invoice_lines`, and `payments` seeded from `data/fixtures/valid/`. Remove the stale deferred-entity note for Invoice, InvoiceLine, and Payment.
 - Document `NUMERIC` money columns as reference amounts only. Read routes do not post finance.

@@ -59,7 +59,8 @@ tasks:
 
   - id: DOC-DBMAP-1
     title: Document finance tables in DATABASE_MAPPING.md
-    status: in_progress
+    status: merged
+    merge_commit: 76e6e3f
     depends_on: [CONTRACT-FIN-1]
     branch: cursor/doc-dbmap-1-finance
     pr_number: 49
