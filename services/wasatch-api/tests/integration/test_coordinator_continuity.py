@@ -224,6 +224,76 @@ def test_dependency_held_until_parent_merged(
         session.close()
 
 
+def test_many_pr_open_tasks_do_not_exhaust_concurrency_slots(
+    ops_engine: Engine, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regression: catalog in_progress + runtime PR_OPEN must not block pending work."""
+    monkeypatch.setenv("DEVELOPMENT_OPS_ATTEMPT_AUTO_MERGE", "0")
+    backlog = tmp_path / "backlog.yaml"
+    backlog.write_text(
+        textwrap.dedent(
+            """
+            repository: example/test
+            integration_branch: develop
+            tasks:
+              - id: DOC-A
+                title: Doc A
+                status: in_progress
+                pr_number: 201
+                branch: cursor/doc-a
+                depends_on: []
+              - id: DOC-B
+                title: Doc B
+                status: in_progress
+                pr_number: 202
+                branch: cursor/doc-b
+                depends_on: []
+              - id: DOC-C
+                title: Doc C
+                status: in_progress
+                pr_number: 203
+                branch: cursor/doc-c
+                depends_on: []
+              - id: DOC-D
+                title: Doc D
+                status: in_progress
+                pr_number: 204
+                branch: cursor/doc-d
+                depends_on: []
+              - id: NEXT-1
+                title: Next implementation
+                status: pending
+                depends_on: []
+            """
+        ).strip(),
+        encoding="utf-8",
+    )
+    run_id = uuid.uuid4()
+    session = sessionmaker(bind=ops_engine, autoflush=False)()
+    github = FakeGitHub(
+        {
+            201: _pr(201),
+            202: _pr(202),
+            203: _pr(203),
+            204: _pr(204),
+        }
+    )
+    try:
+        engine = CoordinatorEngine(
+            session,
+            github=github,
+            recorder=ActivityRecorder(session, notify_slack=False),
+            run_id=run_id,
+            repository="example/test",
+            backlog_path=backlog,
+        )
+        result = engine.tick()
+        assert result.active_tasks == 0
+        assert result.selected_task_id == "NEXT-1"
+    finally:
+        session.close()
+
+
 def test_recovery_reclaims_stale_assignment(
     ops_engine: Engine, backlog_file: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
