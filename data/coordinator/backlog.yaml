@@ -108,6 +108,7 @@ tasks:
     status: in_progress
     depends_on: []
     branch: cursor/coord-catalog-consolidate-1104
+    pr_number: 61
 
   - id: STATUS-2
     title: Refresh PROJECT_STATUS after finance documentation merges
