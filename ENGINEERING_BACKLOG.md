@@ -307,7 +307,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-PR-SLOT-1 — PR_OPEN tasks do not consume concurrency slots
 
-- Status: in progress (this change)
+- Status: done. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/58 merged as `defca15`
 - Depends on: none
 - Count only runtime `in_progress` toward `DEVELOPMENT_OPS_MAX_CONCURRENT`, not `pr_open` tasks awaiting human review.
 - Acceptance: `libs/development_ops` scheduling tests and `test_coordinator_continuity.py` pass; coordinator tick selects a pending task when several documentation pull requests are open.
@@ -355,7 +355,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### STATUS-2 — Refresh PROJECT_STATUS after finance documentation
 
-- Status: in progress (this change)
+- Status: done. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/58 merged as `defca15`
 - Depends on: DOC-DBMAP-1 (merged `76e6e3f`)
 - Update `PROJECT_STATUS.md` current-work and verification sections for COORD-SYNC-1, DOC-DBMAP-1, and the finance documentation follow-on pull requests. Keep the snapshot aligned with `develop` without claiming unmerged work is done.
 - Documentation only.

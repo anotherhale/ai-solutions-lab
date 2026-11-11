@@ -10,9 +10,9 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 | Item | Value |
 |---|---|
-| Assessed commit | `76e6e3f1dce8d45c4ede6c6ea3023e75584f6324` |
-| Commit subject | DOC-DBMAP-1: document finance tables in DATABASE_MAPPING.md (#49) |
-| Integration branch | `develop` at `76e6e3f` |
+| Assessed commit | `defca15898abc6181af9c67606edf7a2598217ff` |
+| Commit subject | COORD-PR-SLOT-1: PR_OPEN tasks do not consume coordinator slots (#58) |
+| Integration branch | `develop` at `defca15` |
 | Production branch | `main` at `881cfc0` (unchanged at assessment) |
 | Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
 
@@ -104,20 +104,21 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | CONTRACT-FIN-1 finance enum alignment | Done. Pull request [#39](https://github.com/anotherhale/ai-solutions-lab/pull/39) merged as `3c9a933`. Unit contract tests align finance filter enums with `data/schemas/v1/finance/*.schema.json`. |
 | COORD-SYNC-1 backlog catalog reconcile | Done. Pull request [#48](https://github.com/anotherhale/ai-solutions-lab/pull/48) merged as `a5f46e7`. `data/coordinator/backlog.yaml` and this file record merged finance and coordinator tasks; follow-on catalog entries are `pending` until their pull requests merge. |
 | DOC-DBMAP-1 finance persistence mapping | Done. Pull request [#49](https://github.com/anotherhale/ai-solutions-lab/pull/49) merged as `76e6e3f`. `docs/architecture/DATABASE_MAPPING.md` documents Alembic `0008`, `0010`, and `0011` for `invoices`, `invoice_lines`, and `payments`. Read routes remain reference amounts only. |
+| COORD-PR-SLOT-1 coordinator slot accounting | Done. Pull request [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58) merged as `defca15`. `pr_open` catalog tasks no longer consume `DEVELOPMENT_OPS_MAX_CONCURRENT`; regression tests in `libs/development_ops` and `test_coordinator_continuity.py`. |
+| STATUS-2 finance documentation snapshot | Done. Included in pull request [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58) (`defca15`). This file lists open finance-documentation pull requests without claiming they are merged. |
 
 Open pull request [#47](https://github.com/anotherhale/ai-solutions-lab/pull/47) targets `ai-dev` (Phase D child orchestration). It does not block `develop` integration.
 
-Open pull requests on `develop` for finance documentation and coordinator scheduling (not merged at this assessment):
+Open pull requests on `develop` for finance documentation (not merged at this assessment):
 
 | Pull request | Backlog task | Notes |
 |---|---|---|
 | [#50](https://github.com/anotherhale/ai-solutions-lab/pull/50) | DOC-DEBT-MIG-1 | Downgrade coverage note through Alembic `0011`. Documentation only. |
 | [#51](https://github.com/anotherhale/ai-solutions-lab/pull/51) | PORT-CASE-FIN-1 | Case study finance read slice. Documentation only. Squash auto-merge requested. |
 | [#54](https://github.com/anotherhale/ai-solutions-lab/pull/54) | DOC-API-FIN-1 | Payment read routes in `API_CONVENTIONS.md`. Documentation only. |
-| [#56](https://github.com/anotherhale/ai-solutions-lab/pull/56) | DOC-README-FIN-1 | Finance read routes in `services/wasatch-api/README.md`. Documentation only. |
-| [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58) | COORD-PR-SLOT-1 | Coordinator slot accounting and catalog reconcile; includes STATUS-2 snapshot refresh. Awaits human review despite green CI. Squash auto-merge requested. |
+| [#56](https://github.com/anotherhale/ai-solutions-lab/pull/56) | DOC-README-FIN-1 | Finance read routes in `services/wasatch-api/README.md`. Documentation only. Squash auto-merge requested. |
 
-Pull requests [#55](https://github.com/anotherhale/ai-solutions-lab/pull/55) and [#57](https://github.com/anotherhale/ai-solutions-lab/pull/57) are catalog hygiene branches that may be superseded by [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58); they are not merged at this assessment.
+Pull requests [#55](https://github.com/anotherhale/ai-solutions-lab/pull/55) and [#57](https://github.com/anotherhale/ai-solutions-lab/pull/57) are superseded catalog-hygiene branches (COORD-SYNC-1 and DOC-DBMAP-1 markers already on `develop`). Close them when convenient; they are not required for integration.
 
 Seeded document counts: 30 documents, 31 document versions, and 18 extractions. `doc_0004` has two versions and current version `dv_0031`. Needs-review extractions are `dx_0003`, `dx_0009`, and `dx_0015`. Seeded governance counts: 10 approval requests, 11 decision-history rows, and 50 audit events. `msg_0016` (`pending_approval`, `requires_approval` true) references `apr_0001`. Audit rows are insert-only: revision `0003` installs a trigger that rejects `UPDATE` and `DELETE`. The customer-message decision, the extraction-review decision, and each follow-up transition insert one new audit row and do not update or delete audit events. A second seed skips existing audit rows. Seed copies fixture extraction status and does not accept a low-confidence or financial row.
 

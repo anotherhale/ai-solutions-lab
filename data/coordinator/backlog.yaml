@@ -68,7 +68,8 @@ tasks:
 
   - id: COORD-PR-SLOT-1
     title: PR_OPEN tasks do not consume coordinator concurrency slots
-    status: in_progress
+    status: merged
+    merge_commit: defca15
     depends_on: []
     branch: cursor/coordinator-tick-unblock-1104
     pr_number: 58
@@ -103,7 +104,8 @@ tasks:
 
   - id: STATUS-2
     title: Refresh PROJECT_STATUS after finance documentation merges
-    status: in_progress
+    status: merged
+    merge_commit: defca15
     depends_on: [DOC-DBMAP-1]
     branch: cursor/coordinator-tick-unblock-1104
     pr_number: 58
