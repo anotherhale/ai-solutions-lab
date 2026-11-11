@@ -118,3 +118,9 @@ tasks:
       - DOC-API-FIN-1
       - PORT-CASE-FIN-1
       - COORD-CATALOG-2
+
+  - id: SMOKE-FIN-1
+    title: Compose smoke checks for finance read routes
+    status: in_progress
+    depends_on: [FIN-3]
+    branch: cursor/smoke-fin-1-compose

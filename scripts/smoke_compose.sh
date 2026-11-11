@@ -47,9 +47,27 @@ import os
 import urllib.request
 
 port = os.environ.get("API_PORT", "8000")
-with urllib.request.urlopen(f"http://127.0.0.1:{port}/openapi.json") as response:
+base = f"http://127.0.0.1:{port}"
+with urllib.request.urlopen(f"{base}/openapi.json") as response:
     paths = json.load(response)["paths"]
 assert any("document-extractions" in path for path in paths), paths.keys()
+for required in (
+    "/api/v1/invoices",
+    "/api/v1/invoices/{invoice_id}",
+    "/api/v1/payments",
+    "/api/v1/payments/{payment_id}",
+):
+    assert required in paths, f"missing {required}; have {sorted(paths)}"
+
+actor_header = {"X-Laboratory-Actor": "emp_0001"}
+request = urllib.request.Request(
+    f"{base}/api/v1/invoices",
+    headers=actor_header,
+)
+with urllib.request.urlopen(request) as response:
+    body = json.load(response)
+items = body.get("items")
+assert isinstance(items, list) and len(items) > 0, body
 PY
 
 echo "Compose smoke checks passed."

@@ -371,6 +371,14 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes; coordinator backlog lists this task as `pending` until dependencies merge.
 
+### SMOKE-FIN-1 — Compose smoke checks for finance read routes
+
+- Status: in progress (this change)
+- Depends on: FIN-3 (merged)
+- Extend `scripts/smoke_compose.sh` so CI **Compose API smoke** asserts OpenAPI lists finance read paths and a seeded `GET /api/v1/invoices` succeeds with `X-Laboratory-Actor`.
+- No API, migration, or posting changes.
+- Acceptance: `scripts/smoke_compose.sh` passes locally when Docker is available; Repository Validation **Compose API smoke** job stays green.
+
 ## Explicitly out of the next implementation
 
 - Rebuilding Phase 2.1.1
