@@ -508,7 +508,7 @@ Uvicorn logged `Application startup complete` on port 8010. The run did not call
 
 ## Verification for STATUS-2
 
-Documentation only. Parent branch is `develop` at `76e6e3f`. This run refreshed the current-work table for COORD-SYNC-1, DOC-DBMAP-1, and open finance-documentation pull requests. Application code, migrations, and CI workflow files were not edited. GitHub Actions was not observed.
+Documentation only. Parent branch is `develop` at `defca15`. This run refreshed the current-work table for COORD-PR-SLOT-1, COORD-SYNC-1, DOC-DBMAP-1, and open finance-documentation pull requests. Application code, migrations, and CI workflow files were not edited. GitHub Actions was not observed.
 
 From the repository root, same session:
 
