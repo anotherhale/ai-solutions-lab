@@ -238,7 +238,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Thin HTTP contract tests | Closed. `tests/api/test_openapi_contract.py` and `openapi_contract_catalog.py` assert the full slice path/method catalog, write-route methods, decision enums, and runtime error envelopes. `tests/unit/test_contract_alignment.py` still aligns JSON Schema status enums. |
 | Downgrade is untested | Closed for revisions `0001`–`0008`. Matrix in `services/wasatch-api/tests/integration/README.md`. Each revision has an integration upgrade/downgrade test, including `test_initial_migration.py` for revision `0001` and `test_invoice_migration.py` for revision `0008`. |
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py` still skips a local run when PostgreSQL is down. CI fails that skip. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` rejects a run that did not execute the database tests. |
-| String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Invoice lines are persisted in revision `0010` with read routes; payments stay fixture-only until a later migration. |
+| String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Revisions `0010` and `0011` persist `invoice_lines` and `payments` with read-only routes (FIN-2, FIN-3). |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
 | Starlette `TestClient` deprecation warning | Closed. Starlette 1.10 uses `anyio.from_thread.BlockingPortal`. `anyio>=4.8.0,<5` matches that bound. The earlier `<4.15` cap applied to Starlette 0.50. |
 | No Compose image smoke test in CI | Closed. `scripts/smoke_compose.sh` runs in the **Compose API smoke** GitHub Actions job. |
@@ -287,11 +287,89 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### CONTRACT-FIN-1 — Finance enum alignment with JSON Schema
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/39 merged as `3c9a933`
 - Depends on: FIN-3
 - Extend `tests/unit/test_contract_alignment.py` so invoice, invoice line, and payment filter enums match `data/schemas/v1/finance/*.schema.json`.
 - No API or migration changes.
 - Acceptance: unit test passes; repository validators unchanged; CI green.
+
+### COORD-SYNC-1 — Reconcile coordinator backlog catalog after finance slice
+
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/48 merged as `a5f46e7`
+- Depends on: CONTRACT-FIN-1
+- Mark `data/coordinator/backlog.yaml` tasks merged for pull requests [#37](https://github.com/anotherhale/ai-solutions-lab/pull/37), [#38](https://github.com/anotherhale/ai-solutions-lab/pull/38), and [#39](https://github.com/anotherhale/ai-solutions-lab/pull/39).
+- Record CONTRACT-FIN-1 and coordinator continuity documentation in `PROJECT_STATUS.md`. Close the stale technical-debt note that payments are fixture-only.
+- Register follow-on `pending` tasks in `data/coordinator/backlog.yaml` so the coordinator can schedule after merge.
+- No application code or migration changes.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select the next pending catalog task.
+
+### COORD-PR-SLOT-1 — PR_OPEN tasks do not consume concurrency slots
+
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/58 merged as `defca15`
+- Depends on: none
+- Count only runtime `in_progress` toward `DEVELOPMENT_OPS_MAX_CONCURRENT`, not `pr_open` tasks awaiting human review.
+- Acceptance: `libs/development_ops` scheduling tests and `test_coordinator_continuity.py` pass; coordinator tick selects a pending task when several documentation pull requests are open.
+
+### COORD-CATALOG-2 — Consolidate coordinator catalog after finance documentation merges
+
+- Status: in progress (this change)
+- Depends on: none
+- Supersedes overlapping catalog-only pull requests that each updated `data/coordinator/backlog.yaml` after merges [#49](https://github.com/anotherhale/ai-solutions-lab/pull/49), [#56](https://github.com/anotherhale/ai-solutions-lab/pull/56), and [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58).
+- Mark merged catalog rows for DOC-DBMAP-1, DOC-README-FIN-1, and COORD-PR-SLOT-1. Set STATUS-2 to `pending` with dependencies on the remaining open documentation tasks.
+- Documentation only; no application code.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick does not assign duplicate catalog reconciliation work.
+
+### DOC-DBMAP-1 — Finance persistence in DATABASE_MAPPING.md
+
+- Status: done. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/49 merged as `76e6e3f`
+- Depends on: CONTRACT-FIN-1 (merged); catalog reconciles on COORD-SYNC-1
+- Update `docs/architecture/DATABASE_MAPPING.md` for Alembic `0008`, `0010`, and `0011`: `invoices`, `invoice_lines`, and `payments` seeded from `data/fixtures/valid/`. Remove the stale deferred-entity note for Invoice, InvoiceLine, and Payment.
+- Document `NUMERIC` money columns as reference amounts only. Read routes do not post finance.
+- No schema, migration, or API changes.
+- Acceptance: `python3 scripts/validate_repo.py` passes; the table list matches the repository.
+
+### DOC-DEBT-MIG-1 — Downgrade coverage note through revision 0011
+
+- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/50
+- Depends on: CONTRACT-FIN-1 (merged); catalog reconciles on COORD-SYNC-1
+- Update the technical-debt table in this file so downgrade coverage cites revisions `0001`–`0011` and points at `services/wasatch-api/tests/integration/README.md` for `0010` and `0011`.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### PORT-CASE-FIN-1 — Case study finance read slice
+
+- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/51
+- Depends on: CONTRACT-FIN-1 (merged)
+- Update `docs/case-studies/wasatch-laboratory-slice.md` so finance capabilities match FIN-1–FIN-3: read-only invoices, lines, and payments; no posting.
+- Documentation only; independent of COORD-SYNC-1.
+- Acceptance: `python3 scripts/validate_repo.py` passes; case study matches `develop` behavior.
+
+### DOC-README-FIN-1 — Finance read routes in wasatch-api README
+
+- Status: done. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/56 merged as `7df5a56`
+- Depends on: FIN-3 (merged)
+- Document invoice, invoice line, and payment read routes in `services/wasatch-api/README.md`.
+- Documentation only; no API changes.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### DOC-API-FIN-1 — Payment read routes in API_CONVENTIONS.md
+
+- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/54
+- Depends on: FIN-3 (merged)
+- Add `GET /api/v1/payments` and `GET /api/v1/payments/{payment_id}` to the route catalog in `docs/architecture/API_CONVENTIONS.md`, with laboratory-actor requirement and reference-amounts-only wording consistent with invoice routes.
+- Documentation only; no API changes.
+- Acceptance: `python3 scripts/validate_repo.py` passes; the table matches `openapi_contract_catalog.py`.
+
+### STATUS-2 — Refresh PROJECT_STATUS after finance documentation
+
+- Status: pending
+- Depends on: DOC-DEBT-MIG-1, DOC-API-FIN-1, and PORT-CASE-FIN-1 (open pull requests)
+- Update `PROJECT_STATUS.md` current-work and verification sections after the finance documentation pull requests merge. Keep the snapshot aligned with `develop` without claiming unmerged work is done.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator backlog lists this task as `pending` until dependencies merge.
 
 ## Explicitly out of the next implementation
 
