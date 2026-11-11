@@ -79,6 +79,25 @@ with urllib.request.urlopen(lines_request) as response:
     lines_body = json.load(response)
 line_items = lines_body.get("items")
 assert isinstance(line_items, list) and len(line_items) > 0, lines_body
+
+payments_request = urllib.request.Request(
+    f"{base}/api/v1/payments",
+    headers=actor_header,
+)
+with urllib.request.urlopen(payments_request) as response:
+    payments_body = json.load(response)
+payment_items = payments_body.get("items")
+assert isinstance(payment_items, list) and len(payment_items) > 0, payments_body
+first_payment_id = payment_items[0].get("id")
+assert isinstance(first_payment_id, str) and first_payment_id, payment_items[0]
+
+payment_detail_request = urllib.request.Request(
+    f"{base}/api/v1/payments/{first_payment_id}",
+    headers=actor_header,
+)
+with urllib.request.urlopen(payment_detail_request) as response:
+    payment_detail = json.load(response)
+assert payment_detail.get("id") == first_payment_id, payment_detail
 PY
 
 echo "Compose smoke checks passed."

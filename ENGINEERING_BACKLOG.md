@@ -375,7 +375,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 - Status: in progress (this change)
 - Depends on: FIN-3 (merged)
-- Extend `scripts/smoke_compose.sh` so CI **Compose API smoke** asserts OpenAPI lists finance read paths (invoices, invoice lines, and payments) and seeded `GET /api/v1/invoices` and `GET /api/v1/invoices/inv_0001/lines` succeed with `X-Laboratory-Actor`.
+- Extend `scripts/smoke_compose.sh` so CI **Compose API smoke** asserts OpenAPI lists finance read paths (invoices, invoice lines, and payments) and seeded `GET /api/v1/invoices`, `GET /api/v1/invoices/inv_0001/lines`, and payment list/detail routes succeed with `X-Laboratory-Actor`.
 - No API, migration, or posting changes.
 - Acceptance: `scripts/smoke_compose.sh` passes locally when Docker is available; Repository Validation **Compose API smoke** job stays green.
 
