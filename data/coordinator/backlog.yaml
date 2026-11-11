@@ -71,6 +71,7 @@ tasks:
     status: in_progress
     depends_on: []
     branch: cursor/coordinator-tick-unblock-1104
+    pr_number: 58
 
   - id: DOC-DEBT-MIG-1
     title: Align downgrade technical-debt note through Alembic 0011
@@ -99,3 +100,8 @@ tasks:
     depends_on: [CONTRACT-FIN-1]
     branch: cursor/port-case-fin-1
     pr_number: 51
+
+  - id: STATUS-2
+    title: Refresh PROJECT_STATUS after finance documentation merges
+    status: pending
+    depends_on: [DOC-DBMAP-1]

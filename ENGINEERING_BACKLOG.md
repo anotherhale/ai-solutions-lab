@@ -353,6 +353,14 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Documentation only; no API changes.
 - Acceptance: `python3 scripts/validate_repo.py` passes; the table matches `openapi_contract_catalog.py`.
 
+### STATUS-2 — Refresh PROJECT_STATUS after finance documentation
+
+- Status: pending
+- Depends on: DOC-DBMAP-1 (merged `76e6e3f`)
+- Update `PROJECT_STATUS.md` current-work and verification sections for COORD-SYNC-1, DOC-DBMAP-1, and the finance documentation follow-on pull requests. Keep the snapshot aligned with `develop` without claiming unmerged work is done.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator backlog includes this task as `merged` after merge.
+
 ## Explicitly out of the next implementation
 
 - Rebuilding Phase 2.1.1
