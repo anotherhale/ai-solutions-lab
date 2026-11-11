@@ -68,7 +68,8 @@ tasks:
 
   - id: COORD-PR-SLOT-1
     title: PR_OPEN tasks do not consume coordinator concurrency slots
-    status: in_progress
+    status: merged
+    merge_commit: defca15
     depends_on: []
     branch: cursor/coordinator-tick-unblock-1104
     pr_number: 58
@@ -89,7 +90,8 @@ tasks:
 
   - id: DOC-README-FIN-1
     title: Finance read routes in wasatch-api README
-    status: in_progress
+    status: merged
+    merge_commit: 7df5a56
     depends_on: [FIN-3]
     branch: cursor/doc-readme-fin-1
     pr_number: 56
@@ -103,7 +105,8 @@ tasks:
 
   - id: STATUS-2
     title: Refresh PROJECT_STATUS after finance documentation merges
-    status: in_progress
+    status: merged
+    merge_commit: defca15
     depends_on: [DOC-DBMAP-1]
     branch: cursor/coordinator-tick-unblock-1104
     pr_number: 58
