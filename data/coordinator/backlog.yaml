@@ -105,7 +105,8 @@ tasks:
 
   - id: COORD-CATALOG-2
     title: Consolidate coordinator catalog after finance documentation merges
-    status: in_progress
+    status: merged
+    merge_commit: bcf404b
     depends_on: []
     branch: cursor/coord-catalog-consolidate-1104
     pr_number: 61

@@ -315,7 +315,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-2 — Consolidate coordinator catalog after finance documentation merges
 
-- Status: in progress (this change)
+- Status: done. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/61 merged as `bcf404b`
 - Depends on: none
 - Supersedes overlapping catalog-only pull requests that each updated `data/coordinator/backlog.yaml` after merges [#49](https://github.com/anotherhale/ai-solutions-lab/pull/49), [#56](https://github.com/anotherhale/ai-solutions-lab/pull/56), and [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58).
 - Mark merged catalog rows for DOC-DBMAP-1, DOC-README-FIN-1, and COORD-PR-SLOT-1. Set STATUS-2 to `pending` with dependencies on the remaining open documentation tasks.
@@ -366,7 +366,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 ### STATUS-2 — Refresh PROJECT_STATUS after finance documentation
 
 - Status: pending
-- Depends on: DOC-DEBT-MIG-1, DOC-API-FIN-1, and PORT-CASE-FIN-1 (open pull requests)
+- Depends on: DOC-DEBT-MIG-1, DOC-API-FIN-1, PORT-CASE-FIN-1, and COORD-CATALOG-2 (COORD-CATALOG-2 merged; three documentation pull requests remain open)
 - Update `PROJECT_STATUS.md` current-work and verification sections after the finance documentation pull requests merge. Keep the snapshot aligned with `develop` without claiming unmerged work is done.
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes; coordinator backlog lists this task as `pending` until dependencies merge.
