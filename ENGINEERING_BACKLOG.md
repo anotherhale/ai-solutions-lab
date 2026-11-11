@@ -355,7 +355,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### STATUS-2 — Refresh PROJECT_STATUS after finance documentation
 
-- Status: pending
+- Status: in progress (this change)
 - Depends on: DOC-DBMAP-1 (merged `76e6e3f`)
 - Update `PROJECT_STATUS.md` current-work and verification sections for COORD-SYNC-1, DOC-DBMAP-1, and the finance documentation follow-on pull requests. Keep the snapshot aligned with `develop` without claiming unmerged work is done.
 - Documentation only.

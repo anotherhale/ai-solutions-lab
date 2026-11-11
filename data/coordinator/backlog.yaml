@@ -103,5 +103,7 @@ tasks:
 
   - id: STATUS-2
     title: Refresh PROJECT_STATUS after finance documentation merges
-    status: pending
+    status: in_progress
     depends_on: [DOC-DBMAP-1]
+    branch: cursor/coordinator-tick-unblock-1104
+    pr_number: 58
