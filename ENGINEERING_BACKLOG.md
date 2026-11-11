@@ -307,10 +307,20 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-PR-SLOT-1 — PR_OPEN tasks do not consume concurrency slots
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/58 merged as `defca15`
 - Depends on: none
 - Count only runtime `in_progress` toward `DEVELOPMENT_OPS_MAX_CONCURRENT`, not `pr_open` tasks awaiting human review.
 - Acceptance: `libs/development_ops` scheduling tests and `test_coordinator_continuity.py` pass; coordinator tick selects a pending task when several documentation pull requests are open.
+
+### COORD-CATALOG-2 — Consolidate coordinator catalog after finance documentation merges
+
+- Status: in progress (this change)
+- Depends on: none
+- Supersedes overlapping catalog-only pull requests that each updated `data/coordinator/backlog.yaml` after merges [#49](https://github.com/anotherhale/ai-solutions-lab/pull/49), [#56](https://github.com/anotherhale/ai-solutions-lab/pull/56), and [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58).
+- Mark merged catalog rows for DOC-DBMAP-1, DOC-README-FIN-1, and COORD-PR-SLOT-1. Set STATUS-2 to `pending` with dependencies on the remaining open documentation tasks.
+- Documentation only; no application code.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick does not assign duplicate catalog reconciliation work.
 
 ### DOC-DBMAP-1 — Finance persistence in DATABASE_MAPPING.md
 
@@ -339,7 +349,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### DOC-README-FIN-1 — Finance read routes in wasatch-api README
 
-- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/56
+- Status: done. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/56 merged as `7df5a56`
 - Depends on: FIN-3 (merged)
 - Document invoice, invoice line, and payment read routes in `services/wasatch-api/README.md`.
 - Documentation only; no API changes.
@@ -355,11 +365,11 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### STATUS-2 — Refresh PROJECT_STATUS after finance documentation
 
-- Status: in progress (this change)
-- Depends on: DOC-DBMAP-1 (merged `76e6e3f`)
-- Update `PROJECT_STATUS.md` current-work and verification sections for COORD-SYNC-1, DOC-DBMAP-1, and the finance documentation follow-on pull requests. Keep the snapshot aligned with `develop` without claiming unmerged work is done.
+- Status: pending
+- Depends on: DOC-DEBT-MIG-1, DOC-API-FIN-1, and PORT-CASE-FIN-1 (open pull requests)
+- Update `PROJECT_STATUS.md` current-work and verification sections after the finance documentation pull requests merge. Keep the snapshot aligned with `develop` without claiming unmerged work is done.
 - Documentation only.
-- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator backlog includes this task as `merged` after merge.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator backlog lists this task as `pending` until dependencies merge.
 
 ## Explicitly out of the next implementation
 
