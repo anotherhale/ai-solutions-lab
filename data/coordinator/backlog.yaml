@@ -120,6 +120,13 @@ tasks:
       - PORT-CASE-FIN-1
       - COORD-CATALOG-2
 
+  - id: COORD-STALE-1
+    title: Record superseded catalog-only pull requests after COORD-CATALOG-2
+    status: in_progress
+    depends_on: []
+    branch: cursor/coord-catalog-2-merged-marker
+    pr_number: 62
+
   - id: SMOKE-FIN-1
     title: Compose smoke checks for finance read routes
     status: in_progress
