@@ -371,6 +371,14 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes; coordinator backlog lists this task as `pending` until dependencies merge.
 
+### COORD-STALE-1 — Superseded catalog-only pull requests
+
+- Status: in progress (this change)
+- Depends on: none
+- Record which open catalog-marker pull requests are redundant after COORD-CATALOG-2 in [docs/operations/COORDINATOR_CONTINUITY.md](docs/operations/COORDINATOR_CONTINUITY.md). Register the task in `data/coordinator/backlog.yaml`.
+- Documentation only; no application code.
+- Acceptance: `python3 scripts/validate_repo.py` passes; humans can close pull requests [#53](https://github.com/anotherhale/ai-solutions-lab/pull/53), [#55](https://github.com/anotherhale/ai-solutions-lab/pull/55), [#57](https://github.com/anotherhale/ai-solutions-lab/pull/57), [#59](https://github.com/anotherhale/ai-solutions-lab/pull/59), and [#60](https://github.com/anotherhale/ai-solutions-lab/pull/60) without losing catalog state.
+
 ## Explicitly out of the next implementation
 
 - Rebuilding Phase 2.1.1
