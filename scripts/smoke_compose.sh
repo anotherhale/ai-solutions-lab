@@ -54,6 +54,8 @@ assert any("document-extractions" in path for path in paths), paths.keys()
 for required in (
     "/api/v1/invoices",
     "/api/v1/invoices/{invoice_id}",
+    "/api/v1/invoices/{invoice_id}/lines",
+    "/api/v1/invoice-lines/{invoice_line_id}",
     "/api/v1/payments",
     "/api/v1/payments/{payment_id}",
 ):
@@ -68,6 +70,15 @@ with urllib.request.urlopen(request) as response:
     body = json.load(response)
 items = body.get("items")
 assert isinstance(items, list) and len(items) > 0, body
+
+lines_request = urllib.request.Request(
+    f"{base}/api/v1/invoices/inv_0001/lines",
+    headers=actor_header,
+)
+with urllib.request.urlopen(lines_request) as response:
+    lines_body = json.load(response)
+line_items = lines_body.get("items")
+assert isinstance(line_items, list) and len(line_items) > 0, lines_body
 PY
 
 echo "Compose smoke checks passed."
