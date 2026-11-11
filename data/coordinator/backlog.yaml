@@ -68,10 +68,19 @@ tasks:
 
   - id: COORD-PR-SLOT-1
     title: PR_OPEN tasks do not consume coordinator concurrency slots
-    status: in_progress
+    status: merged
+    merge_commit: defca15
     depends_on: []
     branch: cursor/coordinator-tick-unblock-1104
     pr_number: 58
+
+  - id: DOC-README-FIN-1
+    title: Finance read routes in wasatch-api README
+    status: merged
+    merge_commit: 7df5a56
+    depends_on: [FIN-3]
+    branch: cursor/doc-readme-fin-1
+    pr_number: 56
 
   - id: DOC-DEBT-MIG-1
     title: Align downgrade technical-debt note through Alembic 0011
@@ -87,13 +96,6 @@ tasks:
     branch: cursor/doc-api-fin-1
     pr_number: 54
 
-  - id: DOC-README-FIN-1
-    title: Finance read routes in wasatch-api README
-    status: in_progress
-    depends_on: [FIN-3]
-    branch: cursor/doc-readme-fin-1
-    pr_number: 56
-
   - id: PORT-CASE-FIN-1
     title: Align laboratory case study with finance read routes
     status: in_progress
@@ -101,9 +103,17 @@ tasks:
     branch: cursor/port-case-fin-1
     pr_number: 51
 
+  - id: COORD-CATALOG-2
+    title: Consolidate coordinator catalog after finance documentation merges
+    status: in_progress
+    depends_on: []
+    branch: cursor/coord-catalog-consolidate-1104
+
   - id: STATUS-2
     title: Refresh PROJECT_STATUS after finance documentation merges
-    status: in_progress
-    depends_on: [DOC-DBMAP-1]
-    branch: cursor/coordinator-tick-unblock-1104
-    pr_number: 58
+    status: pending
+    depends_on:
+      - DOC-DEBT-MIG-1
+      - DOC-API-FIN-1
+      - PORT-CASE-FIN-1
+      - COORD-CATALOG-2
