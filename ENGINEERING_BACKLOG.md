@@ -389,7 +389,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-BACKLOG-3 — Preregister open PRs for coordinator automation
 
-- Status: pending (this change)
+- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/64
 - Depends on: none
 - Mark COORD-CATALOG-2 merged in `data/coordinator/backlog.yaml`, register `COORD-STALE-1` and `SMOKE-FIN-1` as in progress with pull request numbers, and document that scheduled coordinator runs must merge or reconcile `origin/develop` before `coordinator_automation_entrypoint.sh` so the catalog is not stale.
 - Documentation and catalog only.
