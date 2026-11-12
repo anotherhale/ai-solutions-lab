@@ -26,6 +26,25 @@ class EventType(StrEnum):
     COORDINATOR_RECOVERY = "coordinator.recovery"
     COORDINATOR_SCHEDULED = "coordinator.scheduled"
     COORDINATOR_AUTO_MERGE = "coordinator.auto_merge"
+    # Child-agent execution lifecycle (Phase D). One event type per meaningful
+    # transition so the activity log is a faithful execution history.
+    CHILD_REQUESTED = "child.requested"
+    CHILD_CLAIMED = "child.claimed"
+    CHILD_WORKTREE_PREPARED = "child.worktree_prepared"
+    CHILD_LAUNCH_REQUESTED = "child.launch_requested"
+    CHILD_LAUNCH_SUCCEEDED = "child.launch_succeeded"
+    CHILD_LAUNCH_FAILED = "child.launch_failed"
+    CHILD_PROGRESS = "child.progress"
+    CHILD_HEARTBEAT_TIMEOUT = "child.heartbeat_timeout"
+    CHILD_STALLED = "child.stalled"
+    CHILD_RECOVERY = "child.recovery"
+    CHILD_RETRY = "child.retry"
+    CHILD_COMPLETED = "child.completed"
+    CHILD_PR_OPEN = "child.pr_open"
+    CHILD_AWAITING_MERGE = "child.awaiting_merge"
+    CHILD_MERGED = "child.merged"
+    CHILD_OPERATOR_INTERVENTION = "child.operator_intervention"
+    CHILD_EXECUTION_TOGGLED = "child.execution_toggled"
 
 
 class EventSeverity(StrEnum):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import uuid
 
 import pytest
 from alembic import command
@@ -149,3 +150,93 @@ def test_slot_accounting_revision_downgrade(disposable_engine: Engine) -> None:
         assert lease_column is None
     finally:
         command.upgrade(config, "head")
+
+
+def test_child_orchestration_revision_head(disposable_engine: Engine) -> None:
+    """Revision 0015 adds the child-execution tables and settings store."""
+    config = Config(str(API_ROOT / "alembic.ini"))
+    config.set_main_option("script_location", str(API_ROOT / "alembic"))
+    config.set_main_option(
+        "sqlalchemy.url",
+        disposable_engine.url.render_as_string(hide_password=False),
+    )
+    with disposable_engine.connect() as connection:
+        revision = connection.execute(
+            text("SELECT version_num FROM alembic_version")
+        ).scalar()
+        child_table = connection.execute(
+            text(
+                "SELECT 1 FROM information_schema.tables "
+                "WHERE table_schema = 'development_ops' "
+                "AND table_name = 'child_executions'"
+            )
+        ).scalar()
+        settings_table = connection.execute(
+            text(
+                "SELECT 1 FROM information_schema.tables "
+                "WHERE table_schema = 'development_ops' "
+                "AND table_name = 'orchestration_settings'"
+            )
+        ).scalar()
+        progress_column = connection.execute(
+            text(
+                "SELECT 1 FROM information_schema.columns "
+                "WHERE table_schema = 'development_ops' "
+                "AND table_name = 'child_executions' "
+                "AND column_name = 'last_event_count'"
+            )
+        ).scalar()
+    assert revision == "0015"
+    assert child_table == 1
+    assert settings_table == 1
+    assert progress_column == 1
+
+
+def test_child_orchestration_revision_downgrade(disposable_engine: Engine) -> None:
+    config = Config(str(API_ROOT / "alembic.ini"))
+    config.set_main_option("script_location", str(API_ROOT / "alembic"))
+    config.set_main_option(
+        "sqlalchemy.url",
+        disposable_engine.url.render_as_string(hide_password=False),
+    )
+    command.downgrade(config, "0014")
+    try:
+        with disposable_engine.connect() as connection:
+            child_table = connection.execute(
+                text(
+                    "SELECT 1 FROM information_schema.tables "
+                    "WHERE table_schema = 'development_ops' "
+                    "AND table_name = 'child_executions'"
+                )
+            ).scalar()
+            settings_table = connection.execute(
+                text(
+                    "SELECT 1 FROM information_schema.tables "
+                    "WHERE table_schema = 'development_ops' "
+                    "AND table_name = 'orchestration_settings'"
+                )
+            ).scalar()
+        assert child_table is None
+        assert settings_table is None
+    finally:
+        command.upgrade(config, "head")
+
+
+def test_child_event_types_accepted_by_constraint(disposable_engine: Engine) -> None:
+    """The extended event_type check constraint accepts child-orchestration types."""
+    from development_ops.taxonomy import EventType
+
+    with disposable_engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO development_ops.activity_events "
+                "(id, run_id, event_type, severity, title, occurred_at, "
+                "slack_delivery_status) "
+                "VALUES (:id, :run, :type, 'info', 'probe', now(), 'skipped')"
+            ),
+            {
+                "id": uuid.uuid4(),
+                "run": uuid.uuid4(),
+                "type": EventType.CHILD_LAUNCH_SUCCEEDED.value,
+            },
+        )
