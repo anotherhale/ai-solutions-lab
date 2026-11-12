@@ -86,5 +86,6 @@ human may close them without merging:
 | [#57](https://github.com/anotherhale/ai-solutions-lab/pull/57) | [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) |
 | [#59](https://github.com/anotherhale/ai-solutions-lab/pull/59) | [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) |
 | [#60](https://github.com/anotherhale/ai-solutions-lab/pull/60) | [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) |
+| [#65](https://github.com/anotherhale/ai-solutions-lab/pull/65) | [#64](https://github.com/anotherhale/ai-solutions-lab/pull/64) (`COORD-BACKLOG-3` entrypoint sync) |
 
 Agents must not open additional catalog-only branches for those merges.
