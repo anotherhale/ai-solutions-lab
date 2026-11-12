@@ -7,6 +7,30 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_BIN="${ROOT}/services/wasatch-api/.venv/bin"
 export PATH="${VENV_BIN}:${HOME}/.local/bin:${PATH}"
+
+# Cloud agents often start on `main` while integration and the coordinator catalog
+# live on `develop`. The tick reads paths from the working tree, not from GitHub.
+sync_coordinator_sources_from_develop() {
+  if ! git -C "${ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    return 0
+  fi
+  if ! git -C "${ROOT}" remote get-url origin >/dev/null 2>&1; then
+    return 0
+  fi
+  local branch
+  branch="$(git -C "${ROOT}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  if [[ -z "${branch}" || "${branch}" == "develop" ]]; then
+    return 0
+  fi
+  git -C "${ROOT}" fetch -q origin develop 2>/dev/null || true
+  if ! git -C "${ROOT}" rev-parse --verify origin/develop >/dev/null 2>&1; then
+    return 0
+  fi
+  git -C "${ROOT}" checkout -q origin/develop -- data/coordinator/backlog.yaml \
+    libs/development_ops 2>/dev/null || true
+}
+sync_coordinator_sources_from_develop
+
 PYTHON="${VENV_BIN}/python"
 if [[ ! -x "${PYTHON}" ]]; then
   PYTHON="python3"

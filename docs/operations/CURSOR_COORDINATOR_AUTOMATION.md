@@ -10,6 +10,11 @@ It must invoke the coordinator script first.
 scripts/coordinator_automation_entrypoint.sh
 ```
 
+When the automation working tree is not on `develop`, the entrypoint fetches
+`origin/develop` and checks out `data/coordinator/backlog.yaml` and
+`libs/development_ops` from that ref before the tick. A stale catalog marks
+completed work as active and can hide open pull requests from scheduling.
+
 That script:
 
 1. Migrates/prepares `wasatch_development_ops` (never `wasatch_test`).
