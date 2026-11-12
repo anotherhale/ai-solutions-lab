@@ -17,6 +17,12 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from development_ops.backlog import default_backlog_path
 from development_ops.catalog import YamlBacklogCatalogWriter
+from development_ops.child_config import ChildOrchestrationConfig
+from development_ops.child_orchestration import (
+    ChildOrchestrator,
+    agent_settings_loader_from_env,
+    observer_from_env,
+)
 from development_ops.coordinator_engine import CoordinatorEngine
 from development_ops.github_client import github_client_from_env
 from development_ops.models import ActivityEventCreate
@@ -93,6 +99,9 @@ def _build_engine(
         github=github_client_from_env(),
         run_id=run_id,
     )
+    children = _build_child_orchestrator(
+        session, run_id=run_id, repository=repository, worktrees=worktrees
+    )
     return CoordinatorEngine(
         session,
         github=github_client_from_env(),
@@ -106,6 +115,34 @@ def _build_engine(
             if config.update_catalog
             else None
         ),
+        children=children,
+    )
+
+
+def _build_child_orchestrator(
+    session: Session,
+    *,
+    run_id: uuid.UUID,
+    repository: str,
+    worktrees: TaskWorktreeOrchestrator,
+) -> ChildOrchestrator:
+    """Build the Phase D child orchestrator.
+
+    Execution remains disabled unless the durable operator flag is set; the
+    environment can express intent but never enables paid child execution on its
+    own (see :func:`development_ops.child_config.resolve_enabled`).
+    """
+    child_config = ChildOrchestrationConfig.from_env()
+    return ChildOrchestrator(
+        session,
+        config=child_config,
+        worktrees=worktrees,
+        recorder=ActivityRecorder(session, notify_slack=False),
+        run_id=run_id,
+        repository=repository,
+        observer=observer_from_env(),
+        settings_loader=agent_settings_loader_from_env(),
+        owner_agent=os.environ.get("DEVELOPMENT_OPS_AGENT_NAME", "coordinator"),
     )
 
 

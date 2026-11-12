@@ -90,6 +90,19 @@ stalled. Instead:
 
 Humans still edit the catalog to add or re-scope tasks; agents do not.
 
+### Retargeting legacy `develop` pull requests
+
+After [ADR 0014](../adr/0014-autonomous-integration-branch-consolidation.md), autonomous
+integration targets **`ai-dev` only**. Open pull requests that still target `develop` are not
+auto-merge eligible and do not unblock the `ai-dev` queue.
+
+1. Run `scripts/coordinator_retarget_develop_prs.sh` (dry-run) to list candidates.
+2. Re-run with `--apply` when `gh` has permission to call `updatePullRequest` (GraphQL). The
+   automation token may lack this scope; a repository maintainer can run the same script locally.
+3. For pull requests that already target `ai-dev` but report merge conflicts (for example after a
+   large `ai-dev` merge), rebase the head branch onto `origin/ai-dev` and push; the coordinator
+   re-evaluates auto-merge on the next tick.
+
 ### Isolated child worktrees (Phase C — implemented and wired in)
 
 Each autonomous task runs in its own Git worktree and branch, cut from the latest
