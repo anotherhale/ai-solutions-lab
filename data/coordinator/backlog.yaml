@@ -123,3 +123,4 @@ tasks:
       - PORT-CASE-FIN-1
       - COORD-CATALOG-2
     branch: cursor/status-2-1104
+    pr_number: 71
