@@ -15,6 +15,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session, sessionmaker
 
+from development_ops.backlog import default_backlog_path
+from development_ops.catalog import YamlBacklogCatalogWriter
 from development_ops.coordinator_engine import CoordinatorEngine
 from development_ops.github_client import github_client_from_env
 from development_ops.models import ActivityEventCreate
@@ -99,6 +101,11 @@ def _build_engine(
         repository=repository,
         backlog_path=config.backlog_path,
         worktrees=worktrees,
+        catalog=(
+            YamlBacklogCatalogWriter(config.backlog_path or default_backlog_path())
+            if config.update_catalog
+            else None
+        ),
     )
 
 

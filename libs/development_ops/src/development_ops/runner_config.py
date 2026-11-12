@@ -81,6 +81,7 @@ class RunnerConfig:
     log_level: str = DEFAULT_LOG_LEVEL
     log_format: str = DEFAULT_LOG_FORMAT
     backlog_path: Path | None = None
+    update_catalog: bool = False
 
     def __post_init__(self) -> None:
         if not self.repository.strip():
@@ -146,4 +147,5 @@ class RunnerConfig:
                 "DEVELOPMENT_OPS_RUNNER_LOG_FORMAT", DEFAULT_LOG_FORMAT
             ),
             backlog_path=Path(backlog_override) if backlog_override else None,
+            update_catalog=_bool_env("DEVELOPMENT_OPS_UPDATE_CATALOG", False),
         )

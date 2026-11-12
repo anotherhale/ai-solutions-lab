@@ -8,9 +8,10 @@ import subprocess
 from dataclasses import dataclass
 from typing import Protocol
 
-# Autonomy may only integrate into the autonomous development branch. ``main``
-# is human-controlled and every other base is out of scope for auto-merge.
-AUTONOMOUS_INTEGRATION_BRANCH = "ai-dev"
+from development_ops.integration import (
+    AUTONOMOUS_INTEGRATION_BRANCH,
+    is_authorized_base_branch,
+)
 
 # A pull request must expose at least one check. Zero checks means "unknown",
 # never "green".
@@ -37,14 +38,54 @@ class PullRequestState:
     review_decision: str | None
     closed: bool = False
     checks_state: str = _CHECKS_NONE
+    merge_state_status: str | None = None
+    is_draft: bool = False
+    unresolved_threads: int = 0
 
     @property
     def targets_integration_branch(self) -> bool:
-        return self.base_ref == AUTONOMOUS_INTEGRATION_BRANCH
+        return is_authorized_base_branch(self.base_ref)
 
     @property
     def closed_unmerged(self) -> bool:
         return self.closed and not self.merged
+
+    @property
+    def has_conflicts(self) -> bool:
+        return (self.mergeable or "").upper() == "CONFLICTING" or (
+            self.merge_state_status or ""
+        ).upper() == "DIRTY"
+
+    @property
+    def threads_unresolved(self) -> bool:
+        return self.unresolved_threads > 0
+
+    def auto_merge_blockers(self) -> tuple[str, ...]:
+        """Human-readable reasons the PR is not yet safe to auto-merge.
+
+        Ordered from most to least fundamental. An empty tuple means every
+        gate this client can observe is satisfied. Mergeability is reported
+        separately because GitHub computes it asynchronously (``UNKNOWN``).
+        """
+        reasons: list[str] = []
+        if self.merged:
+            reasons.append("pull request already merged")
+        elif self.closed:
+            reasons.append("pull request is closed without merge")
+        if not self.targets_integration_branch:
+            reasons.append(
+                f"base branch '{self.base_ref}' is not "
+                f"'{AUTONOMOUS_INTEGRATION_BRANCH}'"
+            )
+        if self.is_draft:
+            reasons.append("pull request is a draft")
+        if self.checks_green is not True:
+            reasons.append(f"checks are not all passing (state: {self.checks_state})")
+        if self.threads_unresolved:
+            reasons.append(f"{self.unresolved_threads} unresolved review thread(s)")
+        if self.has_conflicts:
+            reasons.append("pull request has merge conflicts")
+        return tuple(reasons)
 
 
 @dataclass(frozen=True, slots=True)
@@ -203,8 +244,9 @@ class GhCliGitHubClient:
             "--repo",
             repository,
             "--json",
-            "number,state,mergedAt,mergeable,headRefName,baseRefName,id,"
-            "autoMergeRequest,statusCheckRollup,reviewDecision",
+            "number,state,mergedAt,mergeable,mergeStateStatus,isDraft,"
+            "headRefName,baseRefName,id,autoMergeRequest,statusCheckRollup,"
+            "reviewDecision",
         )
         if result.returncode != 0:
             msg = result.stderr.strip() or result.stdout.strip()
@@ -215,19 +257,90 @@ class GhCliGitHubClient:
         checks_state = _classify_checks(rollup)
         merged = payload.get("mergedAt") is not None or payload.get("state") == "MERGED"
         closed = payload.get("state") == "CLOSED" or merged
+        base_ref = str(payload.get("baseRefName") or "")
+        # Review threads require a separate GraphQL call and GitHub does not
+        # expose the count through ``gh pr view``. Only fetch them for a pull
+        # request that is otherwise a plausible candidate: an ineligible PR
+        # (wrong base, not green, closed) is already blocked, and querying every
+        # open pull request on every tick would be wasteful and rate-limited.
+        threads = 0
+        if (
+            not merged
+            and not closed
+            and is_authorized_base_branch(base_ref)
+            and checks_state == _CHECKS_GREEN
+        ):
+            threads = self.count_unresolved_threads(repository, number)
         return PullRequestState(
             number=int(payload["number"]),
             state=str(payload.get("state") or "OPEN"),
             merged=bool(merged),
             mergeable=payload.get("mergeable"),
             head_ref=str(payload.get("headRefName") or ""),
-            base_ref=str(payload.get("baseRefName") or ""),
+            base_ref=base_ref,
             node_id=str(payload.get("id") or "") or None,
             auto_merge_enabled=auto is not None,
             checks_green=checks_state == _CHECKS_GREEN,
             review_decision=payload.get("reviewDecision"),
             closed=bool(closed),
             checks_state=checks_state,
+            merge_state_status=payload.get("mergeStateStatus"),
+            is_draft=bool(payload.get("isDraft")),
+            unresolved_threads=threads,
+        )
+
+    def count_unresolved_threads(self, repository: str, number: int) -> int:
+        """Number of unresolved, non-outdated review threads on the PR.
+
+        GitHub's ruleset rule ``required_review_thread_resolution`` blocks a
+        merge while any thread is unresolved, but neither ``gh pr view`` nor the
+        REST PR payload exposes the count. This is the only signal available, so
+        it is fetched separately and fails closed: a lookup error reports the
+        threads as *unresolved* rather than silently allowing a merge.
+        """
+        owner, _, name = repository.partition("/")
+        query = """
+        query($owner: String!, $name: String!, $number: Int!) {
+          repository(owner: $owner, name: $name) {
+            pullRequest(number: $number) {
+              reviewThreads(first: 100) {
+                nodes { isResolved isOutdated }
+              }
+            }
+          }
+        }
+        """
+        result = self._run(
+            "api",
+            "graphql",
+            "-f",
+            f"query={query}",
+            "-f",
+            f"owner={owner}",
+            "-f",
+            f"name={name}",
+            "-F",
+            f"number={number}",
+        )
+        if result.returncode != 0:
+            return 1
+        try:
+            body = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            return 1
+        if body.get("errors"):
+            return 1
+        nodes = (
+            body.get("data", {})
+            .get("repository", {})
+            .get("pullRequest", {})
+            .get("reviewThreads", {})
+            .get("nodes", [])
+        )
+        return sum(
+            1
+            for node in nodes
+            if not node.get("isResolved") and not node.get("isOutdated")
         )
 
     def list_open_pull_requests(self, repository: str) -> list[PullRequestState]:
@@ -260,45 +373,19 @@ class GhCliGitHubClient:
         self, repository: str, number: int
     ) -> AutoMergeAttempt:
         pr = self.get_pull_request(repository, number)
-        if pr.merged:
-            return AutoMergeAttempt(
-                pull_number=number,
-                requested=False,
-                auto_merge_request_present=False,
-                error="pull request already merged",
-            )
-        if pr.closed:
-            return AutoMergeAttempt(
-                pull_number=number,
-                requested=False,
-                auto_merge_request_present=False,
-                error="pull request is closed without merge",
-            )
-        if not pr.targets_integration_branch:
-            return AutoMergeAttempt(
-                pull_number=number,
-                requested=False,
-                auto_merge_request_present=False,
-                error=(
-                    f"auto-merge refused: base branch '{pr.base_ref}' is not "
-                    f"'{AUTONOMOUS_INTEGRATION_BRANCH}'"
-                ),
-            )
-        if pr.checks_green is not True:
-            return AutoMergeAttempt(
-                pull_number=number,
-                requested=False,
-                auto_merge_request_present=False,
-                error=(
-                    "auto-merge refused: required checks are not all passing "
-                    f"(state: {pr.checks_state})"
-                ),
-            )
         if pr.auto_merge_enabled:
             return AutoMergeAttempt(
                 pull_number=number,
                 requested=False,
                 auto_merge_request_present=True,
+            )
+        blockers = pr.auto_merge_blockers()
+        if blockers:
+            return AutoMergeAttempt(
+                pull_number=number,
+                requested=False,
+                auto_merge_request_present=False,
+                error="auto-merge refused: " + "; ".join(blockers),
             )
         node_id = pr.node_id
         if not node_id:

@@ -25,6 +25,10 @@ from typing import Any, Protocol
 
 import httpx
 
+from development_ops.integration import (
+    AUTONOMOUS_INTEGRATION_BRANCH,
+    assert_authorized_base_branch,
+)
 from development_ops.worktrees import WorktreeSpec
 
 DEFAULT_AGENT_SERVER_URL = "http://localhost:18000"
@@ -52,10 +56,14 @@ def build_worktree_prompt(
     task_id: str,
     task_title: str,
     repository: str,
-    integration_branch: str = "ai-dev",
+    integration_branch: str = AUTONOMOUS_INTEGRATION_BRANCH,
     extra_instructions: str | None = None,
 ) -> str:
     """Self-contained brief for a child agent working in an isolated worktree."""
+    assert_authorized_base_branch(
+        integration_branch,
+        operation="child worktree brief",
+    )
     lines = [
         "You are an autonomous development agent for a repository that uses an "
         "autonomous integration branch.",
