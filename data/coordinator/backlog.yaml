@@ -79,6 +79,7 @@ tasks:
     status: in_progress
     depends_on: []
     branch: cursor/coord-catalog-post-52
+    pr_number: 69
 
   - id: STATUS-AIDEV-1
     title: Refresh PROJECT_STATUS for ai-dev integration baseline
