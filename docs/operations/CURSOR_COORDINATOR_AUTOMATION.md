@@ -10,10 +10,10 @@ It must invoke the coordinator script first.
 scripts/coordinator_automation_entrypoint.sh
 ```
 
-Before the entrypoint, reconcile the working tree with `origin/develop` when the
-automation branch lags integration (`git fetch origin develop` and merge or rebase).
-The tick reads `data/coordinator/backlog.yaml` from the working tree; a stale catalog
-marks completed work as still active and hides open pull requests from scheduling.
+When the automation working tree is not on `develop`, the entrypoint fetches
+`origin/develop` and checks out `data/coordinator/backlog.yaml` and
+`libs/development_ops` from that ref before the tick. A stale catalog marks
+completed work as active and can hide open pull requests from scheduling.
 
 That script:
 

@@ -391,7 +391,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 - Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/64
 - Depends on: none
-- Mark COORD-CATALOG-2 merged in `data/coordinator/backlog.yaml`, register `COORD-STALE-1` and `SMOKE-FIN-1` as in progress with pull request numbers, and document that scheduled coordinator runs must merge or reconcile `origin/develop` before `coordinator_automation_entrypoint.sh` so the catalog is not stale.
+- Mark COORD-CATALOG-2 merged in `data/coordinator/backlog.yaml`, register `COORD-STALE-1` and `SMOKE-FIN-1` as in progress with pull request numbers, and extend `coordinator_automation_entrypoint.sh` so scheduled runs on non-`develop` branches sync `data/coordinator/backlog.yaml` and `libs/development_ops` from `origin/develop` before the tick (supersedes open pull request [#65](https://github.com/anotherhale/ai-solutions-lab/pull/65)).
 - Documentation and catalog only.
 - Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select the next pending task after open work is registered.
 
