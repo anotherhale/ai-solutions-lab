@@ -1,6 +1,6 @@
 # Project Status
 
-Snapshot of AI Solutions Lab as verified on 2026-11-04. Wasatch Business Systems is a fictional company. All business records in this repository are synthetic.
+Snapshot of AI Solutions Lab as verified on 2026-11-04, with an autonomous integration baseline supplement on 2026-11-12. Wasatch Business Systems is a fictional company. All business records in this repository are synthetic.
 
 This file records what is in the repository and what was run. Forward work is in [ENGINEERING_BACKLOG.md](ENGINEERING_BACKLOG.md). Phase design is in [docs/architecture/IMPLEMENTATION_PLAN.md](docs/architecture/IMPLEMENTATION_PLAN.md). Contributor and agent rules for integration are in [docs/architecture/AGENT_OPERATING_MODEL.md](docs/architecture/AGENT_OPERATING_MODEL.md).
 
@@ -16,7 +16,25 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 | Production branch | `main` at that commit |
 | Relationship | `develop` and `main` point at the same commit. `develop` was created from `main` with a normal push. |
 
-`main` is the production branch. Work integrates on `develop`. Merges to `main` are out of scope for laboratory agents.
+`main` is the production branch. Human-curated work still integrates on `develop`. Autonomous laboratory agents integrate on `ai-dev` only (ADR 0010, ADR 0014). Merges to `main` are out of scope for laboratory agents.
+
+## Autonomous integration baseline (`ai-dev`)
+
+Verified 2026-11-12 (UTC). If this section disagrees with `origin/ai-dev`, the remote branch wins.
+
+| Item | Value |
+|---|---|
+| Assessed commit | `0af252d30e859da2ca18263ea2d97676729ef333` |
+| Commit subject | Implement AI Review Gate for autonomous development ([#52](https://github.com/anotherhale/ai-solutions-lab/pull/52)) |
+| Autonomous integration branch | `ai-dev` at that commit |
+| Protected integration branch | `develop` at `bcf404b` (not the autonomous merge target) |
+| Production branch | `main` at `03becc6` |
+| `origin/main`…`origin/ai-dev` | `0` / `18` — `ai-dev` is 18 commits ahead of `main` |
+| `origin/develop`…`origin/ai-dev` | `5` / `21` — branches diverged after finance and coordinator merges on `ai-dev` |
+
+Alembic revision `0016` is the single head on `ai-dev`. Revisions `0009`–`0016` add the development activity log, coordinator scheduling and slot accounting, child-agent worktree registry, AI review gate verdict storage, and the merge revision that unifies Phase D with the review gate.
+
+The `libs/development_ops` package, `development-ops-record` CLI, machine-readable backlog catalog (`data/coordinator/backlog.yaml`), and coordinator automation entrypoint live on `ai-dev`. They record synthetic operational telemetry in PostgreSQL and do not imply a cloud deployment.
 
 That relationship was true at `881cfc0`. `develop` later received the Ruff pin (`ec6465f`), the `develop` CI trigger (`ecd3015`), ADR 0001 acceptance (`c18ad80`), this planning set (`6cb587a`), CS-1 (`047702e`, pull request [#7](https://github.com/anotherhale/ai-solutions-lab/pull/7)), CS-2 (`7760106`, pull request [#8](https://github.com/anotherhale/ai-solutions-lab/pull/8)), CS-3 (`5b2ffc4`, pull request [#9](https://github.com/anotherhale/ai-solutions-lab/pull/9)), the laboratory-actor production boundary (`ac26535`, pull request [#10](https://github.com/anotherhale/ai-solutions-lab/pull/10)), the CI database gate (`d1178e8`, pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11)), CS-5 retrieval (`a03fea9`, pull request [#12](https://github.com/anotherhale/ai-solutions-lab/pull/12)), CS-4 approval decisions (`0785ab9`, pull request [#13](https://github.com/anotherhale/ai-solutions-lab/pull/13)), and CS-6 suggested replies (`781bcc0`, pull request [#14](https://github.com/anotherhale/ai-solutions-lab/pull/14)), and CS-7 review surface (`13826ed`, pull request [#15](https://github.com/anotherhale/ai-solutions-lab/pull/15)). Later merges through OPS-1 are under Current work. The parent of PORT-1 is `develop` at `1be41811fb290a8c026157eeeb0456cbd02c693b`. On 2026-11-04, `origin/main` was still `881cfc0`. `git rev-list --left-right --count origin/main...origin/develop` printed `0` then `19`. `develop` was 19 commits ahead. `main` is not a deployed product.
 
@@ -24,8 +42,10 @@ That relationship was true at `881cfc0`. `develop` later received the Ruff pin (
 
 | Branch | Tip | Notes |
 |---|---|---|
-| `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
-| `develop` | `881cfc0` | Integration branch at the assessment. Later merges are under Current work. |
+| `main` | `03becc6` | Production branch at the 2026-11-12 `ai-dev` supplement. Not described as a deployed product. |
+| `develop` | `bcf404b` | Protected human integration branch. Diverged from `ai-dev`; see autonomous baseline above. |
+| `ai-dev` | `0af252d` | Autonomous integration branch. Coordinator-backed merges land here. |
+| `main` / `develop` (2026-11-04 assessment) | `881cfc0` | Historical row: both pointed here before later merges. |
 | `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
 
@@ -486,3 +506,29 @@ From `tests/e2e`, with the API virtualenv on `PATH` so `python3` can import Alem
 | `npm test` | Playwright. 2 passed (reply approval without a send control, extraction accept without posting money) | 0 |
 
 Uvicorn logged `Application startup complete` on port 8010. The run did not call OpenAI. GitHub Actions was not observed. No customer message was sent and no payment was posted.
+
+## Verification for STATUS-AIDEV-1
+
+Documentation baseline refresh for `ai-dev` at `0af252d`. Parent branch: `ai-dev` at `0af252d30e859da2ca18263ea2d97676729ef333`. Application behavior is unchanged in this change; only `PROJECT_STATUS.md` is edited.
+
+Branch tips were read with `git fetch` and `git rev-parse` on 2026-11-12. Divergence counts used `git rev-list --left-right --count origin/main...origin/ai-dev` and `origin/develop...origin/ai-dev`. GitHub Actions was not observed in this session.
+
+From the repository root:
+
+| Command | Result | Exit |
+|---|---|---|
+| `python3 scripts/validate_repo.py` | Repository conventions validated | 0 |
+| `python3 scripts/validate_wasatch_domain.py` | Wasatch domain fixtures validated | 0 |
+
+From `services/wasatch-api` with Compose PostgreSQL (`pgvector/pgvector:pg16`) and `WASATCH_REQUIRE_DATABASE=1`:
+
+| Command | Result | Exit |
+|---|---|---|
+| `.venv/bin/pytest --tb=no` | 362 passed in 208.98s | 0 |
+| `.venv/bin/alembic heads` | `0016 (head)` | 0 |
+
+From the repository root with `services/wasatch-api/.venv`:
+
+| Command | Result | Exit |
+|---|---|---|
+| `.venv/bin/pytest libs/development_ops/tests/unit/test_integration.py libs/development_ops/tests/unit/test_catalog.py -q` | 17 passed | 0 |
