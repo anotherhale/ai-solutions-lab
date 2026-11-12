@@ -8,7 +8,6 @@
 #   scripts/coordinator_retarget_develop_prs.sh --apply  # call gh pr edit --base ai-dev
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APPLY=0
 if [[ "${1:-}" == "--apply" ]]; then
   APPLY=1
