@@ -15,6 +15,7 @@ On the integration branch `develop`, the repository contains a local laboratory 
 - Procedure-page embeddings
 - A follow-up visit after an approved customer message
 - Host traces
+- Read-only finance reference routes (invoices, invoice lines, payments)
 
 `main` is not the deployed product. Approving a customer message does not send it. Confirming a follow-up does not dispatch a technician and does not change invoices. No Azure environment is running.
 
@@ -62,6 +63,7 @@ Each row is already on `develop` at the commit above. Pull request numbers are t
 | Procedure-page embeddings | `procedure_page_embeddings.embedding`, type `vector(8)` | Fake port. Not a trusted semantic model. Pull request [#18](https://github.com/anotherhale/ai-solutions-lab/pull/18). |
 | Follow-up visit | `POST /api/v1/approval-requests/{approval_id}/follow-up-visits` | Does not dispatch a technician or change invoices. Pull request [#19](https://github.com/anotherhale/ai-solutions-lab/pull/19). |
 | Host traces | `wasatch_api.observability`, called from `create_app` | Export only when `OTEL_EXPORTER_OTLP_ENDPOINT` is a non-empty URL. Pull request [#20](https://github.com/anotherhale/ai-solutions-lab/pull/20). |
+| Finance reference reads | `GET /api/v1/invoices`, invoice lines, and payments | Persisted reference amounts only. No posting, no write routes, no change to totals from approvals or follow-ups. Pull requests [#31](https://github.com/anotherhale/ai-solutions-lab/pull/31)–[#35](https://github.com/anotherhale/ai-solutions-lab/pull/35). |
 
 `.github/workflows/validate.yml` was read for this study. On push to `main` or `develop`, and on pull requests, it runs Ruff, both validators, and the Wasatch API tests against PostgreSQL. It sets `WASATCH_REQUIRE_DATABASE=1`. It does not set `OPENAI_API_KEY`, `AI_PROVIDER`, or `OTEL_EXPORTER_OTLP_ENDPOINT`. It does not receive a cloud credential. CI does not call a model. The review-screen checks are not part of that workflow. Source for the last point: `PROJECT_STATUS.md`, "Verification for CS-7."
 
@@ -107,7 +109,7 @@ An approver may accept or reject an extraction that is awaiting review. Awaiting
 
 The decision stores status, reviewer, `reviewed_at`, and optional `review_notes`, and it inserts an audit event. It does not post a payment, change an invoice total, or mark an invoice posted. Fixture `dx_0004` is already `accepted` in the JSON and its `review_notes` say "Accepted for posting." That sentence is fixture text. The review command still does not post.
 
-Invoice and payment fixtures exist as JSON. They are not posted by this slice. `PROJECT_STATUS.md`, "Verification for the follow-up visit," records that `information_schema` had no `invoices`, `invoice_lines`, or `payments` table and that the invoice and payment fixture bytes were unchanged. This case study did not query a database.
+Invoice and payment fixtures exist as JSON and as persisted reference rows. Revisions `0008`–`0011` store `invoices`, `invoice_lines`, and `payments` for read-only laboratory routes. No command in this slice posts a payment, changes an invoice total, or marks an invoice posted. Approvals, extraction review, and follow-up confirm or cancel leave those rows unchanged. `PROJECT_STATUS.md` records FIN-1–FIN-3 merge commits and finance guard tests that assert payment row counts do not move on unrelated writes. This case study did not query a database.
 
 ## Procedure embeddings are not a semantic model
 
