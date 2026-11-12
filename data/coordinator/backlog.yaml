@@ -5,7 +5,7 @@
 # depends_on: task ids that must reach merged before this task is eligible
 
 repository: anotherhale/ai-solutions-lab
-integration_branch: develop
+integration_branch: ai-dev
 
 tasks:
   - id: FIN-1

@@ -38,7 +38,7 @@ Never merge PRs yourself; use GraphQL enablePullRequestAutoMerge only via coordi
 |---|---|
 | Scheduled (e.g. every 6h) | Run entrypoint; delegate if task selected |
 | GitHub PR opened / synchronized | Run entrypoint (ignore merge-wait) |
-| GitHub PR merged to `develop` | Run entrypoint to unblock dependents |
+| GitHub PR merged to `ai-dev` | Run entrypoint to unblock dependents |
 | CI completed (Repository Validation) | Run entrypoint to retry auto-merge + schedule |
 
 Avoid duplicate triggers on the same commit within 15 minutes (use idempotency keys in activity log).

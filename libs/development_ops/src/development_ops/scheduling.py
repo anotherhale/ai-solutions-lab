@@ -19,8 +19,28 @@ class RuntimeTaskStatus(StrEnum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     PR_OPEN = "pr_open"
+    AWAITING_MERGE = "awaiting_merge"
     MERGED = "merged"
     BLOCKED = "blocked"
+
+
+# Only active implementation consumes a concurrency slot. A task whose pull
+# request is open or awaiting merge has already released its implementer, so it
+# must not block new work. ``pr_open`` and ``awaiting_merge`` remain non-terminal
+# for dependency and reconciliation purposes.
+SLOT_CONSUMING_STATUSES: frozenset[RuntimeTaskStatus] = frozenset(
+    {RuntimeTaskStatus.IN_PROGRESS}
+)
+
+# Statuses that describe work already in flight. A task here is neither eligible
+# for re-selection nor able to consume a slot.
+IN_FLIGHT_STATUSES: frozenset[RuntimeTaskStatus] = frozenset(
+    {
+        RuntimeTaskStatus.IN_PROGRESS,
+        RuntimeTaskStatus.PR_OPEN,
+        RuntimeTaskStatus.AWAITING_MERGE,
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,10 +79,7 @@ def _dependencies_satisfied(
 
 
 def _is_active(task: CoordinatorTaskView) -> bool:
-    return task.runtime_status in {
-        RuntimeTaskStatus.IN_PROGRESS,
-        RuntimeTaskStatus.PR_OPEN,
-    }
+    return task.runtime_status in IN_FLIGHT_STATUSES
 
 
 def select_next_eligible(
