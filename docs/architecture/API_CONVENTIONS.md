@@ -74,6 +74,8 @@ Defaults: `page=1`, `page_size=20`, maximum `page_size=100`. Ordering is by busi
 | GET | `/api/v1/invoices/{invoice_id}` | Invoice reference row (status and customer link only) |
 | GET | `/api/v1/invoices/{invoice_id}/lines` | Paginated invoice lines for one invoice; optional `line_type` filter |
 | GET | `/api/v1/invoice-lines/{invoice_line_id}` | One persisted invoice line (reference amounts only) |
+| GET | `/api/v1/payments` | Filter by invoice, status, or payment method |
+| GET | `/api/v1/payments/{payment_id}` | One persisted payment (reference amounts only; no posting) |
 | GET | `/api/v1/support-tickets` | Filter by customer, status, location, employee |
 | GET | `/api/v1/support-tickets/{ticket_id}` | Ticket plus messages |
 | GET | `/api/v1/support-tickets/{ticket_id}/retrieval` | That customer's history and matching procedure pages |
