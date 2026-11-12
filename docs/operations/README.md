@@ -10,3 +10,4 @@ These notes are not a deployment. Docker Compose and this directory are not a pr
 - [Development activity log](DEVELOPMENT_ACTIVITY_LOG.md)
 - [Coordinator continuity](COORDINATOR_CONTINUITY.md)
 - [Coordinator runner operations](COORDINATOR_RUNNER.md)
+- [Concurrent child-agent orchestration](CHILD_ORCHESTRATION.md)

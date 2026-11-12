@@ -13,6 +13,7 @@ Repository maintenance scripts. These are not application services.
 | `coordinator_activity.sh` | Coordinator lifecycle shorthand (run-start, tests-passed, pr-opened, …) |
 | `coordinator_tick.sh` | Reconcile PRs, optional auto-merge, select next eligible backlog task |
 | `coordinator_automation_entrypoint.sh` | Automation entry: tick + delegate JSON for implementation agents |
+| `coordinator_retarget_develop_prs.sh` | List or retarget open `develop` PRs to `ai-dev` (ADR 0014) |
 | `prepare_development_ops_database.py` | Create/migrate `wasatch_development_ops` database |
 | `bootstrap_laboratory.sh` | Postgres, Python venv, review app, and Playwright setup |
 | `prepare_wasatch_database.py` | Create DB, migrate, and seed for CI or host-run API |

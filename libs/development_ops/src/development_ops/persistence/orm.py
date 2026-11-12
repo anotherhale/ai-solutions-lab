@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID  # noqa: TC002
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -93,6 +93,76 @@ class AgentWorktreeORM(DevelopmentOpsBase):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+
+class ChildExecutionORM(DevelopmentOpsBase):
+    """Durable record of one child-agent execution attempt.
+
+    One *active* execution per task is enforced by a partial unique index
+    (``ux_child_executions_active_task``) on ``task_id`` where the state is an
+    active one. Historical rows are preserved: a task may accumulate a failed
+    attempt and a later successful one.
+
+    ``conversation_id`` is the OpenHands conversation identity; ``attempt`` and
+    ``idempotency_key`` make duplicate launch requests safe. ``progress_seq``
+    advances only on a *meaningful* progress signal, so a live-but-idle child is
+    distinguishable from a working one.
+    """
+
+    __tablename__ = "child_executions"
+    __table_args__ = ({"schema": "development_ops"},)
+
+    execution_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True
+    )
+    task_id: Mapped[str] = mapped_column(String(64), index=True)
+    state: Mapped[str] = mapped_column(String(32), index=True)
+    attempt: Mapped[int] = mapped_column(Integer(), default=1)
+    idempotency_key: Mapped[str] = mapped_column(String(255), unique=True)
+    run_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    owner_agent: Mapped[str | None] = mapped_column(String(128))
+    conversation_id: Mapped[str | None] = mapped_column(String(128), index=True)
+    agent_server_url: Mapped[str | None] = mapped_column(String(512))
+    worktree_path: Mapped[str | None] = mapped_column(String(1024))
+    branch_name: Mapped[str | None] = mapped_column(String(255))
+    pr_number: Mapped[int | None] = mapped_column(Integer())
+    last_heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_progress_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    progress_seq: Mapped[int] = mapped_column(Integer(), default=0)
+    last_event_count: Mapped[int | None] = mapped_column(Integer())
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    failure_reason: Mapped[str | None] = mapped_column(Text())
+    operator_intervention: Mapped[bool] = mapped_column(Boolean(), default=False)
+    retry_count: Mapped[int] = mapped_column(Integer(), default=0)
+    notes: Mapped[str | None] = mapped_column(Text())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+
+class OrchestrationSettingORM(DevelopmentOpsBase):
+    """Durable key/value settings for the coordinator orchestration layer.
+
+    The only setting today is ``child_execution_enabled``. It is a row, not an
+    environment variable, so the operator's enable/disable decision survives a
+    restart and cannot be flipped by an exported variable.
+    """
+
+    __tablename__ = "orchestration_settings"
+    __table_args__ = {"schema": "development_ops"}
+
+    key: Mapped[str] = mapped_column(String(128), primary_key=True)
+    value: Mapped[dict] = mapped_column(JSONB, default=dict)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
