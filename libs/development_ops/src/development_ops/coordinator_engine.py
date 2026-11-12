@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from development_ops.backlog import BacklogDocument, load_backlog
 from development_ops.catalog import BacklogCatalogWriter, CatalogWriteError
+from development_ops.child_orchestration import ChildOrchestrator, ChildTickOutcome
 from development_ops.github_client import (
     AutoMergeAttempt,
     GitHubClient,
@@ -52,6 +53,7 @@ class CoordinatorTickResult:
     prepared_worktree: str | None = None
     recovered_worktrees: tuple[str, ...] = ()
     cleaned_worktrees: tuple[str, ...] = ()
+    children: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -74,6 +76,7 @@ class CoordinatorEngine:
         backlog_path: Path | None = None,
         worktrees: TaskWorktreeOrchestrator | None = None,
         catalog: BacklogCatalogWriter | None = None,
+        children: ChildOrchestrator | None = None,
     ) -> None:
         self._session = session
         self._github = github
@@ -90,18 +93,26 @@ class CoordinatorEngine:
         # is left to humans. When present it records a verified merge in the
         # catalog so no implementation agent needs to edit the tracked file.
         self._catalog = catalog
+        # Optional: bounded child-agent orchestration (Phase D). When absent no
+        # child is launched and no execution state is tracked.
+        self._children = children
 
     def tick(
         self,
         *,
         max_concurrent: int | None = None,
         reclaim_expired: bool | None = None,
+        paused: bool | None = None,
     ) -> CoordinatorTickResult:
         """Run one reconciliation/scheduling cycle.
 
         ``max_concurrent`` and ``reclaim_expired`` override the environment
         defaults so a persistent runner can pass explicit policy (for example,
         ``max_concurrent=0`` while paused) without mutating process state.
+
+        ``paused`` tells the child orchestrator whether new child launches are
+        allowed. When omitted it is inferred from ``max_concurrent == 0`` so the
+        existing pause mechanism continues to work without a new call path.
         """
         document = load_backlog(self._backlog_path)
         self._tasks.sync_catalog(document)
@@ -201,6 +212,7 @@ class CoordinatorEngine:
                         f"{decision.task.task_id} (claim lost)"
                     )
         elif selected_id is not None and resume_task_id:
+            child_outcome = self._run_child_pass(paused, max_concurrent, notes)
             self._record_recovery_only(selected_id, notes)
             return CoordinatorTickResult(
                 run_id=self._run_id,
@@ -219,8 +231,10 @@ class CoordinatorEngine:
                 prepared_worktree=prepared_worktree,
                 recovered_worktrees=tuple(recovered_worktrees),
                 cleaned_worktrees=tuple(cleaned_worktrees),
+                children=child_outcome,
             )
 
+        child_outcome = self._run_child_pass(paused, max_concurrent, notes)
         self._record_recovery(
             open_prs=tuple(open_prs),
             selected_task_id=selected_id,
@@ -246,7 +260,43 @@ class CoordinatorEngine:
             prepared_worktree=prepared_worktree,
             recovered_worktrees=tuple(recovered_worktrees),
             cleaned_worktrees=tuple(cleaned_worktrees),
+            children=child_outcome,
         )
+
+    def _run_child_pass(
+        self,
+        paused: bool | None,
+        max_concurrent: int | None,
+        notes: list[str],
+    ) -> dict[str, Any] | None:
+        """Run one child-orchestration pass and return its serialized outcome.
+
+        Child execution is a separate concern from task scheduling: this only
+        delegates a task the engine already claimed. Monitoring and recovery run
+        every tick, including while paused, so existing children are never
+        abandoned. Returns ``None`` when child orchestration is not configured.
+        """
+        if self._children is None:
+            return None
+        is_paused = paused if paused is not None else max_concurrent == 0
+        outcome: ChildTickOutcome = self._children.tick(paused=is_paused)
+        notes.extend(outcome.notes)
+        if outcome.launched:
+            notes.append("launched children: " + ", ".join(outcome.launched))
+        if outcome.rejected:
+            notes.append(
+                "child launches rejected at limit: " + ", ".join(outcome.rejected)
+            )
+        return {
+            "enabled": outcome.enabled,
+            "active_children": outcome.active_children,
+            "max_concurrent": outcome.max_concurrent,
+            "launched": list(outcome.launched),
+            "rejected": list(outcome.rejected),
+            "stalled": list(outcome.stalled),
+            "failed": list(outcome.failed),
+            "recovered": list(outcome.recovered),
+        }
 
     def register_pull_request_opened(
         self,
