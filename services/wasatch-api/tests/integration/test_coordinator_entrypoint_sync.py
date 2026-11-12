@@ -63,7 +63,7 @@ def test_entrypoint_syncs_catalog_from_develop_when_not_on_develop() -> None:
     )
     bash_body = (
         f'ROOT="{REPO_ROOT}"\n'
-        "VENV_BIN=\"${ROOT}/services/wasatch-api/.venv/bin\"\n"
+        'VENV_BIN="${ROOT}/services/wasatch-api/.venv/bin"\n'
         f"{sync_only}\n"
         "sync_coordinator_sources_from_develop\n"
     )
