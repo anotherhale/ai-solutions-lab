@@ -315,7 +315,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-2 — Consolidate coordinator catalog after finance documentation merges
 
-- Status: in progress (this change)
+- Status: done. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/61 merged as `bcf404b`
 - Depends on: none
 - Supersedes overlapping catalog-only pull requests that each updated `data/coordinator/backlog.yaml` after merges [#49](https://github.com/anotherhale/ai-solutions-lab/pull/49), [#56](https://github.com/anotherhale/ai-solutions-lab/pull/56), and [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58).
 - Mark merged catalog rows for DOC-DBMAP-1, DOC-README-FIN-1, and COORD-PR-SLOT-1. Set STATUS-2 to `pending` with dependencies on the remaining open documentation tasks.
@@ -333,7 +333,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### DOC-DEBT-MIG-1 — Downgrade coverage note through revision 0011
 
-- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/50
+- Status: done on `ai-dev` (not yet on `develop`). Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/50 merged as `2ba5877`
 - Depends on: CONTRACT-FIN-1 (merged); catalog reconciles on COORD-SYNC-1
 - Update the technical-debt table in this file so downgrade coverage cites revisions `0001`–`0011` and points at `services/wasatch-api/tests/integration/README.md` for `0010` and `0011`.
 - Documentation only.
@@ -341,7 +341,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### PORT-CASE-FIN-1 — Case study finance read slice
 
-- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/51
+- Status: done on `ai-dev` (not yet on `develop`). Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/51 merged as `997d582`
 - Depends on: CONTRACT-FIN-1 (merged)
 - Update `docs/case-studies/wasatch-laboratory-slice.md` so finance capabilities match FIN-1–FIN-3: read-only invoices, lines, and payments; no posting.
 - Documentation only; independent of COORD-SYNC-1.
@@ -357,7 +357,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### DOC-API-FIN-1 — Payment read routes in API_CONVENTIONS.md
 
-- Status: in progress. Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/54
+- Status: done on `ai-dev` (not yet on `develop`). Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/54 merged as `4fd8680`
 - Depends on: FIN-3 (merged)
 - Add `GET /api/v1/payments` and `GET /api/v1/payments/{payment_id}` to the route catalog in `docs/architecture/API_CONVENTIONS.md`, with laboratory-actor requirement and reference-amounts-only wording consistent with invoice routes.
 - Documentation only; no API changes.
@@ -365,11 +365,11 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### STATUS-2 — Refresh PROJECT_STATUS after finance documentation
 
-- Status: pending
-- Depends on: DOC-DEBT-MIG-1, DOC-API-FIN-1, and PORT-CASE-FIN-1 (open pull requests)
+- Status: in progress (this change)
+- Depends on: DOC-DEBT-MIG-1, DOC-API-FIN-1, PORT-CASE-FIN-1, and COORD-CATALOG-2
 - Update `PROJECT_STATUS.md` current-work and verification sections after the finance documentation pull requests merge. Keep the snapshot aligned with `develop` without claiming unmerged work is done.
 - Documentation only.
-- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator backlog lists this task as `pending` until dependencies merge.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator backlog lists this task as `in_progress` until this pull request merges.
 
 ## Explicitly out of the next implementation
 

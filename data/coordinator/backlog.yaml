@@ -84,37 +84,42 @@ tasks:
 
   - id: DOC-DEBT-MIG-1
     title: Align downgrade technical-debt note through Alembic 0011
-    status: in_progress
+    status: merged
+    merge_commit: 2ba5877
     depends_on: [CONTRACT-FIN-1]
     branch: cursor/doc-debt-mig-1-1104
     pr_number: 50
 
   - id: DOC-API-FIN-1
     title: Document payment read routes in API_CONVENTIONS.md
-    status: in_progress
+    status: merged
+    merge_commit: 4fd8680
     depends_on: [FIN-3]
     branch: cursor/doc-api-fin-1
     pr_number: 54
 
   - id: PORT-CASE-FIN-1
     title: Align laboratory case study with finance read routes
-    status: in_progress
+    status: merged
+    merge_commit: 997d582
     depends_on: [CONTRACT-FIN-1]
     branch: cursor/port-case-fin-1
     pr_number: 51
 
   - id: COORD-CATALOG-2
     title: Consolidate coordinator catalog after finance documentation merges
-    status: in_progress
+    status: merged
+    merge_commit: bcf404b
     depends_on: []
     branch: cursor/coord-catalog-consolidate-1104
     pr_number: 61
 
   - id: STATUS-2
     title: Refresh PROJECT_STATUS after finance documentation merges
-    status: pending
+    status: in_progress
     depends_on:
       - DOC-DEBT-MIG-1
       - DOC-API-FIN-1
       - PORT-CASE-FIN-1
       - COORD-CATALOG-2
+    branch: cursor/status-2-1104
