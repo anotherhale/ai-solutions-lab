@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import subprocess
-from pathlib import Path
 
 from wasatch_api.config import REPO_ROOT
 
@@ -35,28 +34,14 @@ def test_entrypoint_syncs_catalog_from_develop_when_not_on_develop() -> None:
     if origin_develop.returncode != 0:
         return
 
-    expected_id = subprocess.check_output(
-        [
-            "git",
-            "show",
-            "origin/develop:data/coordinator/backlog.yaml",
-        ],
+    develop_backlog = subprocess.check_output(
+        ["git", "show", "origin/develop:data/coordinator/backlog.yaml"],
         cwd=REPO_ROOT,
         text=True,
     )
-    assert "STATUS-2" in expected_id
-    assert "COORD-CATALOG-2" in expected_id
+    assert "STATUS-2" in develop_backlog
+    assert "COORD-CATALOG-2" in develop_backlog
 
-    minimal = (
-        "repository: example/stale\n"
-        "integration_branch: develop\n"
-        "tasks:\n"
-        "  - id: STALE-ONLY\n"
-        "    title: Stale catalog row\n"
-        "    status: in_progress\n"
-        "    depends_on: []\n"
-    )
-    BACKLOG.write_text(minimal, encoding="utf-8")
     sync_only = subprocess.check_output(
         [
             "sed",
@@ -66,6 +51,16 @@ def test_entrypoint_syncs_catalog_from_develop_when_not_on_develop() -> None:
         ],
         text=True,
     )
+    backup = BACKLOG.read_bytes()
+    minimal = (
+        "repository: example/stale\n"
+        "integration_branch: develop\n"
+        "tasks:\n"
+        "  - id: STALE-ONLY\n"
+        "    title: Stale catalog row\n"
+        "    status: in_progress\n"
+        "    depends_on: []\n"
+    )
     bash_body = (
         f'ROOT="{REPO_ROOT}"\n'
         "VENV_BIN=\"${ROOT}/services/wasatch-api/.venv/bin\"\n"
@@ -73,6 +68,7 @@ def test_entrypoint_syncs_catalog_from_develop_when_not_on_develop() -> None:
         "sync_coordinator_sources_from_develop\n"
     )
     try:
+        BACKLOG.write_text(minimal, encoding="utf-8")
         subprocess.run(
             ["bash", "-c", bash_body],
             cwd=REPO_ROOT,
@@ -85,8 +81,4 @@ def test_entrypoint_syncs_catalog_from_develop_when_not_on_develop() -> None:
         assert "STATUS-2" in restored
         assert "COORD-CATALOG-2" in restored
     finally:
-        subprocess.run(
-            ["git", "checkout", "--", "data/coordinator/backlog.yaml"],
-            cwd=REPO_ROOT,
-            check=True,
-        )
+        BACKLOG.write_bytes(backup)
