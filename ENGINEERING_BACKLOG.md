@@ -395,6 +395,15 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Documentation and catalog only.
 - Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select the next pending task after open work is registered.
 
+### COORD-AUTO-1 — Entrypoint develop-sync regression test
+
+- Status: in progress (this change, pull request [#64](https://github.com/anotherhale/ai-solutions-lab/pull/64))
+- Depends on: none
+- Add an integration test that proves `coordinator_automation_entrypoint.sh` restores
+  `data/coordinator/backlog.yaml` from `origin/develop` when the working tree holds a stale catalog.
+- No runtime or API changes.
+- Acceptance: `pytest` for the new test passes; `python3 scripts/validate_repo.py` passes.
+
 ## Explicitly out of the next implementation
 
 - Rebuilding Phase 2.1.1

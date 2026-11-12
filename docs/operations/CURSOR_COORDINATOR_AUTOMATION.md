@@ -48,6 +48,24 @@ Never merge PRs yourself; use GraphQL enablePullRequestAutoMerge only via coordi
 
 Avoid duplicate triggers on the same commit within 15 minutes (use idempotency keys in activity log).
 
+## When the tick selects no task
+
+`{"delegation":"none","reason":"no eligible task"}` is normal when:
+
+1. **Stale catalog** — the working tree was not on `develop` and the entrypoint had not yet synced
+   `data/coordinator/backlog.yaml` from `origin/develop`. After
+   [COORD-BACKLOG-3](https://github.com/anotherhale/ai-solutions-lab/pull/64), the entrypoint syncs
+   automatically; operators should still merge that pull request so every host picks up the change.
+2. **Open pull requests awaiting human review** — catalog `in_progress` rows with runtime `pr_open`
+   are not reassigned. Concurrency slots count only `in_progress`, not `pr_open` (COORD-PR-SLOT-1).
+3. **Held dependencies** — the next `pending` task (for example `STATUS-2`) stays queued until named
+   dependencies reach `merged` in the catalog or runtime.
+
+The coordinator should post a short `#ai-development` summary listing open integration pull requests
+and the held task ids, then stop without opening duplicate branches. When the backlog lacks
+independent `pending` work, add well-scoped items to `ENGINEERING_BACKLOG.md` and
+`data/coordinator/backlog.yaml` in one catalog pull request rather than improvising assignments.
+
 ## Independent code review
 
 Keep Bugbot / review automations **separate**. They must not select backlog tasks or run coordinator tick.
