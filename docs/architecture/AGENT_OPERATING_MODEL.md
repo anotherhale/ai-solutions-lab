@@ -50,6 +50,10 @@ Each autonomous task must run in its own Git worktree and branch, cut from the l
 
 The capability is wired into the coordinator (`CoordinatorEngine` prepares a worktree when it claims a task and cleans up after a GitHub-verified merge) and the CLI (`development-ops worktree list|status|prepare|launch|cleanup`, plus `coordinator tick --worktrees`). Cleanup re-verifies the merge against GitHub and requires the pull request to target `ai-dev`; a caller-supplied merge flag is never trusted. A per-task advisory lock serializes `prepare` and `cleanup`, and a duplicate launch returns the existing child conversation instead of starting a second one. See ADR 0012 and [../operations/COORDINATOR_CONTINUITY.md](../operations/COORDINATOR_CONTINUITY.md).
 
+### The backlog catalog is not an agent-editable file
+
+`data/coordinator/backlog.yaml` is tracked, and the coordinator is its only sanctioned writer. Agents record task status in PostgreSQL through the coordinator; they must not hand-edit the catalog. When multiple agents each edited it to mark their own task merged, every subsequent pull request conflicted on the file, and a conflicted pull request cannot be auto-merged — so the whole queue stalled behind one merge conflict. The coordinator now marks a task merged in the catalog itself, after GitHub confirms the merge, using a line-preserving, atomic, `flock`-serialized, idempotent writer (`coordinator tick --update-catalog`). See [../operations/COORDINATOR_CONTINUITY.md](../operations/COORDINATOR_CONTINUITY.md).
+
 ## Pull request gate
 
 A pull request is ready to merge only when all of these are true:

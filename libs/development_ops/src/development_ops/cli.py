@@ -17,6 +17,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
 from development_ops.backlog import default_backlog_path
+from development_ops.catalog import YamlBacklogCatalogWriter
 from development_ops.child_agents import (
     DEFAULT_AGENT_SERVER_URL,
     ChildAgentLauncher,
@@ -30,6 +31,10 @@ from development_ops.database import (
 )
 from development_ops.errors import PersistenceError
 from development_ops.github_client import github_client_from_env
+from development_ops.integration import (
+    AUTONOMOUS_INTEGRATION_BRANCH,
+    delegation_instruction,
+)
 from development_ops.models import ActivityEventCreate, GitHubReference
 from development_ops.recorder import ActivityRecorder, RecordResult
 from development_ops.runner_config import RunnerConfig
@@ -205,6 +210,13 @@ def coordinator_tick_command(args: argparse.Namespace) -> int:
             repository=repository,
             backlog_path=Path(args.backlog) if args.backlog else None,
             worktrees=worktrees,
+            catalog=(
+                YamlBacklogCatalogWriter(
+                    Path(args.backlog) if args.backlog else default_backlog_path()
+                )
+                if getattr(args, "update_catalog", False)
+                else None
+            ),
         )
         result = engine.tick()
         print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
@@ -215,6 +227,34 @@ def coordinator_tick_command(args: argparse.Namespace) -> int:
         return EXIT_PERSISTENCE_FAILED
     finally:
         session.close()
+
+
+def delegation_instruction_command(args: argparse.Namespace) -> int:
+    """Emit the implementation brief for a selected task as JSON.
+
+    The entrypoint prints this instead of a hand-written string so the base
+    branch it tells an agent to target is the same value the coordinator will
+    auto-merge into (``AUTONOMOUS_INTEGRATION_BRANCH``).
+    """
+    task_id = (args.task_id or "").strip()
+    if not task_id:
+        print(
+            json.dumps({"error": "--task-id is required"}),
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    print(
+        json.dumps(
+            {
+                "delegation": "implementation",
+                "task_id": task_id,
+                "base_branch": AUTONOMOUS_INTEGRATION_BRANCH,
+                "instruction": delegation_instruction(task_id),
+            },
+            sort_keys=True,
+        )
+    )
+    return EXIT_OK
 
 
 def confirm_slack_command(args: argparse.Namespace) -> int:
@@ -580,6 +620,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     record.set_defaults(func=record_command)
 
+    delegation = sub.add_parser(
+        "delegation",
+        help="Emit the implementation brief (and base branch) for a task",
+    )
+    delegation.add_argument("--task-id", required=True, help="Selected task id")
+    delegation.set_defaults(func=delegation_instruction_command)
+
     confirm = sub.add_parser(
         "confirm-slack",
         help="Record Slack delivery after MCP post",
@@ -621,6 +668,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--worktrees",
         action="store_true",
         help="Prepare isolated worktrees for claimed tasks and clean up merged ones",
+    )
+    tick.add_argument(
+        "--update-catalog",
+        action="store_true",
+        help=(
+            "Mark verified merges in the backlog YAML catalog (the coordinator "
+            "is the only sanctioned writer; agents must not edit it)"
+        ),
     )
     tick.set_defaults(func=coordinator_tick_command)
 

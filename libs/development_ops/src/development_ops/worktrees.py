@@ -22,6 +22,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
+from development_ops.integration import (
+    AUTONOMOUS_INTEGRATION_BRANCH,
+    assert_authorized_base_branch,
+)
+
 # Task identifiers reach us from the backlog and become both a directory name and
 # a branch segment, so restrict them to a safe alphabet.
 _TASK_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
@@ -97,7 +102,7 @@ class WorktreeManager:
         repo_root: Path | str,
         worktree_root: Path | str,
         *,
-        base_branch: str = "ai-dev",
+        base_branch: str = AUTONOMOUS_INTEGRATION_BRANCH,
         remote: str = "origin",
         branch_prefix: str = "cursor/",
         fetch: bool = True,
@@ -105,7 +110,10 @@ class WorktreeManager:
     ) -> None:
         self._repo_root = Path(repo_root).resolve()
         self._worktree_root = Path(worktree_root).expanduser().resolve()
-        self._base_branch = base_branch
+        self._base_branch = assert_authorized_base_branch(
+            base_branch,
+            operation="worktree base branch",
+        )
         self._remote = remote
         self._branch_prefix = branch_prefix
         self._fetch = fetch

@@ -77,9 +77,15 @@ def test_unknown_node_type_is_conservative() -> None:
 class _FakeRunner:
     """Records ``gh`` invocations and replays canned JSON per subcommand."""
 
-    def __init__(self, pr_view: dict, pr_list: list[dict] | None = None) -> None:
+    def __init__(
+        self,
+        pr_view: dict,
+        pr_list: list[dict] | None = None,
+        threads: list[dict] | None = None,
+    ) -> None:
         self.pr_view = pr_view
         self.pr_list = pr_list or []
+        self.threads = threads or []
         self.calls: list[tuple[str, ...]] = []
 
     def __call__(self, *args: str) -> subprocess.CompletedProcess[str]:
@@ -89,6 +95,24 @@ class _FakeRunner:
         if args[:2] == ("pr", "list"):
             return subprocess.CompletedProcess(args, 0, json.dumps(self.pr_list), "")
         if args[:2] == ("api", "graphql"):
+            joined = " ".join(args)
+            if "reviewThreads" in joined:
+                return subprocess.CompletedProcess(
+                    args,
+                    0,
+                    json.dumps(
+                        {
+                            "data": {
+                                "repository": {
+                                    "pullRequest": {
+                                        "reviewThreads": {"nodes": self.threads}
+                                    }
+                                }
+                            }
+                        }
+                    ),
+                    "",
+                )
             return subprocess.CompletedProcess(
                 args,
                 0,
@@ -119,12 +143,17 @@ def _pr_view(
     merged: bool = False,
     rollup: list[dict] | None = None,
     auto_merge: bool = False,
+    draft: bool = False,
+    merge_state_status: str = "CLEAN",
+    mergeable: str = "MERGEABLE",
 ) -> dict:
     return {
         "number": 7,
         "state": state,
         "mergedAt": "2026-11-06T00:00:00Z" if merged else None,
-        "mergeable": "MERGEABLE",
+        "mergeable": mergeable,
+        "mergeStateStatus": merge_state_status,
+        "isDraft": draft,
         "headRefName": "cursor/x",
         "baseRefName": base,
         "id": "PR_node_7",
@@ -301,3 +330,136 @@ def test_verify_lookup_failure_fails_closed() -> None:
     result = verify_pull_request_merged(client, repository="o/r", pull_number=9)
     assert result.verified is False
     assert "lookup failed" in result.reason
+
+
+# --- merge-state gating: drafts, threads, conflicts ---------------------------
+
+
+def test_draft_pr_is_refused() -> None:
+    runner = _FakeRunner(_pr_view(draft=True))
+    attempt = _client(runner).enable_squash_auto_merge("o/r", 7)
+    assert attempt.requested is False
+    assert attempt.error is not None and "draft" in attempt.error
+    mutation_calls = [
+        call
+        for call in runner.calls
+        if call[:2] == ("api", "graphql")
+        and "enablePullRequestAutoMerge" in " ".join(call)
+    ]
+    assert mutation_calls == []
+
+
+def test_conflicting_pr_is_refused() -> None:
+    runner = _FakeRunner(_pr_view(mergeable="CONFLICTING"))
+    attempt = _client(runner).enable_squash_auto_merge("o/r", 7)
+    assert attempt.requested is False
+    assert attempt.error is not None and "conflict" in attempt.error
+
+
+def test_dirty_merge_state_is_refused() -> None:
+    runner = _FakeRunner(_pr_view(merge_state_status="DIRTY"))
+    attempt = _client(runner).enable_squash_auto_merge("o/r", 7)
+    assert attempt.requested is False
+    assert attempt.error is not None and "conflict" in attempt.error
+
+
+def test_unresolved_review_thread_refuses_merge() -> None:
+    runner = _FakeRunner(
+        _pr_view(),
+        threads=[{"isResolved": False, "isOutdated": False}],
+    )
+    attempt = _client(runner).enable_squash_auto_merge("o/r", 7)
+    assert attempt.requested is False
+    assert attempt.error is not None and "unresolved" in attempt.error
+
+
+def test_outdated_thread_does_not_block_merge() -> None:
+    runner = _FakeRunner(
+        _pr_view(),
+        threads=[{"isResolved": False, "isOutdated": True}],
+    )
+    attempt = _client(runner).enable_squash_auto_merge("o/r", 7)
+    assert attempt.requested is True
+
+
+def test_resolved_thread_does_not_block_merge() -> None:
+    runner = _FakeRunner(
+        _pr_view(),
+        threads=[{"isResolved": True, "isOutdated": False}],
+    )
+    attempt = _client(runner).enable_squash_auto_merge("o/r", 7)
+    assert attempt.requested is True
+
+
+def test_get_pull_request_counts_only_unresolved_current_threads() -> None:
+    runner = _FakeRunner(
+        _pr_view(),
+        threads=[
+            {"isResolved": False, "isOutdated": False},
+            {"isResolved": True, "isOutdated": False},
+            {"isResolved": False, "isOutdated": True},
+        ],
+    )
+    pr = _client(runner).get_pull_request("o/r", 7)
+    assert pr.unresolved_threads == 1
+
+
+def test_threads_not_fetched_for_ineligible_pr() -> None:
+    """A PR on the wrong base is blocked already; do not spend a GraphQL call."""
+    runner = _FakeRunner(_pr_view(base="develop"))
+    client = _client(runner)
+    client.get_pull_request("o/r", 7)
+    thread_calls = [call for call in runner.calls if "reviewThreads" in " ".join(call)]
+    assert thread_calls == []
+
+
+def test_thread_lookup_failure_fails_closed() -> None:
+    class _FailingRunner(_FakeRunner):
+        def __call__(self, *args: str) -> subprocess.CompletedProcess[str]:
+            self.calls.append(tuple(args))
+            if args[:2] == ("pr", "view"):
+                return subprocess.CompletedProcess(
+                    args, 0, json.dumps(self.pr_view), ""
+                )
+            if "reviewThreads" in " ".join(args):
+                return subprocess.CompletedProcess(args, 1, "", "boom")
+            return subprocess.CompletedProcess(args, 1, "", "unexpected")
+
+    runner = _FailingRunner(_pr_view())
+    client = _client(runner)
+    pr = client.get_pull_request("o/r", 7)
+    assert pr.unresolved_threads >= 1
+    attempt = client.enable_squash_auto_merge("o/r", 7)
+    assert attempt.requested is False
+
+
+def test_auto_merge_blockers_empty_for_clean_ai_dev_pr() -> None:
+    runner = _FakeRunner(_pr_view())
+    pr = _client(runner).get_pull_request("o/r", 7)
+    assert pr.auto_merge_blockers() == ()
+
+
+def test_auto_merge_blockers_lists_every_reason() -> None:
+    pr = PullRequestState(
+        number=9,
+        state="OPEN",
+        merged=False,
+        mergeable="CONFLICTING",
+        head_ref="cursor/x",
+        base_ref="develop",
+        node_id="n",
+        auto_merge_enabled=False,
+        checks_green=False,
+        review_decision=None,
+        closed=False,
+        checks_state="failed",
+        merge_state_status="DIRTY",
+        is_draft=True,
+        unresolved_threads=2,
+    )
+    blockers = pr.auto_merge_blockers()
+    assert any("develop" in reason for reason in blockers)
+    assert any("draft" in reason for reason in blockers)
+    assert any("checks" in reason for reason in blockers)
+    assert any("unresolved" in reason for reason in blockers)
+    assert any("conflict" in reason for reason in blockers)

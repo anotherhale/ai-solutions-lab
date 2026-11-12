@@ -11,12 +11,13 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from development_ops.backlog import BacklogDocument, load_backlog
+from development_ops.catalog import BacklogCatalogWriter, CatalogWriteError
 from development_ops.github_client import (
-    AUTONOMOUS_INTEGRATION_BRANCH,
     AutoMergeAttempt,
     GitHubClient,
     PullRequestState,
 )
+from development_ops.integration import assert_authorized_base_branch
 from development_ops.models import ActivityEventCreate, GitHubReference
 from development_ops.persistence.coordinator_repository import CoordinatorTaskRepository
 from development_ops.persistence.orm import CoordinatorTaskORM
@@ -72,6 +73,7 @@ class CoordinatorEngine:
         repository: str,
         backlog_path: Path | None = None,
         worktrees: TaskWorktreeOrchestrator | None = None,
+        catalog: BacklogCatalogWriter | None = None,
     ) -> None:
         self._session = session
         self._github = github
@@ -83,6 +85,11 @@ class CoordinatorEngine:
         # Optional: worktree isolation for child agents. When absent the
         # coordinator schedules and reconciles exactly as before.
         self._worktrees = worktrees
+        # Optional: the sanctioned writer for catalog status. When absent the
+        # coordinator only updates runtime state in PostgreSQL and the catalog
+        # is left to humans. When present it records a verified merge in the
+        # catalog so no implementation agent needs to edit the tracked file.
+        self._catalog = catalog
 
     def tick(
         self,
@@ -251,6 +258,13 @@ class CoordinatorEngine:
         base_branch: str | None = None,
         awaiting_merge: bool = False,
     ) -> None:
+        if base_branch is not None:
+            # Fail fast rather than record a pull request the coordinator can
+            # never auto-merge. ``develop`` and ``main`` are human branches.
+            assert_authorized_base_branch(
+                base_branch,
+                operation=f"registering pr #{pull_number}",
+            )
         self._tasks.mark_pr_open(
             task_id,
             run_id=self._run_id,
@@ -371,6 +385,7 @@ class CoordinatorEngine:
                 continue
             if state.merged:
                 self._tasks.mark_merged(task.id, merge_commit_sha=None)
+                self._record_catalog_merged(task.id, merge_commit=None, notes=notes)
                 continue
             if state.closed_unmerged:
                 self._tasks.mark_blocked(
@@ -415,6 +430,9 @@ class CoordinatorEngine:
         if state.merged:
             self._tasks.mark_merged(task_id, merge_commit_sha=catalog_merge_commit)
             notes.append(f"pr #{pr_number} merged externally")
+            self._record_catalog_merged(
+                task_id, merge_commit=catalog_merge_commit, notes=notes
+            )
             return
         if state.closed_unmerged:
             self._tasks.mark_blocked(
@@ -431,26 +449,25 @@ class CoordinatorEngine:
         auto_attempts: list[AutoMergeAttempt],
         notes: list[str],
     ) -> None:
-        """Attempt squash auto-merge only for green PRs targeting ``ai-dev``.
+        """Attempt squash auto-merge only for eligible PRs targeting ``ai-dev``.
 
-        Auto-merge into ``main`` or any other branch is never attempted, even if
-        the base-branch guard is later relaxed elsewhere.
+        Every gate is evaluated through :meth:`PullRequestState.auto_merge_blockers`
+        so the coordinator and the client agree on what "eligible" means: base
+        branch, checks, draft state, unresolved review threads, and merge
+        conflicts. Auto-merge into ``main`` or ``develop`` is never attempted.
+        A blocked PR is re-evaluated on every tick, so once the blocking
+        condition clears (threads resolved, conflicts resolved, checks turn
+        green) the next tick arms auto-merge without operator action.
         """
         if os.environ.get("DEVELOPMENT_OPS_ATTEMPT_AUTO_MERGE", "1") != "1":
             return
         if state.auto_merge_enabled:
             return
-        if not state.targets_integration_branch:
-            notes.append(
-                f"auto-merge skipped for pr #{state.number}: base "
-                f"'{state.base_ref}' is not {AUTONOMOUS_INTEGRATION_BRANCH}"
-            )
-            return
-        if state.checks_green is not True:
-            notes.append(
-                f"auto-merge skipped for pr #{state.number}: checks "
-                f"{state.checks_state}"
-            )
+        blockers = state.auto_merge_blockers()
+        if blockers:
+            reason = "; ".join(blockers)
+            notes.append(f"auto-merge blocked for pr #{state.number}: {reason}")
+            self._record_auto_merge_blocked(task_id, state, reason)
             return
         attempt = self._github.enable_squash_auto_merge(  # type: ignore[union-attr]
             self._repository,
@@ -460,6 +477,31 @@ class CoordinatorEngine:
         self._record_auto_merge(task_id, attempt)
         if attempt.error:
             notes.append(f"auto-merge pr #{state.number}: {attempt.error}; continuing")
+
+    def _record_catalog_merged(
+        self,
+        task_id: str,
+        *,
+        merge_commit: str | None,
+        notes: list[str],
+    ) -> None:
+        """Mark a task merged in the catalog through the sanctioned writer.
+
+        Only reached after GitHub confirms the pull request merged, so the
+        catalog never claims a merge that did not happen. A write failure is a
+        note, not a fatal error: runtime state is already durable, and the next
+        tick retries. This is the mechanism that removes the need for any
+        implementation agent to edit ``data/coordinator/backlog.yaml``.
+        """
+        if self._catalog is None:
+            return
+        try:
+            changed = self._catalog.mark_merged(task_id, merge_commit=merge_commit)
+        except CatalogWriteError as exc:
+            notes.append(f"catalog update failed for {task_id}: {exc}")
+            return
+        if changed:
+            notes.append(f"catalog marked {task_id} merged")
 
     def _record_recovery_only(
         self, selected_task_id: str | None, notes: list[str]
@@ -526,6 +568,37 @@ class CoordinatorEngine:
                 title=f"Task selected: {task_id}",
                 summary=title,
                 idempotency_key=f"{self._run_id}:task.selected:{task_id}",
+            )
+        )
+
+    def _record_auto_merge_blocked(
+        self, task_id: str, state: PullRequestState, reason: str
+    ) -> None:
+        """Record *why* an eligible-looking PR cannot be auto-merged yet.
+
+        Idempotent per (PR, reason) so a PR that stays blocked across many ticks
+        does not flood the activity log, while a change in the blocking reason
+        is recorded as a new event.
+        """
+        self._recorder.record(
+            ActivityEventCreate(
+                run_id=self._run_id,
+                task_id=task_id,
+                event_type=EventType.COORDINATOR_AUTO_MERGE,
+                severity=EventSeverity.WARNING,
+                title=f"Auto-merge blocked for PR #{state.number}",
+                summary=reason,
+                metadata={
+                    "pull_number": state.number,
+                    "base_ref": state.base_ref,
+                    "merge_state_status": state.merge_state_status,
+                    "unresolved_threads": state.unresolved_threads,
+                    "checks_state": state.checks_state,
+                    "blockers": list(state.auto_merge_blockers()),
+                },
+                idempotency_key=(
+                    f"coordinator.auto_merge_blocked:{state.number}:{reason}"
+                ),
             )
         )
 

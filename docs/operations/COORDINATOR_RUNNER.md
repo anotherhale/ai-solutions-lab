@@ -51,6 +51,7 @@ All values come from the environment, matching the development-ops convention.
 | `DEVELOPMENT_OPS_RUNNER_LOG_LEVEL` | `INFO` | `DEBUG`/`INFO`/`WARNING`/`ERROR`/`CRITICAL` |
 | `DEVELOPMENT_OPS_RUNNER_LOG_FORMAT` | `json` | `json` or `text` |
 | `DEVELOPMENT_OPS_BACKLOG_PATH` | repo default | Backlog YAML override |
+| `DEVELOPMENT_OPS_UPDATE_CATALOG` | `0` | Let the runner mark merged tasks in the backlog catalog (opt-in; see [COORDINATOR_CONTINUITY.md](COORDINATOR_CONTINUITY.md#backlog-catalog-ownership)) |
 | `DEVELOPMENT_OPS_RUNNER_ENV_FILE` | `~/.config/ai-solutions-lab/coordinator-runner.env` | Env file sourced by the launcher (holds secrets) |
 
 Validation fails fast at startup: a non-positive interval, an unknown log level,

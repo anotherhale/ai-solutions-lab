@@ -162,8 +162,10 @@ Open pull requests must **not** block unrelated backlog work. After opening a PR
    the next **eligible** independent task is selected without waiting for merge.
 
 Do not serialize the entire backlog behind one open PR. Respect `depends_on` in
-`data/coordinator/backlog.yaml`. See
-[docs/operations/COORDINATOR_CONTINUITY.md](docs/operations/COORDINATOR_CONTINUITY.md).
+`data/coordinator/backlog.yaml`. Do not hand-edit that catalog: the coordinator is its only
+sanctioned writer and records merges itself, so agent edits only create merge conflicts that
+block auto-merge (see [docs/adr/0014](docs/adr/0014-autonomous-integration-branch-consolidation.md)
+and [docs/operations/COORDINATOR_CONTINUITY.md](docs/operations/COORDINATOR_CONTINUITY.md)).
 
 The tick can be driven by a persistent, restart-safe runner:
 `development-ops-record runner run` (loop), `runner once` (one cycle),

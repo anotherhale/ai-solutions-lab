@@ -48,15 +48,47 @@ task. The losing tick records a skipped duplicate assignment and continues. Each
 ### Merge safety
 
 Autonomy integrates only into **`ai-dev`** ([ADR 0010](../adr/0010-autonomous-integration-branch.md)).
-The auto-merge gate is enforced in `github_client`:
+The auto-merge gate is enforced in `github_client`, and the coordinator evaluates the
+same gate through `PullRequestState.auto_merge_blockers()` so the two never disagree:
 
-- the base branch must be `ai-dev`; a pull request targeting `main` or any other branch is refused;
+- the base branch must be `ai-dev`; a pull request targeting `main`, `develop`, or any other
+  branch is refused, and `register_pull_request_opened` fails fast rather than record it;
 - the status check rollup must be green — `CheckRun` (GitHub Actions) and `StatusContext` (legacy
   commit statuses) are both classified, and an empty rollup is unknown, never green;
+- a **draft** pull request is refused;
+- a pull request with **unresolved, non-outdated review threads** is refused (fetched through the
+  GraphQL `reviewThreads` connection, since `gh pr view` does not expose it);
+- a pull request that is **not mergeable** (`mergeable: CONFLICTING`, or merge state `DIRTY`) is
+  refused;
 - merged and closed-without-merge pull requests are refused.
+
+A blocked pull request is re-evaluated on every tick, so once the blocking condition clears
+(threads resolved, conflicts resolved, checks green) the next tick arms auto-merge without
+operator action. Each distinct blocking reason is recorded once as a `coordinator.auto_merge`
+warning, so a persistently blocked pull request does not flood the log.
 
 A task whose pull request is closed without merge is marked `blocked` for human attention instead
 of being recorded as merged.
+
+### Backlog catalog ownership
+
+`data/coordinator/backlog.yaml` is a **tracked** file, and the coordinator is its **only sanctioned
+writer**. Runtime scheduling state lives in PostgreSQL (`development_ops.coordinator_tasks`); the
+catalog is a durable, human-readable mirror of task status.
+
+Implementation agents must **not** edit the catalog. When several agents each hand-edited it to
+record their own merge, every later pull request conflicted on the file, and once it carried
+conflicts GitHub refused the merge — so the coordinator could not auto-merge and the pull request
+stalled. Instead:
+
+- after GitHub confirms a merge, the coordinator marks the task merged in the catalog through
+  `development_ops.catalog.YamlBacklogCatalogWriter`;
+- the writer is line-preserving (comments, ordering, and formatting survive), atomic (temp file +
+  `os.replace`), `flock`-serialized, and idempotent (re-marking a merged task is a no-op);
+- it is enabled with `coordinator tick --update-catalog` (opt-in, default off), and a write failure
+  is a note, not a fatal error — runtime state is already durable and the next tick retries.
+
+Humans still edit the catalog to add or re-scope tasks; agents do not.
 
 ### Isolated child worktrees (Phase C — implemented and wired in)
 
@@ -161,5 +193,6 @@ delivery with `development-ops-record confirm-slack` when using MCP.
 - Pull request **review** and ruleset enforcement on `ai-dev`
 - **Auto-merge** when GraphQL returns errors such as “Pull request is in clean status”
 - **Merge** of coordinated pull requests (agents never REST-merge)
-- Backlog edits in `ENGINEERING_BACKLOG.md` and `data/coordinator/backlog.yaml`
+- Backlog **task authoring** in `ENGINEERING_BACKLOG.md` and `data/coordinator/backlog.yaml`
+  (agents do not hand-edit the catalog; the coordinator records merges itself)
 - Resolving Alembic revision ordering when feature branches both add migrations

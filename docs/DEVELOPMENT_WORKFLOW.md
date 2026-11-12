@@ -4,7 +4,7 @@ This workflow applies to human contributors and AI coding agents. Persistent age
 
 ## Branch Naming
 
-Create branches from an updated `develop`. `develop` is the integration branch. `main` is the production branch. Do not commit directly to `develop` or `main`.
+Create branches from an updated `ai-dev`. `ai-dev` is the autonomous integration branch. `main` is the production branch. `develop` is a protected human branch and is no longer the integration branch. Do not commit directly to `ai-dev`, `develop`, or `main`. See [ADR 0010](adr/0010-autonomous-integration-branch.md).
 
 | Prefix | Use |
 |---|---|
@@ -32,18 +32,18 @@ Guidelines:
 
 - Explain why the change exists, not only what files moved.
 - Keep secrets out of history. Never commit `.env` or credentials.
-- Do not rewrite published history. Do not force-push `develop` or `main`.
+- Do not rewrite published history. Do not force-push `ai-dev`, `develop`, or `main`.
 - Prefer several logical commits over one mixed commit when the work has distinct purposes.
 
 ## Pull Request Workflow
 
 1. Inspect the current branch and working tree before editing.
-2. Create a feature branch from `develop` if the working tree is clean.
+2. Create a feature branch from `ai-dev` if the working tree is clean.
 3. Make the smallest change that satisfies the request.
 4. Run local validation.
-5. Open a pull request against `develop`. Do not push directly to `develop` or `main`. Do not force-push either branch.
+5. Open a pull request against `ai-dev`. Do not push directly to `ai-dev`, `develop`, or `main`. Do not force-push any of them.
 6. Request review. Address findings without expanding scope.
-7. Merge only when CI is green and the Definition of Done is met. GitHub does not enforce that by default; see [operations/github-branch-protection.md](operations/github-branch-protection.md) for recommended rulesets on `develop`.
+7. Merge only when CI is green and the Definition of Done is met. GitHub does not enforce that by default; see [operations/github-branch-protection.md](operations/github-branch-protection.md) for recommended rulesets on `ai-dev`.
 
 Pull requests should describe:
 

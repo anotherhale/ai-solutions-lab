@@ -45,6 +45,14 @@ Alternatively, require the check suite **`Repository Validation`** if your GitHu
 - Enable **auto-merge (squash)** only after review approval and required checks are green.
 - Do not use admin bypass except for documented emergencies.
 - Agents must not call merge APIs until the pull request shows success for every required job.
+- The coordinator additionally refuses to arm auto-merge while a pull request is a **draft**, has
+  **unresolved review threads**, or is **not mergeable** (conflicts / `DIRTY`). Resolve
+  review threads and conflicts rather than re-requesting; the next coordinator tick re-evaluates and
+  arms auto-merge automatically once they clear. See
+  [COORDINATOR_CONTINUITY.md](COORDINATOR_CONTINUITY.md#merge-safety).
+- A conflicted pull request cannot be auto-merged at all, which is why implementation agents must
+  **not** hand-edit the tracked `data/coordinator/backlog.yaml`; the coordinator records merges there
+  itself. See [COORDINATOR_CONTINUITY.md](COORDINATOR_CONTINUITY.md#backlog-catalog-ownership).
 
 ## What stays in the repository
 

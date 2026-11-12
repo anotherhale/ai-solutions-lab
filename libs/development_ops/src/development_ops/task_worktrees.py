@@ -36,9 +36,12 @@ from development_ops.child_agents import (
     build_worktree_prompt,
 )
 from development_ops.github_client import (
-    AUTONOMOUS_INTEGRATION_BRANCH,
     GitHubClient,
     verify_pull_request_merged,
+)
+from development_ops.integration import (
+    AUTONOMOUS_INTEGRATION_BRANCH,
+    assert_authorized_base_branch,
 )
 from development_ops.persistence.worktree_repository import (
     AgentWorktreeRecord,
@@ -90,7 +93,10 @@ class TaskWorktreeOrchestrator:
         self._repo = AgentWorktreeRepository(session)
         self._manager = manager
         self._repository = repository
-        self._integration_branch = integration_branch
+        self._integration_branch = assert_authorized_base_branch(
+            integration_branch,
+            operation="worktree orchestration",
+        )
         self._launcher = launcher
         self._github = github
         self._run_id = run_id
