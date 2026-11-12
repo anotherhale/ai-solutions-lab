@@ -136,5 +136,7 @@ tasks:
 
   - id: COORD-BACKLOG-3
     title: Preregister open PRs and develop-sync note for coordinator automation
-    status: pending
+    status: in_progress
     depends_on: []
+    branch: cursor/coordinator-catalog-preregister
+    pr_number: 64
