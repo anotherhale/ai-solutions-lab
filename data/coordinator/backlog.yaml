@@ -52,7 +52,8 @@ tasks:
 
   - id: COORD-PHASE-D-1
     title: Bounded concurrent child-agent orchestration (Phase D)
-    status: in_progress
+    status: merged
+    merge_commit: 298db00
     depends_on: []
     branch: cursor/phase-d-child-agent-orchestration
     pr_number: 47
@@ -66,5 +67,8 @@ tasks:
 
   - id: COORD-RETARGET-DEV-1
     title: Retarget open develop finance and documentation PRs to ai-dev
-    status: pending
+    status: merged
+    merge_commit: d718609
     depends_on: []
+    branch: cursor/coord-aidev-catalog-post-66
+    pr_number: 67
