@@ -116,7 +116,8 @@ tasks:
 
   - id: STATUS-2
     title: Refresh PROJECT_STATUS after finance documentation merges
-    status: in_progress
+    status: merged
+    merge_commit: 0b8a571
     depends_on:
       - DOC-DEBT-MIG-1
       - DOC-API-FIN-1

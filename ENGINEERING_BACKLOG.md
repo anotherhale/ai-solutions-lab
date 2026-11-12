@@ -365,11 +365,13 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### STATUS-2 — Refresh PROJECT_STATUS after finance documentation
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/71
+- Merge: `0b8a571`
 - Depends on: DOC-DEBT-MIG-1, DOC-API-FIN-1, PORT-CASE-FIN-1, and COORD-CATALOG-2
-- Update `PROJECT_STATUS.md` current-work and verification sections after the finance documentation pull requests merge. Keep the snapshot aligned with `develop` without claiming unmerged work is done.
+- Updated `PROJECT_STATUS.md` current-work and verification sections after finance documentation integrated on `ai-dev`.
 - Documentation only.
-- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator backlog lists this task as `in_progress` until this pull request merges.
+- Acceptance met: `python3 scripts/validate_repo.py` passes; coordinator catalog marks STATUS-2 merged.
 
 ## Explicitly out of the next implementation
 
