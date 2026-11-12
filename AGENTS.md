@@ -141,6 +141,15 @@ Use `DEVELOPMENT_OPS_DATABASE_URL` (default database `wasatch_development_ops`) 
 activity and coordinator state. Pytest uses `wasatch_test` and must not destroy
 operational telemetry.
 
+Pytest coordinator tests use a separate disposable database,
+`wasatch_development_ops_test`, resolved by
+`wasatch_api.testing.postgres.wasatch_development_ops_test_database_url()`. That
+helper never returns `wasatch_development_ops`, even when
+`DEVELOPMENT_OPS_DATABASE_URL` points at it, and `drop_and_recreate_test_database`
+refuses operational and maintenance database names before running any SQL. See
+[ADR 0011](docs/adr/0011-test-database-isolation.md). Do not add tests that
+resolve a database URL by hand; request the `ops_test_engine` fixture instead.
+
 ## Coordinator continuity (mandatory)
 
 Open pull requests must **not** block unrelated backlog work. After opening a PR:
@@ -153,9 +162,47 @@ Open pull requests must **not** block unrelated backlog work. After opening a PR
    the next **eligible** independent task is selected without waiting for merge.
 
 Do not serialize the entire backlog behind one open PR. Respect `depends_on` in
-`data/coordinator/backlog.yaml`. See
-[docs/operations/COORDINATOR_CONTINUITY.md](docs/operations/COORDINATOR_CONTINUITY.md).
+`data/coordinator/backlog.yaml`. Do not hand-edit that catalog: the coordinator is its only
+sanctioned writer and records merges itself, so agent edits only create merge conflicts that
+block auto-merge (see [docs/adr/0014](docs/adr/0014-autonomous-integration-branch-consolidation.md)
+and [docs/operations/COORDINATOR_CONTINUITY.md](docs/operations/COORDINATOR_CONTINUITY.md)).
+
+The tick can be driven by a persistent, restart-safe runner:
+`development-ops-record runner run` (loop), `runner once` (one cycle),
+`runner status` (read-only health), and `runner pause`/`runner resume` (durable,
+non-destructive pause). Ownership is a single-workstation `flock`; the launchd
+LaunchAgent in `infrastructure/launchd/` is a template and is not activated by
+CI. See [docs/operations/COORDINATOR_RUNNER.md](docs/operations/COORDINATOR_RUNNER.md)
+and [ADR 0013](docs/adr/0013-persistent-coordinator-runner.md).
 
 ## Definition of Honest Completion
 
 A task is complete only when the requested change is in the repository, relevant documents are consistent, and verification that could be run was run. If something remains unfinished, list it explicitly.
+
+## Strict GitHub Merge Policy
+
+Never use a direct merge operation as a fallback for failed auto-merge configuration.
+
+Allowed:
+- GraphQL enablePullRequestAutoMerge, with squash strategy.
+- Read-only GitHub PR and status inspection.
+- Creating and updating PRs.
+- Requesting independent reviews where supported.
+
+Prohibited:
+- gh pr merge, including --auto.
+- REST PUT /pulls/{pull_number}/merge.
+- GraphQL mergePullRequest.
+- Any operation that immediately merges a PR.
+
+After requesting auto-merge:
+1. Verify autoMergeRequest is non-null.
+2. Verify the requested merge method.
+3. Report the actual merge-queue status.
+4. If the request fails, leave the PR open.
+5. Report the exact GitHub response in #ai-development.
+6. Never attempt an alternative merge operation.
+
+A green CI status does not authorize an agent to merge.
+
+Only the repository owner's explicitly authorized merge process may override this policy.

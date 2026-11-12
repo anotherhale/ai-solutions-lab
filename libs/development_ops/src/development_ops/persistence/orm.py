@@ -54,9 +54,45 @@ class CoordinatorTaskORM(DevelopmentOpsBase):
     blocked_reason: Mapped[str | None] = mapped_column(Text())
     active_run_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     branch_name: Mapped[str | None] = mapped_column(String(255))
+    base_branch: Mapped[str | None] = mapped_column(String(255))
     pr_number: Mapped[int | None] = mapped_column(Integer())
     owner_agent: Mapped[str | None] = mapped_column(String(128))
     merge_commit_sha: Mapped[str | None] = mapped_column(String(64))
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attempt_count: Mapped[int] = mapped_column(Integer(), default=0)
+    last_error: Mapped[str | None] = mapped_column(Text())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+
+class AgentWorktreeORM(DevelopmentOpsBase):
+    """Durable association of a task, its worktree, and its child conversation.
+
+    One row per task. The unique branch and worktree path make the registry the
+    source of truth for cleanup, so an interrupted launch can be recovered and
+    merged work can be reaped without guessing paths.
+    """
+
+    __tablename__ = "agent_worktrees"
+    __table_args__ = {"schema": "development_ops"}
+
+    task_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    branch_name: Mapped[str] = mapped_column(String(255), unique=True)
+    worktree_path: Mapped[str] = mapped_column(String(1024), unique=True)
+    base_ref: Mapped[str] = mapped_column(String(255))
+    base_sha: Mapped[str | None] = mapped_column(String(64))
+    conversation_id: Mapped[str | None] = mapped_column(String(128))
+    run_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    state: Mapped[str] = mapped_column(String(32), index=True)
+    pr_number: Mapped[int | None] = mapped_column(Integer())
+    notes: Mapped[str | None] = mapped_column(Text())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

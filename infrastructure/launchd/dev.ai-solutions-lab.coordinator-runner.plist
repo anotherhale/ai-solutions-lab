@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  User-level LaunchAgent for the persistent coordinator runner.
+
+  This file is a template. Replace the placeholder paths and values before
+  installing. Do NOT commit a filled-in copy that contains secrets; put
+  credentials in the environment file referenced by EnvironmentVariables or in
+  a separate mode-600 file that the runner reads itself.
+
+  launchd does NOT source ~/.zshrc, ~/.bash_profile, or any interactive shell
+  initialization. Every value the runner needs (PATH, DEVELOPMENT_OPS_*,
+  GH_TOKEN, database URL) must be declared here or in an environment file.
+  See docs/operations/COORDINATOR_RUNNER.md.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>dev.ai-solutions-lab.coordinator-runner</string>
+
+  <!-- Absolute path to the launcher script in the checkout. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/CHANGE_ME/dev/ai-solutions-lab/scripts/coordinator_runner.sh</string>
+    <string>run</string>
+  </array>
+
+  <!-- Explicit working directory: the repository root. -->
+  <key>WorkingDirectory</key>
+  <string>/Users/CHANGE_ME/dev/ai-solutions-lab</string>
+
+  <!-- Start when the agent loads and keep it running. -->
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <!-- Restart backoff if the process exits unexpectedly. -->
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+
+  <!-- Stop with SIGTERM and give the runner time to release the lock. -->
+  <key>ExitTimeOut</key>
+  <integer>30</integer>
+
+  <!-- Logs live under the runner state directory, outside the checkout. -->
+  <key>StandardOutPath</key>
+  <string>/Users/CHANGE_ME/Library/Logs/ai-solutions-lab/coordinator-runner.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/CHANGE_ME/Library/Logs/ai-solutions-lab/coordinator-runner.err.log</string>
+
+  <!-- launchd gives a minimal environment; declare everything explicitly. -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/CHANGE_ME/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>HOME</key>
+    <string>/Users/CHANGE_ME</string>
+    <key>DEVELOPMENT_OPS_GITHUB_REPOSITORY</key>
+    <string>anotherhale/ai-solutions-lab</string>
+    <key>DEVELOPMENT_OPS_DATABASE_URL</key>
+    <string>postgresql+psycopg://wasatch:replace-me@localhost:5432/wasatch_development_ops</string>
+    <key>DEVELOPMENT_OPS_RUNNER_POLL_SECONDS</key>
+    <string>30</string>
+    <key>DEVELOPMENT_OPS_RUNNER_LOG_FORMAT</key>
+    <string>json</string>
+    <key>DEVELOPMENT_OPS_RUNNER_LOG_LEVEL</key>
+    <string>INFO</string>
+    <!-- Do not put GH_TOKEN or any secret here. Put it in a mode-600 file and
+         source it from scripts/coordinator_runner.sh, or use a keychain-backed
+         helper. This template intentionally omits it. -->
+  </dict>
+</dict>
+</plist>
