@@ -18,6 +18,7 @@ Each revision below has a dedicated integration test that downgrades one step (o
 | `0010` | `0010_invoice_lines.py` | `test_invoice_line_migration.py` |
 | `0011` | `0011_payments.py` | `test_payment_migration.py` |
 | `0012` | `0012_development_ops_coordinator.py` | `test_alembic_migration_graph.py` |
+| `0013` | `0013_coordinator_slot_accounting.py` | `test_alembic_migration_graph.py` |
 
 Full linear graph: [docs/operations/ALEMBIC_MIGRATION_GRAPH.md](../../../docs/operations/ALEMBIC_MIGRATION_GRAPH.md).
 

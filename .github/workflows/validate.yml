@@ -2,7 +2,7 @@ name: Repository Validation
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, ai-dev]
   pull_request:
 
 jobs:
