@@ -125,3 +125,9 @@ tasks:
       - COORD-CATALOG-2
     branch: cursor/status-2-1104
     pr_number: 71
+
+  - id: DOC-ENG-AIDEV-1
+    title: Document ai-dev integration branch in ENGINEERING_BACKLOG
+    status: in_progress
+    depends_on: [STATUS-2]
+    branch: cursor/coord-backlog-refill-aidev

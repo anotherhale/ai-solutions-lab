@@ -373,6 +373,23 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Documentation only.
 - Acceptance met: `python3 scripts/validate_repo.py` passes; coordinator catalog marks STATUS-2 merged.
 
+### DOC-ENG-AIDEV-1 — Document the `ai-dev` integration branch
+
+- Status: done in this change
+- Depends on: STATUS-2
+- `develop` remains the integration branch for the Wasatch API laboratory slice and finance read routes documented in this file.
+- `ai-dev` is the integration branch for autonomous development capabilities (Phase D child-agent orchestration, AI review gate, extended Alembic head through `0016`). Finance and coordinator documentation may land on `ai-dev` before promotion to `develop`.
+- Open pull requests targeting `ai-dev` do not block coordinator scheduling on `develop`. Each branch has its own catalog rows in `data/coordinator/backlog.yaml` when the automation entrypoint runs against that branch.
+- Documentation only; no application code.
+- Acceptance: `python3 scripts/validate_repo.py` passes; a new reader can tell which branch owns autonomous tooling versus the Wasatch slice.
+
+## Integration branch summary
+
+| Branch | Role |
+|---|---|
+| `develop` | Wasatch slice, finance read routes, `apps/wasatch-review`, coordinator catalog default |
+| `ai-dev` | Autonomous agents, review gate, child orchestration, ahead migrations until promoted |
+
 ## Explicitly out of the next implementation
 
 - Rebuilding Phase 2.1.1
