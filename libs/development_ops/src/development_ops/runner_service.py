@@ -27,7 +27,9 @@ from development_ops.coordinator_engine import CoordinatorEngine
 from development_ops.github_client import github_client_from_env
 from development_ops.models import ActivityEventCreate
 from development_ops.persistence.coordinator_repository import CoordinatorTaskRepository
+from development_ops.persistence.verdict_repository import ReviewVerdictRepository
 from development_ops.recorder import ActivityRecorder
+from development_ops.review_gate import build_gate_from_env
 from development_ops.runner import CoordinatorRunner, RecoveryReport, TickOutcome
 from development_ops.runner_config import RunnerConfig
 from development_ops.runner_state import RunnerStateStore
@@ -102,6 +104,7 @@ def _build_engine(
     children = _build_child_orchestrator(
         session, run_id=run_id, repository=repository, worktrees=worktrees
     )
+    gate, gate_config = build_gate_from_env(repository=repository)
     return CoordinatorEngine(
         session,
         github=github_client_from_env(),
@@ -116,6 +119,9 @@ def _build_engine(
             else None
         ),
         children=children,
+        gate=gate,
+        verdicts=ReviewVerdictRepository(session),
+        gate_enabled=gate_config.enabled,
     )
 
 

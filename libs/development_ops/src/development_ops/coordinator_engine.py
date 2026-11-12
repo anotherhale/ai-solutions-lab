@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import uuid
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -13,16 +14,22 @@ from sqlalchemy.orm import Session
 from development_ops.backlog import BacklogDocument, load_backlog
 from development_ops.catalog import BacklogCatalogWriter, CatalogWriteError
 from development_ops.child_orchestration import ChildOrchestrator, ChildTickOutcome
+from development_ops.gate_github_client import AI_REVIEW_CHECK_NAME, GATE_APP_ID
 from development_ops.github_client import (
     AutoMergeAttempt,
     GitHubClient,
     PullRequestState,
 )
-from development_ops.integration import assert_authorized_base_branch
+from development_ops.integration import (
+    AUTONOMOUS_INTEGRATION_BRANCH,
+    assert_authorized_base_branch,
+)
 from development_ops.models import ActivityEventCreate, GitHubReference
 from development_ops.persistence.coordinator_repository import CoordinatorTaskRepository
 from development_ops.persistence.orm import CoordinatorTaskORM
+from development_ops.persistence.verdict_repository import ReviewVerdictRepository
 from development_ops.recorder import ActivityRecorder
+from development_ops.review_gate import CONCLUSION_SUCCESS, GateDecision, ReviewGate
 from development_ops.scheduling import (
     IN_FLIGHT_STATUSES,
     CoordinatorTaskView,
@@ -35,6 +42,10 @@ from development_ops.taxonomy import EventSeverity, EventType
 from development_ops.worktrees import WorktreeError
 
 IN_FLIGHT_STATUSES_VALUES = frozenset(status.value for status in IN_FLIGHT_STATUSES)
+
+
+def _utc_now() -> datetime:
+    return datetime.now(tz=UTC)
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,6 +88,9 @@ class CoordinatorEngine:
         worktrees: TaskWorktreeOrchestrator | None = None,
         catalog: BacklogCatalogWriter | None = None,
         children: ChildOrchestrator | None = None,
+        gate: ReviewGate | None = None,
+        verdicts: ReviewVerdictRepository | None = None,
+        gate_enabled: bool | None = None,
     ) -> None:
         self._session = session
         self._github = github
@@ -96,6 +110,9 @@ class CoordinatorEngine:
         # Optional: bounded child-agent orchestration (Phase D). When absent no
         # child is launched and no execution state is tracked.
         self._children = children
+        self._gate = gate
+        self._verdicts = verdicts
+        self._gate_enabled = gate is not None if gate_enabled is None else gate_enabled
 
     def tick(
         self,
@@ -452,7 +469,135 @@ class CoordinatorEngine:
                     owner_agent=row.owner_agent,
                     base_branch=state.base_ref,
                 )
+            self._run_gate(task.id, state, notes)
             self._maybe_attempt_auto_merge(task.id, state, auto_attempts, notes)
+
+    def _run_gate(
+        self,
+        task_id: str,
+        state: PullRequestState,
+        notes: list[str],
+    ) -> None:
+        if self._gate is None:
+            return
+        decision = self._gate.run(state.number)
+        if self._verdicts is not None and decision.review_id is not None:
+            self._mirror_verdict(task_id, state, decision, notes)
+        self._record_gate(task_id, state, decision)
+        if decision.is_success and decision.published:
+            notes.append(
+                f"gate: AI review success for pr #{state.number} "
+                f"@{decision.head_sha[:12]}"
+            )
+        elif not decision.published:
+            notes.append(
+                f"gate: publish failed for pr #{state.number}: {decision.publish_error}"
+            )
+        else:
+            notes.append(
+                f"gate: {decision.conclusion} for pr #{state.number} "
+                f"({decision.reason})"
+            )
+
+    def _mirror_verdict(
+        self,
+        task_id: str,
+        state: PullRequestState,
+        decision: GateDecision,
+        notes: list[str],
+    ) -> None:
+        assert self._verdicts is not None
+        try:
+            _, created = self._verdicts.record(
+                repository=self._repository,
+                pull_number=state.number,
+                head_sha=decision.head_sha,
+                review_id=int(decision.review_id or 0),
+                reviewer_login=decision.reviewer_login or "",
+                reviewer_user_id=int(decision.reviewer_user_id or 0),
+                verdict=decision.conclusion,
+                blocking_count=decision.blocking_count,
+                policy_version=decision.policy_version or "",
+                reviewed_at=decision.reviewed_at or _utc_now(),
+            )
+        except Exception as exc:  # noqa: BLE001
+            self._session.rollback()
+            notes.append(f"gate: verdict mirror failed for pr #{state.number}: {exc}")
+            return
+        if created:
+            self._recorder.record(
+                ActivityEventCreate(
+                    run_id=self._run_id,
+                    task_id=task_id,
+                    event_type=EventType.REVIEW_VERDICT_RECORDED,
+                    severity=EventSeverity.INFO,
+                    title=f"Recorded review verdict for PR #{state.number}",
+                    metadata={
+                        "pull_number": state.number,
+                        "head_sha": decision.head_sha,
+                        "review_id": decision.review_id,
+                        "verdict": decision.conclusion,
+                    },
+                    github=GitHubReference(
+                        repository=self._repository,
+                        pull_number=state.number,
+                        commit_sha=decision.head_sha,
+                    ),
+                    idempotency_key=(
+                        f"review.verdict_recorded:{self._repository}:"
+                        f"{state.number}:{decision.head_sha}:{decision.review_id}"
+                    ),
+                )
+            )
+
+    def _record_gate(
+        self,
+        task_id: str,
+        state: PullRequestState,
+        decision: GateDecision,
+    ) -> None:
+        if not decision.published:
+            event_type = EventType.GATE_PUBLISH_FAILED
+            severity = EventSeverity.WARNING
+            title = f"AI review gate publish failed for PR #{state.number}"
+        elif decision.is_success:
+            event_type = EventType.GATE_PUBLISHED
+            severity = EventSeverity.INFO
+            title = f"AI review gate published success for PR #{state.number}"
+        else:
+            event_type = EventType.GATE_REJECTED
+            severity = EventSeverity.NOTICE
+            title = (
+                f"AI review gate published {decision.conclusion} for PR #{state.number}"
+            )
+        self._recorder.record(
+            ActivityEventCreate(
+                run_id=self._run_id,
+                task_id=task_id,
+                event_type=event_type,
+                severity=severity,
+                title=title,
+                summary=decision.reason,
+                metadata={
+                    "pull_number": state.number,
+                    "head_sha": decision.head_sha,
+                    "conclusion": decision.conclusion,
+                    "published": decision.published,
+                    "review_id": decision.review_id,
+                    "verdict_id": decision.verdict_id,
+                    "policy_version": decision.policy_version,
+                },
+                github=GitHubReference(
+                    repository=self._repository,
+                    pull_number=state.number,
+                    commit_sha=decision.head_sha,
+                ),
+                idempotency_key=(
+                    f"gate:{decision.conclusion}:{self._repository}:"
+                    f"{state.number}:{decision.head_sha}"
+                ),
+            )
+        )
 
     def _reconcile_missing_pull_request(
         self,
@@ -519,6 +664,16 @@ class CoordinatorEngine:
             notes.append(f"auto-merge blocked for pr #{state.number}: {reason}")
             self._record_auto_merge_blocked(task_id, state, reason)
             return
+        if self._gate is not None:
+            blocked = self._verify_ai_review_check(state, notes)
+            if blocked is not None:
+                return
+        elif self._gate_enabled:
+            notes.append(
+                f"auto-merge skipped for pr #{state.number}: AI review gate is "
+                "enabled but unavailable"
+            )
+            return
         attempt = self._github.enable_squash_auto_merge(  # type: ignore[union-attr]
             self._repository,
             state.number,
@@ -527,6 +682,78 @@ class CoordinatorEngine:
         self._record_auto_merge(task_id, attempt)
         if attempt.error:
             notes.append(f"auto-merge pr #{state.number}: {attempt.error}; continuing")
+
+    def _verify_ai_review_check(
+        self,
+        state: PullRequestState,
+        notes: list[str],
+    ) -> str | None:
+        """Independently verify the gate's check. Returns a block reason or None."""
+        if self._github is None:
+            notes.append(
+                f"auto-merge skipped for pr #{state.number}: github client unavailable"
+            )
+            return "github client unavailable"
+        try:
+            live = self._github.get_pull_request(self._repository, state.number)
+        except RuntimeError as exc:
+            reason = f"live pull request re-read failed: {exc}"
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+        if not live.targets_integration_branch:
+            reason = (
+                f"base branch '{live.base_ref}' is not {AUTONOMOUS_INTEGRATION_BRANCH}"
+            )
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+        if live.merged or live.closed:
+            reason = "pull request is no longer open"
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+        if not live.head_sha:
+            reason = "live head sha unavailable"
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+        if live.head_sha != state.head_sha:
+            reason = (
+                "head sha changed between listing and merge: "
+                f"{state.head_sha[:12]} -> {live.head_sha[:12]}"
+            )
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+
+        get_check = getattr(self._github, "get_review_check", None)
+        if get_check is None:
+            reason = "github client cannot verify the AI review check"
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+        try:
+            check = get_check(self._repository, live.head_sha, AI_REVIEW_CHECK_NAME)
+        except RuntimeError as exc:
+            reason = f"AI review check lookup failed: {exc}"
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+        if check is None:
+            reason = "AI review check is absent for the current head sha"
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+        if check.name != AI_REVIEW_CHECK_NAME:
+            reason = f"check name '{check.name}' is not '{AI_REVIEW_CHECK_NAME}'"
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+        if check.app_id != GATE_APP_ID:
+            reason = f"AI review check is not from the gate App (app id {check.app_id})"
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+        if check.head_sha != live.head_sha:
+            reason = "AI review check is bound to a different head sha"
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+        if check.conclusion != CONCLUSION_SUCCESS:
+            reason = f"AI review conclusion '{check.conclusion}' is not success"
+            notes.append(f"auto-merge skipped for pr #{state.number}: {reason}")
+            return reason
+        return None
 
     def _record_catalog_merged(
         self,

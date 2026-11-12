@@ -186,7 +186,7 @@ def test_child_orchestration_revision_head(disposable_engine: Engine) -> None:
                 "AND column_name = 'last_event_count'"
             )
         ).scalar()
-    assert revision == "0015"
+    assert revision == "0016"
     assert child_table == 1
     assert settings_table == 1
     assert progress_column == 1
