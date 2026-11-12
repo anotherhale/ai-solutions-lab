@@ -98,6 +98,16 @@ def test_config_from_env_rejects_bad_number(
         RunnerConfig.from_env()
 
 
+def test_config_catalog_update_is_opt_in(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("DEVELOPMENT_OPS_RUNNER_STATE_DIR", str(tmp_path))
+    monkeypatch.delenv("DEVELOPMENT_OPS_UPDATE_CATALOG", raising=False)
+    assert RunnerConfig.from_env().update_catalog is False
+    monkeypatch.setenv("DEVELOPMENT_OPS_UPDATE_CATALOG", "1")
+    assert RunnerConfig.from_env().update_catalog is True
+
+
 # --- instance lock -----------------------------------------------------------
 
 

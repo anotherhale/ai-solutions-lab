@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from development_ops.integration import UnauthorizedBaseBranchError
 from development_ops.worktrees import WorktreeError, WorktreeManager
 
 
@@ -130,9 +131,10 @@ def test_prepare_is_idempotent(repo: tuple[Path, Path]) -> None:
 
 def test_missing_base_branch_raises(repo: tuple[Path, Path]) -> None:
     work, wt_root = repo
-    manager = WorktreeManager(work, wt_root, base_branch="does-not-exist")
-    with pytest.raises(WorktreeError):
-        manager.prepare("TASK-5")
+    # An unauthorized base is rejected at construction so no worktree is ever
+    # created from a branch autonomy may not integrate into (ADR 0010/0016).
+    with pytest.raises(UnauthorizedBaseBranchError):
+        WorktreeManager(work, wt_root, base_branch="does-not-exist")
 
 
 def test_unsafe_task_id_is_rejected(repo: tuple[Path, Path]) -> None:

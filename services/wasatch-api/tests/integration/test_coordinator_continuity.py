@@ -57,6 +57,8 @@ def _pr(
     base_ref: str = "ai-dev",
     closed: bool = False,
     checks_state: str = "green",
+    unresolved_threads: int = 0,
+    is_draft: bool = False,
 ) -> PullRequestState:
     return PullRequestState(
         number=number,
@@ -71,6 +73,8 @@ def _pr(
         review_decision="REVIEW_REQUIRED",
         closed=closed or merged,
         checks_state=checks_state,
+        unresolved_threads=unresolved_threads,
+        is_draft=is_draft,
     )
 
 
@@ -630,5 +634,158 @@ def test_merged_pr_reconciles_and_clears_ownership(
         assert row is not None
         assert row.status == RuntimeTaskStatus.MERGED.value
         assert row.active_run_id is None
+    finally:
+        session.close()
+
+
+# --- catalog reconciliation and auto-merge blocking ---------------------------
+
+
+def _event_rows(engine: Engine, event_type: str) -> list[dict]:
+    with engine.begin() as connection:
+        rows = connection.execute(
+            text(
+                "SELECT title, summary, metadata FROM development_ops.activity_events "
+                "WHERE event_type = :event_type ORDER BY recorded_at"
+            ),
+            {"event_type": event_type},
+        ).mappings()
+        return [dict(row) for row in rows]
+
+
+def test_verified_merge_marks_catalog_merged(
+    ops_engine: Engine, backlog_file: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A GitHub-confirmed merge is written to the catalog by the coordinator."""
+    from development_ops.backlog import BacklogTaskStatus, load_backlog
+    from development_ops.catalog import YamlBacklogCatalogWriter
+
+    monkeypatch.setenv("DEVELOPMENT_OPS_ATTEMPT_AUTO_MERGE", "0")
+    run_id = uuid.uuid4()
+    session = sessionmaker(bind=ops_engine, autoflush=False)()
+    github = FakeGitHub({100: _pr(100, merged=True)})
+    try:
+        engine = CoordinatorEngine(
+            session,
+            github=github,
+            recorder=ActivityRecorder(session, notify_slack=False),
+            run_id=run_id,
+            repository="example/test",
+            backlog_path=backlog_file,
+            catalog=YamlBacklogCatalogWriter(backlog_file),
+        )
+        engine.tick()
+        document = load_backlog(backlog_file)
+        task = next(item for item in document.tasks if item.id == "TASK-A")
+        assert task.status == BacklogTaskStatus.MERGED
+    finally:
+        session.close()
+
+
+def test_catalog_not_written_when_no_catalog_configured(
+    ops_engine: Engine, backlog_file: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Without a catalog writer the coordinator only updates runtime state."""
+    from development_ops.backlog import BacklogTaskStatus, load_backlog
+
+    monkeypatch.setenv("DEVELOPMENT_OPS_ATTEMPT_AUTO_MERGE", "0")
+    before = backlog_file.read_text(encoding="utf-8")
+    run_id = uuid.uuid4()
+    session = sessionmaker(bind=ops_engine, autoflush=False)()
+    github = FakeGitHub({100: _pr(100, merged=True)})
+    try:
+        engine = CoordinatorEngine(
+            session,
+            github=github,
+            recorder=ActivityRecorder(session, notify_slack=False),
+            run_id=run_id,
+            repository="example/test",
+            backlog_path=backlog_file,
+        )
+        engine.tick()
+        assert backlog_file.read_text(encoding="utf-8") == before
+        document = load_backlog(backlog_file)
+        task = next(item for item in document.tasks if item.id == "TASK-A")
+        assert task.status == BacklogTaskStatus.IN_PROGRESS
+    finally:
+        session.close()
+
+
+def test_blocked_auto_merge_records_reason(
+    ops_engine: Engine, backlog_file: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A PR blocked by unresolved threads records a precise reason event."""
+    monkeypatch.setenv("DEVELOPMENT_OPS_ATTEMPT_AUTO_MERGE", "1")
+    run_id = uuid.uuid4()
+    session = sessionmaker(bind=ops_engine, autoflush=False)()
+    github = FakeGitHub({100: _pr(100, unresolved_threads=2)})
+    try:
+        engine = CoordinatorEngine(
+            session,
+            github=github,
+            recorder=ActivityRecorder(session, notify_slack=False),
+            run_id=run_id,
+            repository="example/test",
+            backlog_path=backlog_file,
+        )
+        result = engine.tick()
+        # No mutation was attempted: the PR is blocked before the GraphQL call.
+        assert github.auto_merge_calls == []
+        assert any("unresolved" in note for note in result.notes)
+        rows = _event_rows(ops_engine, "coordinator.auto_merge")
+        assert any("unresolved" in (row["summary"] or "") for row in rows)
+    finally:
+        session.close()
+
+
+def test_pr_on_develop_is_never_auto_merged(
+    ops_engine: Engine, backlog_file: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A PR targeting develop is reported, not merged, and never mutated."""
+    monkeypatch.setenv("DEVELOPMENT_OPS_ATTEMPT_AUTO_MERGE", "1")
+    run_id = uuid.uuid4()
+    session = sessionmaker(bind=ops_engine, autoflush=False)()
+    github = FakeGitHub({100: _pr(100, base_ref="develop")})
+    try:
+        engine = CoordinatorEngine(
+            session,
+            github=github,
+            recorder=ActivityRecorder(session, notify_slack=False),
+            run_id=run_id,
+            repository="example/test",
+            backlog_path=backlog_file,
+        )
+        result = engine.tick()
+        assert github.auto_merge_calls == []
+        assert any("develop" in note for note in result.notes)
+    finally:
+        session.close()
+
+
+def test_register_pull_request_rejects_develop_base(
+    ops_engine: Engine, backlog_file: Path
+) -> None:
+    """Registering a PR on an unauthorized base fails fast, before any write."""
+    from development_ops.integration import UnauthorizedBaseBranchError
+
+    run_id = uuid.uuid4()
+    session = sessionmaker(bind=ops_engine, autoflush=False)()
+    try:
+        engine = CoordinatorEngine(
+            session,
+            github=None,
+            recorder=ActivityRecorder(session, notify_slack=False),
+            run_id=run_id,
+            repository="example/test",
+            backlog_path=backlog_file,
+        )
+        with pytest.raises(UnauthorizedBaseBranchError):
+            engine.register_pull_request_opened(
+                "TASK-B",
+                pull_number=555,
+                branch_name="cursor/x",
+                title="t",
+                base_branch="develop",
+            )
     finally:
         session.close()
