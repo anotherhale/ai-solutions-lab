@@ -256,7 +256,7 @@ def test_coordinator_rejects_non_ai_dev_base(session: Session) -> None:
     attempts, notes = _attempt(engine, github.get_pull_request(REPO, 7))
     assert attempts == []
     assert github.merge_attempts == 0
-    assert any("is not ai-dev" in note for note in notes)
+    assert any("not 'ai-dev'" in note for note in notes)
 
 
 # --- valid path -------------------------------------------------------------

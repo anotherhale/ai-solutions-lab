@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import uuid
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -28,7 +29,7 @@ from development_ops.persistence.coordinator_repository import CoordinatorTaskRe
 from development_ops.persistence.orm import CoordinatorTaskORM
 from development_ops.persistence.verdict_repository import ReviewVerdictRepository
 from development_ops.recorder import ActivityRecorder
-from development_ops.review_gate import CONCLUSION_SUCCESS, ReviewGate
+from development_ops.review_gate import CONCLUSION_SUCCESS, GateDecision, ReviewGate
 from development_ops.scheduling import (
     IN_FLIGHT_STATUSES,
     CoordinatorTaskView,
@@ -41,6 +42,10 @@ from development_ops.taxonomy import EventSeverity, EventType
 from development_ops.worktrees import WorktreeError
 
 IN_FLIGHT_STATUSES_VALUES = frozenset(status.value for status in IN_FLIGHT_STATUSES)
+
+
+def _utc_now() -> datetime:
+    return datetime.now(tz=UTC)
 
 
 @dataclass(frozen=True, slots=True)
@@ -464,7 +469,135 @@ class CoordinatorEngine:
                     owner_agent=row.owner_agent,
                     base_branch=state.base_ref,
                 )
+            self._run_gate(task.id, state, notes)
             self._maybe_attempt_auto_merge(task.id, state, auto_attempts, notes)
+
+    def _run_gate(
+        self,
+        task_id: str,
+        state: PullRequestState,
+        notes: list[str],
+    ) -> None:
+        if self._gate is None:
+            return
+        decision = self._gate.run(state.number)
+        if self._verdicts is not None and decision.review_id is not None:
+            self._mirror_verdict(task_id, state, decision, notes)
+        self._record_gate(task_id, state, decision)
+        if decision.is_success and decision.published:
+            notes.append(
+                f"gate: AI review success for pr #{state.number} "
+                f"@{decision.head_sha[:12]}"
+            )
+        elif not decision.published:
+            notes.append(
+                f"gate: publish failed for pr #{state.number}: {decision.publish_error}"
+            )
+        else:
+            notes.append(
+                f"gate: {decision.conclusion} for pr #{state.number} "
+                f"({decision.reason})"
+            )
+
+    def _mirror_verdict(
+        self,
+        task_id: str,
+        state: PullRequestState,
+        decision: GateDecision,
+        notes: list[str],
+    ) -> None:
+        assert self._verdicts is not None
+        try:
+            _, created = self._verdicts.record(
+                repository=self._repository,
+                pull_number=state.number,
+                head_sha=decision.head_sha,
+                review_id=int(decision.review_id or 0),
+                reviewer_login=decision.reviewer_login or "",
+                reviewer_user_id=int(decision.reviewer_user_id or 0),
+                verdict=decision.conclusion,
+                blocking_count=decision.blocking_count,
+                policy_version=decision.policy_version or "",
+                reviewed_at=decision.reviewed_at or _utc_now(),
+            )
+        except Exception as exc:  # noqa: BLE001
+            self._session.rollback()
+            notes.append(f"gate: verdict mirror failed for pr #{state.number}: {exc}")
+            return
+        if created:
+            self._recorder.record(
+                ActivityEventCreate(
+                    run_id=self._run_id,
+                    task_id=task_id,
+                    event_type=EventType.REVIEW_VERDICT_RECORDED,
+                    severity=EventSeverity.INFO,
+                    title=f"Recorded review verdict for PR #{state.number}",
+                    metadata={
+                        "pull_number": state.number,
+                        "head_sha": decision.head_sha,
+                        "review_id": decision.review_id,
+                        "verdict": decision.conclusion,
+                    },
+                    github=GitHubReference(
+                        repository=self._repository,
+                        pull_number=state.number,
+                        commit_sha=decision.head_sha,
+                    ),
+                    idempotency_key=(
+                        f"review.verdict_recorded:{self._repository}:"
+                        f"{state.number}:{decision.head_sha}:{decision.review_id}"
+                    ),
+                )
+            )
+
+    def _record_gate(
+        self,
+        task_id: str,
+        state: PullRequestState,
+        decision: GateDecision,
+    ) -> None:
+        if not decision.published:
+            event_type = EventType.GATE_PUBLISH_FAILED
+            severity = EventSeverity.WARNING
+            title = f"AI review gate publish failed for PR #{state.number}"
+        elif decision.is_success:
+            event_type = EventType.GATE_PUBLISHED
+            severity = EventSeverity.INFO
+            title = f"AI review gate published success for PR #{state.number}"
+        else:
+            event_type = EventType.GATE_REJECTED
+            severity = EventSeverity.NOTICE
+            title = (
+                f"AI review gate published {decision.conclusion} for PR #{state.number}"
+            )
+        self._recorder.record(
+            ActivityEventCreate(
+                run_id=self._run_id,
+                task_id=task_id,
+                event_type=event_type,
+                severity=severity,
+                title=title,
+                summary=decision.reason,
+                metadata={
+                    "pull_number": state.number,
+                    "head_sha": decision.head_sha,
+                    "conclusion": decision.conclusion,
+                    "published": decision.published,
+                    "review_id": decision.review_id,
+                    "verdict_id": decision.verdict_id,
+                    "policy_version": decision.policy_version,
+                },
+                github=GitHubReference(
+                    repository=self._repository,
+                    pull_number=state.number,
+                    commit_sha=decision.head_sha,
+                ),
+                idempotency_key=(
+                    f"gate:{decision.conclusion}:{self._repository}:"
+                    f"{state.number}:{decision.head_sha}"
+                ),
+            )
+        )
 
     def _reconcile_missing_pull_request(
         self,
