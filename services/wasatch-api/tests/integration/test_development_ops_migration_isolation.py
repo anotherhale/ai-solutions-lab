@@ -8,40 +8,23 @@ import uuid
 import pytest
 from alembic import command
 from alembic.config import Config
-from development_ops.database import ensure_development_ops_database
 from development_ops.models import ActivityEventCreate
 from development_ops.persistence.repository import ActivityEventRepository
 from development_ops.recorder import ActivityRecorder
 from development_ops.taxonomy import EventSeverity, EventType
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
 from wasatch_api.config import REPO_ROOT, get_settings
-from wasatch_api.testing.postgres import wasatch_development_ops_database_url_for_tests
 
 API_ROOT = REPO_ROOT / "services" / "wasatch-api"
 
 
 @pytest.fixture(scope="module")
-def isolated_ops_engine() -> Engine:
-    previous_wasatch_url = os.environ.get("WASATCH_DATABASE_URL")
-    url = wasatch_development_ops_database_url_for_tests()
-    ensure_development_ops_database(url)
-    os.environ["WASATCH_DATABASE_URL"] = url
-    get_settings.cache_clear()
-    alembic_cfg = Config(str(API_ROOT / "alembic.ini"))
-    alembic_cfg.set_main_option("sqlalchemy.url", url)
-    alembic_cfg.set_main_option("script_location", str(API_ROOT / "alembic"))
-    command.upgrade(alembic_cfg, "head")
-    engine = create_engine(url, pool_pre_ping=True)
-    yield engine
-    engine.dispose()
-    if previous_wasatch_url is not None:
-        os.environ["WASATCH_DATABASE_URL"] = previous_wasatch_url
-    else:
-        os.environ.pop("WASATCH_DATABASE_URL", None)
-    get_settings.cache_clear()
+def isolated_ops_engine(ops_test_engine: Engine) -> Engine:
+    # Migrations have already run against the disposable ops-test database.
+    return ops_test_engine
 
 
 def _alembic_config(engine: Engine) -> Config:

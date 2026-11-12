@@ -23,7 +23,12 @@ from wasatch_api.config import get_settings  # noqa: E402
 from wasatch_api.main import create_app  # noqa: E402
 from wasatch_api.shared.database.session import reset_engine
 from wasatch_api.shared.seed import seed_valid_fixtures
-from wasatch_api.testing.postgres import wasatch_test_database_url  # noqa: E402
+from wasatch_api.testing.postgres import (  # noqa: E402
+    assert_disposable_test_database,
+    drop_and_recreate_test_database,
+    wasatch_development_ops_test_database_url,
+    wasatch_test_database_url,
+)
 from wasatch_api.workforce.infrastructure.local_authenticator import (
     LABORATORY_ACTOR_HEADER,
 )
@@ -83,6 +88,8 @@ def _ensure_database(database_url: str) -> None:
     target = parsed.database
     if not target or target in {"wasatch", "postgres"}:
         return
+    # Fail closed before creating anything: the target must be disposable.
+    assert_disposable_test_database(database_url)
     # Compose keeps maintenance data in "wasatch". The stock image also
     # has "postgres". A missing maintenance database is not a down server.
     for admin_name in ("wasatch", "postgres"):
@@ -178,3 +185,42 @@ def anonymous_client(seeded_engine: Engine) -> Iterator[TestClient]:
         yield test_client
     reset_engine()
     get_settings.cache_clear()
+
+
+@pytest.fixture(scope="session")
+def ops_test_database_url() -> Iterator[str]:
+    """URL of the disposable ops-test database used by coordinator tests.
+
+    Derived from the test URL and dropped/recreated through the guarded helper,
+    so it can never resolve to the operational ``wasatch_development_ops``
+    database.
+    """
+    url = drop_and_recreate_test_database(wasatch_development_ops_test_database_url())
+    yield url
+
+
+@pytest.fixture(scope="session")
+def ops_test_engine(ops_test_database_url: str) -> Iterator[Engine]:
+    """Migrated engine on the disposable ops-test database.
+
+    ``alembic/env.py`` resolves its URL from application settings, so
+    ``WASATCH_DATABASE_URL`` is pointed at the disposable database only for the
+    duration of the upgrade, then restored.
+    """
+    previous = os.environ.get("WASATCH_DATABASE_URL")
+    os.environ["WASATCH_DATABASE_URL"] = ops_test_database_url
+    get_settings.cache_clear()
+    try:
+        alembic_cfg = Config(str(API_ROOT / "alembic.ini"))
+        alembic_cfg.set_main_option("sqlalchemy.url", ops_test_database_url)
+        alembic_cfg.set_main_option("script_location", str(API_ROOT / "alembic"))
+        command.upgrade(alembic_cfg, "head")
+    finally:
+        if previous is None:
+            os.environ.pop("WASATCH_DATABASE_URL", None)
+        else:
+            os.environ["WASATCH_DATABASE_URL"] = previous
+        get_settings.cache_clear()
+    engine = create_engine(ops_test_database_url, pool_pre_ping=True)
+    yield engine
+    engine.dispose()

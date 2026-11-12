@@ -6,5 +6,7 @@ These notes are not a deployment. Docker Compose and this directory are not a pr
 
 - [Backup expectations](backup.md)
 - [Secret management](secrets.md)
-- [GitHub branch protection for `develop`](github-branch-protection.md)
+- [GitHub branch protection for the integration branches](github-branch-protection.md)
 - [Development activity log](DEVELOPMENT_ACTIVITY_LOG.md)
+- [Coordinator continuity](COORDINATOR_CONTINUITY.md)
+- [Coordinator runner operations](COORDINATOR_RUNNER.md)

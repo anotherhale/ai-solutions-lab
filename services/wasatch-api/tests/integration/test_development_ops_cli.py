@@ -8,7 +8,6 @@ import subprocess
 import uuid
 from pathlib import Path
 
-from development_ops.database import ensure_development_ops_database
 from development_ops.persistence.repository import (
     ActivityEventQuery,
     ActivityEventRepository,
@@ -16,7 +15,7 @@ from development_ops.persistence.repository import (
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
-from wasatch_api.testing.postgres import wasatch_development_ops_database_url_for_tests
+from wasatch_api.testing.postgres import assert_engine_is_disposable
 
 REPO_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..", "..")
@@ -31,9 +30,8 @@ def _run_cli(
     from alembic.config import Config
 
     run_env = os.environ.copy()
-    ops_url = ensure_development_ops_database(
-        wasatch_development_ops_database_url_for_tests()
-    )
+    assert_engine_is_disposable(engine)
+    ops_url = engine.url.render_as_string(hide_password=False)
     alembic_cfg = Config(str(API_ROOT / "alembic.ini"))
     alembic_cfg.set_main_option("sqlalchemy.url", ops_url)
     alembic_cfg.set_main_option("script_location", str(API_ROOT / "alembic"))
@@ -52,7 +50,7 @@ def _run_cli(
     )
 
 
-def test_cli_records_correlated_run_lifecycle(engine: Engine) -> None:
+def test_cli_records_correlated_run_lifecycle(ops_test_engine: Engine) -> None:
     run_id = uuid.uuid4()
     base_env = {
         "DEVELOPMENT_OPS_RUN_ID": str(run_id),
@@ -105,33 +103,26 @@ def test_cli_records_correlated_run_lifecycle(engine: Engine) -> None:
         ),
     ]
     for step in steps:
-        result = _run_cli(engine, *step, env=base_env)
+        result = _run_cli(ops_test_engine, *step, env=base_env)
         assert result.returncode == 0, result.stderr
         payload = json.loads(result.stdout)
         assert payload["persisted"] is True
         assert payload["run_id"] == str(run_id)
 
-    from sqlalchemy import create_engine
-
-    ops_url = ensure_development_ops_database(
-        wasatch_development_ops_database_url_for_tests()
-    )
-    ops_engine = create_engine(ops_url, pool_pre_ping=True)
-    session = sessionmaker(bind=ops_engine, autoflush=False)()
+    session = sessionmaker(bind=ops_test_engine, autoflush=False)()
     try:
         events = ActivityEventRepository(session).search(
             ActivityEventQuery(run_id=run_id, limit=100)
         )
     finally:
         session.close()
-        ops_engine.dispose()
     assert len(events) == len(steps)
     types = {event.event_type.value for event in events}
     assert "run.started" in types
     assert "pr.opened" in types
 
 
-def test_cli_idempotency_replay(engine: Engine) -> None:
+def test_cli_idempotency_replay(ops_test_engine: Engine) -> None:
     run_id = uuid.uuid4()
     env = {"DEVELOPMENT_OPS_RUN_ID": str(run_id)}
     key = f"{run_id}:once"
@@ -144,8 +135,8 @@ def test_cli_idempotency_replay(engine: Engine) -> None:
         "--idempotency-key",
         key,
     ]
-    first = _run_cli(engine, *args, env=env)
-    second = _run_cli(engine, *args, env=env)
+    first = _run_cli(ops_test_engine, *args, env=env)
+    second = _run_cli(ops_test_engine, *args, env=env)
     assert first.returncode == 0
     assert second.returncode == 0
     assert json.loads(first.stdout)["created"] is True
@@ -180,11 +171,11 @@ def test_cli_persistence_failure_exits_nonzero() -> None:
     assert "persisted" in result.stderr or "persisted" in result.stdout
 
 
-def test_cli_confirm_slack_delivery(engine: Engine) -> None:
+def test_cli_confirm_slack_delivery(ops_test_engine: Engine) -> None:
     run_id = uuid.uuid4()
     env = {"DEVELOPMENT_OPS_RUN_ID": str(run_id)}
     recorded = _run_cli(
-        engine,
+        ops_test_engine,
         "record",
         "--event-type",
         "progress.report",
@@ -195,7 +186,7 @@ def test_cli_confirm_slack_delivery(engine: Engine) -> None:
     assert recorded.returncode == 0
     event_id = json.loads(recorded.stdout)["event_id"]
     confirmed = _run_cli(
-        engine,
+        ops_test_engine,
         "confirm-slack",
         "--event-id",
         event_id,
