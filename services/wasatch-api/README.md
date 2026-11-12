@@ -6,8 +6,6 @@ This is the modular-monolith slice. Synthetic procedure-page embeddings live in 
 
 `GET /api/v1/support-tickets/{ticket_id}/retrieval` reads persisted ticket, message, interaction, and work-order text for that ticket's customer, then matches synthetic procedure pages under `data/documents/procedures/`. When `procedure_page_embeddings` has been filled, the procedure match may use those stored vectors. The history query stays. The route does not call a network model.
 
-Finance on `develop` is read-only reference data from Alembic revisions `0008`, `0010`, and `0011`. Authenticated laboratory actors may list and fetch synthetic invoices (`GET /api/v1/invoices`, `GET /api/v1/invoices/{invoice_id}`), list invoice lines for an invoice and fetch one line by id (`GET /api/v1/invoices/{invoice_id}/lines`, `GET /api/v1/invoice-lines/{invoice_line_id}`), and list or fetch payments (`GET /api/v1/payments`, `GET /api/v1/payments/{payment_id}`). Amounts are persisted reference values only. These routes do not post invoices, apply payments, or change totals. Approver and dispatcher commands elsewhere in the slice still do not post finance.
-
 ## Prerequisites
 
 - Python 3.12+

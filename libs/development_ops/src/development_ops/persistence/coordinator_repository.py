@@ -1,16 +1,35 @@
-"""Persistence for coordinator task runtime state."""
+"""Persistence for coordinator task runtime state.
+
+State transitions here are the durability boundary for the coordinator. Claiming
+uses a single conditional ``UPDATE`` so two concurrent ticks cannot own the same
+task, and lease timestamps let a restart reclaim abandoned work without stealing
+from a live run.
+"""
 
 from __future__ import annotations
 
+import os
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from development_ops.backlog import BacklogDocument, BacklogTaskStatus
 from development_ops.persistence.orm import CoordinatorTaskORM
-from development_ops.scheduling import RuntimeTaskStatus
+from development_ops.scheduling import (
+    SLOT_CONSUMING_STATUSES,
+    RuntimeTaskStatus,
+)
+
+DEFAULT_LEASE_SECONDS = 900
+
+# A claim is a compare-and-set. The guard repeats every reason a row must not be
+# claimed: it is already owned, or it is not claimable work.
+_CLAIMABLE_STATUSES = (
+    RuntimeTaskStatus.PENDING.value,
+    RuntimeTaskStatus.BLOCKED.value,
+)
 
 
 def _utc_now() -> datetime:
@@ -27,9 +46,22 @@ def _runtime_from_catalog(status: BacklogTaskStatus) -> str:
     return RuntimeTaskStatus.PENDING.value
 
 
+def lease_seconds_from_env() -> int:
+    raw = os.environ.get("DEVELOPMENT_OPS_LEASE_SECONDS", "").strip()
+    if not raw:
+        return DEFAULT_LEASE_SECONDS
+    try:
+        value = int(raw)
+    except ValueError:
+        return DEFAULT_LEASE_SECONDS
+    return value if value > 0 else DEFAULT_LEASE_SECONDS
+
+
 class CoordinatorTaskRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
+
+    # -- catalog -----------------------------------------------------------
 
     def sync_catalog(self, document: BacklogDocument) -> None:
         for task in document.tasks:
@@ -65,6 +97,172 @@ class CoordinatorTaskRepository:
     def get(self, task_id: str) -> CoordinatorTaskORM | None:
         return self._session.get(CoordinatorTaskORM, task_id)
 
+    def count_slot_consuming(self) -> int:
+        """Number of tasks actively holding an implementation slot."""
+        values = [status.value for status in SLOT_CONSUMING_STATUSES]
+        stmt = (
+            select(func.count())
+            .select_from(CoordinatorTaskORM)
+            .where(CoordinatorTaskORM.status.in_(values))
+        )
+        return int(self._session.scalar(stmt) or 0)
+
+    # -- claims ------------------------------------------------------------
+
+    def claim_for_implementation(
+        self,
+        task_id: str,
+        *,
+        run_id: uuid.UUID,
+        owner_agent: str | None,
+        branch_name: str | None = None,
+        base_branch: str | None = None,
+        lease_seconds: int | None = None,
+    ) -> bool:
+        """Atomically claim a task. Returns True only for the winning caller.
+
+        The ``WHERE`` clause repeats the eligibility rules, so a losing race or a
+        row already owned by another run updates zero rows and returns False.
+        """
+        now = _utc_now()
+        lease = lease_seconds if lease_seconds is not None else lease_seconds_from_env()
+        values: dict[str, object] = {
+            "status": RuntimeTaskStatus.IN_PROGRESS.value,
+            "active_run_id": run_id,
+            "owner_agent": owner_agent,
+            "lease_expires_at": now + timedelta(seconds=lease),
+            "heartbeat_at": now,
+            "attempt_count": CoordinatorTaskORM.attempt_count + 1,
+            "updated_at": now,
+        }
+        if branch_name:
+            values["branch_name"] = branch_name
+        if base_branch:
+            values["base_branch"] = base_branch
+        stmt = (
+            update(CoordinatorTaskORM)
+            .where(CoordinatorTaskORM.task_id == task_id)
+            .where(CoordinatorTaskORM.status.in_(_CLAIMABLE_STATUSES))
+            .where(CoordinatorTaskORM.active_run_id.is_(None))
+            .values(**values)
+        )
+        result = self._session.execute(stmt)
+        self._session.commit()
+        return result.rowcount == 1
+
+    def heartbeat(self, task_id: str, *, run_id: uuid.UUID) -> bool:
+        """Extend the lease for the run that owns the task."""
+        now = _utc_now()
+        stmt = (
+            update(CoordinatorTaskORM)
+            .where(CoordinatorTaskORM.task_id == task_id)
+            .where(CoordinatorTaskORM.active_run_id == run_id)
+            .values(
+                heartbeat_at=now,
+                lease_expires_at=now + timedelta(seconds=lease_seconds_from_env()),
+                updated_at=now,
+            )
+        )
+        result = self._session.execute(stmt)
+        self._session.commit()
+        return result.rowcount == 1
+
+    def reclaim_expired_leases(self, *, now: datetime | None = None) -> list[str]:
+        """Release in-flight tasks whose lease expired (crashed or stalled run).
+
+        Only tasks with a lease at or before ``now`` are released. A live run
+        with a fresh heartbeat is never touched. ``pr_open`` and
+        ``awaiting_merge`` rows are preserved: a task with an open pull request
+        is finished work, not an abandoned worker, so reclaiming it would lose
+        the PR tracking that merge reconciliation depends on.
+        """
+        moment = now or _utc_now()
+        in_flight = [RuntimeTaskStatus.IN_PROGRESS.value]
+        stmt = select(CoordinatorTaskORM).where(
+            CoordinatorTaskORM.status.in_(in_flight),
+            CoordinatorTaskORM.lease_expires_at.is_not(None),
+            CoordinatorTaskORM.lease_expires_at <= moment,
+        )
+        released: list[str] = []
+        for row in self._session.scalars(stmt).all():
+            row.status = RuntimeTaskStatus.PENDING.value
+            row.active_run_id = None
+            row.owner_agent = None
+            row.lease_expires_at = None
+            row.heartbeat_at = None
+            row.last_error = row.last_error or "lease expired; reclaimed"
+            row.updated_at = moment
+            released.append(row.task_id)
+        if released:
+            self._session.commit()
+        return released
+
+    def list_active_leases(
+        self, *, now: datetime | None = None
+    ) -> list[CoordinatorTaskORM]:
+        """Tasks holding a live (unexpired) lease.
+
+        Used by the runner to renew heartbeats for work it owns and by the
+        status command to show current leases.
+        """
+        moment = now or _utc_now()
+        stmt = (
+            select(CoordinatorTaskORM)
+            .where(CoordinatorTaskORM.lease_expires_at.is_not(None))
+            .where(CoordinatorTaskORM.lease_expires_at > moment)
+            .order_by(CoordinatorTaskORM.task_id)
+        )
+        return list(self._session.scalars(stmt).all())
+
+    def renew_leases(self, *, run_id: uuid.UUID) -> list[str]:
+        """Extend the lease for every in-flight task owned by ``run_id``.
+
+        A coordinator tick is periodic, so a live run must re-stamp the leases it
+        holds or a long task would look abandoned. Only rows still owned by this
+        run are renewed; nothing else is touched.
+        """
+        now = _utc_now()
+        owned = [
+            RuntimeTaskStatus.IN_PROGRESS.value,
+            RuntimeTaskStatus.PR_OPEN.value,
+            RuntimeTaskStatus.AWAITING_MERGE.value,
+        ]
+        stmt = (
+            update(CoordinatorTaskORM)
+            .where(CoordinatorTaskORM.active_run_id == run_id)
+            .where(CoordinatorTaskORM.status.in_(owned))
+            .values(
+                heartbeat_at=now,
+                lease_expires_at=now + timedelta(seconds=lease_seconds_from_env()),
+                updated_at=now,
+            )
+        )
+        result = self._session.execute(stmt)
+        self._session.commit()
+        if result.rowcount == 0:
+            return []
+        rows = self._session.scalars(
+            select(CoordinatorTaskORM.task_id)
+            .where(CoordinatorTaskORM.active_run_id == run_id)
+            .where(CoordinatorTaskORM.status.in_(owned))
+        ).all()
+        return [str(task_id) for task_id in rows]
+
+    def list_awaiting_pull_request(self) -> list[CoordinatorTaskORM]:
+        """Tasks waiting on a pull request to merge (finished implementation)."""
+        waiting = [
+            RuntimeTaskStatus.PR_OPEN.value,
+            RuntimeTaskStatus.AWAITING_MERGE.value,
+        ]
+        stmt = (
+            select(CoordinatorTaskORM)
+            .where(CoordinatorTaskORM.status.in_(waiting))
+            .order_by(CoordinatorTaskORM.task_id)
+        )
+        return list(self._session.scalars(stmt).all())
+
+    # -- transitions -------------------------------------------------------
+
     def mark_pr_open(
         self,
         task_id: str,
@@ -73,32 +271,27 @@ class CoordinatorTaskRepository:
         branch_name: str,
         pr_number: int,
         owner_agent: str | None,
+        base_branch: str | None = None,
+        awaiting_merge: bool = False,
     ) -> CoordinatorTaskORM:
         row = self._require(task_id)
-        row.status = RuntimeTaskStatus.PR_OPEN.value
+        row.status = (
+            RuntimeTaskStatus.AWAITING_MERGE.value
+            if awaiting_merge
+            else RuntimeTaskStatus.PR_OPEN.value
+        )
         row.active_run_id = run_id
         row.branch_name = branch_name
+        if base_branch:
+            row.base_branch = base_branch
         row.pr_number = pr_number
         row.owner_agent = owner_agent
-        row.updated_at = _utc_now()
-        self._session.commit()
-        return row
-
-    def mark_in_progress(
-        self,
-        task_id: str,
-        *,
-        run_id: uuid.UUID,
-        owner_agent: str | None,
-        branch_name: str | None = None,
-    ) -> CoordinatorTaskORM:
-        row = self._require(task_id)
-        row.status = RuntimeTaskStatus.IN_PROGRESS.value
-        row.active_run_id = run_id
-        row.owner_agent = owner_agent
-        if branch_name:
-            row.branch_name = branch_name
-        row.updated_at = _utc_now()
+        # A submitted PR no longer holds an implementation slot; the lease keeps
+        # the row protected until merge reconciliation completes.
+        now = _utc_now()
+        row.lease_expires_at = now + timedelta(seconds=lease_seconds_from_env())
+        row.heartbeat_at = now
+        row.updated_at = now
         self._session.commit()
         return row
 
@@ -107,33 +300,71 @@ class CoordinatorTaskRepository:
         row.status = RuntimeTaskStatus.MERGED.value
         if merge_commit_sha:
             row.merge_commit_sha = merge_commit_sha
+        # Merged work is terminal: drop ownership so nothing looks in-flight.
+        row.active_run_id = None
+        row.owner_agent = None
+        row.lease_expires_at = None
+        row.heartbeat_at = None
         row.updated_at = _utc_now()
         self._session.commit()
 
-    def mark_blocked(self, task_id: str, reason: str) -> None:
+    def mark_blocked(
+        self, task_id: str, reason: str, *, run_id: uuid.UUID | None = None
+    ) -> None:
         row = self._require(task_id)
         row.status = RuntimeTaskStatus.BLOCKED.value
         row.blocked_reason = reason
+        row.last_error = reason
+        row.active_run_id = None
+        row.owner_agent = None
+        row.lease_expires_at = None
+        row.heartbeat_at = None
+        row.updated_at = _utc_now()
+        self._session.commit()
+
+    def mark_pending(self, task_id: str, *, reason: str | None = None) -> None:
+        row = self._require(task_id)
+        row.status = RuntimeTaskStatus.PENDING.value
+        if reason:
+            row.blocked_reason = reason
+        row.active_run_id = None
+        row.owner_agent = None
+        row.lease_expires_at = None
+        row.heartbeat_at = None
         row.updated_at = _utc_now()
         self._session.commit()
 
     def release_stale_assignment(
-        self, task_id: str, *, reason: str, run_id: uuid.UUID | None
+        self,
+        task_id: str,
+        *,
+        reason: str,
+        run_id: uuid.UUID | None,
+        force: bool = False,
     ) -> bool:
+        """Release an in-flight assignment.
+
+        With ``run_id`` set, only that run's assignment is released unless
+        ``force`` is true. Prefer :meth:`reclaim_expired_leases` for recovery so a
+        live run is not disturbed.
+        """
         row = self.get(task_id)
         if row is None:
             return False
-        if run_id is not None and row.active_run_id != run_id:
+        if run_id is not None and row.active_run_id != run_id and not force:
             return False
         if row.status not in {
             RuntimeTaskStatus.IN_PROGRESS.value,
             RuntimeTaskStatus.PR_OPEN.value,
+            RuntimeTaskStatus.AWAITING_MERGE.value,
         }:
             return False
         row.status = RuntimeTaskStatus.PENDING.value
         row.blocked_reason = reason
         row.active_run_id = None
         row.owner_agent = None
+        row.lease_expires_at = None
+        row.heartbeat_at = None
         row.updated_at = _utc_now()
         self._session.commit()
         return True

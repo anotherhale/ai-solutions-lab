@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from development_ops.backlog import BacklogTask, BacklogTaskStatus
 from development_ops.scheduling import (
+    IN_FLIGHT_STATUSES,
+    SLOT_CONSUMING_STATUSES,
     CoordinatorTaskView,
     RuntimeTaskStatus,
     merge_backlog_with_runtime,
@@ -38,6 +40,30 @@ def test_selects_independent_task_while_pr_open_on_another() -> None:
     decision = select_next_eligible(tasks, max_concurrent=3, active_count=1)
     assert decision.task is not None
     assert decision.task.task_id == "TASK-B"
+
+
+def test_awaiting_merge_does_not_consume_slot() -> None:
+    tasks = [
+        _view("TASK-A", runtime=RuntimeTaskStatus.AWAITING_MERGE),
+        _view("TASK-B"),
+    ]
+    decision = select_next_eligible(tasks, max_concurrent=1, active_count=0)
+    assert decision.task is not None
+    assert decision.task.task_id == "TASK-B"
+
+
+def test_slot_consuming_statuses_only_include_in_progress() -> None:
+    assert SLOT_CONSUMING_STATUSES == frozenset({RuntimeTaskStatus.IN_PROGRESS})
+    assert RuntimeTaskStatus.PR_OPEN not in SLOT_CONSUMING_STATUSES
+    assert RuntimeTaskStatus.AWAITING_MERGE not in SLOT_CONSUMING_STATUSES
+
+
+def test_in_flight_statuses_cover_active_states() -> None:
+    assert RuntimeTaskStatus.IN_PROGRESS in IN_FLIGHT_STATUSES
+    assert RuntimeTaskStatus.PR_OPEN in IN_FLIGHT_STATUSES
+    assert RuntimeTaskStatus.AWAITING_MERGE in IN_FLIGHT_STATUSES
+    assert RuntimeTaskStatus.PENDING not in IN_FLIGHT_STATUSES
+    assert RuntimeTaskStatus.MERGED not in IN_FLIGHT_STATUSES
 
 
 def test_holds_task_until_dependency_merged() -> None:

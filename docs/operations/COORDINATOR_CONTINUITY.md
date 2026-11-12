@@ -22,24 +22,149 @@ cannot be enabled, or cloud agents exit after a single run.
 The coordinator runs as a **tick** (library, CLI, or `scripts/coordinator_tick.sh`):
 
 1. Sync `data/coordinator/backlog.yaml` into `development_ops.coordinator_tasks`.
-2. List open pull requests (via `gh` when available) and refresh task status.
-3. Optionally attempt **GraphQL** `enablePullRequestAutoMerge` (squash only).
-   Record the exact error when `autoMergeRequest` stays null; **do not block**
-   unrelated tasks.
-4. Select the next **eligible** task (respecting `depends_on` and
-   `DEVELOPMENT_OPS_MAX_CONCURRENT`). Only tasks with runtime status `in_progress`
-   (an agent is implementing) count toward the concurrency limit. Tasks in `pr_open`
-   awaiting human review do not. Open PRs on other tasks do not serialize the entire
-   backlog.
-5. Persist `coordinator.recovery`, `coordinator.scheduled`, and `task.selected`
+2. Optionally reclaim in-flight tasks whose lease expired (see [Recovery](#recovery)).
+3. List open pull requests (via `gh` when available) and refresh task status.
+4. Optionally attempt **GraphQL** `enablePullRequestAutoMerge` (squash only) for green pull
+   requests targeting `ai-dev`. Record the exact error when `autoMergeRequest` stays null;
+   **do not block** unrelated tasks.
+5. Select the next **eligible** task (respecting `depends_on` and
+   `DEVELOPMENT_OPS_MAX_CONCURRENT`). Open PRs on other tasks do not serialize the
+   entire backlog.
+6. Persist `coordinator.recovery`, `coordinator.scheduled`, and `task.selected`
    events before Slack notification.
+
+### Implementation slots
+
+Concurrency is measured by **implementation slots**, not by open pull requests. Only a task in
+`in_progress` consumes a slot. A task whose pull request is open (`pr_open`) or awaiting merge
+(`awaiting_merge`) has already released its implementer, so it never blocks new work. This is why
+three open pull requests do not consume three slots.
+
+A task is claimed with a single conditional `UPDATE`, so two concurrent ticks cannot own the same
+task. The losing tick records a skipped duplicate assignment and continues. Each claim sets a
+**lease** (`DEVELOPMENT_OPS_LEASE_SECONDS`, default 900). A live run extends it with a heartbeat;
+`mark_merged` and `mark_blocked` clear ownership and release the slot.
+
+### Merge safety
+
+Autonomy integrates only into **`ai-dev`** ([ADR 0010](../adr/0010-autonomous-integration-branch.md)).
+The auto-merge gate is enforced in `github_client`, and the coordinator evaluates the
+same gate through `PullRequestState.auto_merge_blockers()` so the two never disagree:
+
+- the base branch must be `ai-dev`; a pull request targeting `main`, `develop`, or any other
+  branch is refused, and `register_pull_request_opened` fails fast rather than record it;
+- the status check rollup must be green — `CheckRun` (GitHub Actions) and `StatusContext` (legacy
+  commit statuses) are both classified, and an empty rollup is unknown, never green;
+- a **draft** pull request is refused;
+- a pull request with **unresolved, non-outdated review threads** is refused (fetched through the
+  GraphQL `reviewThreads` connection, since `gh pr view` does not expose it);
+- a pull request that is **not mergeable** (`mergeable: CONFLICTING`, or merge state `DIRTY`) is
+  refused;
+- merged and closed-without-merge pull requests are refused.
+
+A blocked pull request is re-evaluated on every tick, so once the blocking condition clears
+(threads resolved, conflicts resolved, checks green) the next tick arms auto-merge without
+operator action. Each distinct blocking reason is recorded once as a `coordinator.auto_merge`
+warning, so a persistently blocked pull request does not flood the log.
+
+A task whose pull request is closed without merge is marked `blocked` for human attention instead
+of being recorded as merged.
+
+### Backlog catalog ownership
+
+`data/coordinator/backlog.yaml` is a **tracked** file, and the coordinator is its **only sanctioned
+writer**. Runtime scheduling state lives in PostgreSQL (`development_ops.coordinator_tasks`); the
+catalog is a durable, human-readable mirror of task status.
+
+Implementation agents must **not** edit the catalog. When several agents each hand-edited it to
+record their own merge, every later pull request conflicted on the file, and once it carried
+conflicts GitHub refused the merge — so the coordinator could not auto-merge and the pull request
+stalled. Instead:
+
+- after GitHub confirms a merge, the coordinator marks the task merged in the catalog through
+  `development_ops.catalog.YamlBacklogCatalogWriter`;
+- the writer is line-preserving (comments, ordering, and formatting survive), atomic (temp file +
+  `os.replace`), `flock`-serialized, and idempotent (re-marking a merged task is a no-op);
+- it is enabled with `coordinator tick --update-catalog` (opt-in, default off), and a write failure
+  is a note, not a fatal error — runtime state is already durable and the next tick retries.
+
+Humans still edit the catalog to add or re-scope tasks; agents do not.
+
+### Isolated child worktrees (Phase C — implemented and wired in)
+
+Each autonomous task runs in its own Git worktree and branch, cut from the latest
+`origin/ai-dev`. The coordinator creates the worktree itself and launches the child with
+`workspace.working_dir` set to it and `worktree: false`. The agent runtime's built-in worktree
+isolation is deliberately **not** used: it starts from the repository default branch (`main`) and
+server-derives the path and branch, so it cannot be pinned to `ai-dev` or to a coordinator-chosen
+location.
+
+| Concern | Where | State |
+|---|---|---|
+| Create/reuse worktree from `origin/ai-dev`; branch `cursor/<task-id>` | `development_ops.worktrees.WorktreeManager` | Implemented, unit-tested |
+| Build conversation payload bound to the worktree (`worktree: false`) | `development_ops.child_agents` | Implemented, unit-tested |
+| Order register → prepare → launch → PR → cleanup | `development_ops.task_worktrees.TaskWorktreeOrchestrator` | Implemented, integration-tested |
+| Registry of task/branch/worktree/conversation | `development_ops.agent_worktrees` (migration `0014`) | Implemented, integration-tested |
+| Cleanup only after verified merge + clean tree | `TaskWorktreeOrchestrator.cleanup_after_merge` (re-verifies via `verify_pull_request_merged`) | Implemented, integration-tested |
+| Coordinator loop uses it | `development_ops.coordinator_engine` (`coordinator tick --worktrees`) | Implemented, end-to-end tested |
+| CLI subcommands | `development-ops worktree list\|status\|prepare\|launch\|cleanup` | Implemented, integration-tested |
+| Decision recorded in an ADR | `docs/adr/0012-isolated-worktrees-for-child-agents.md` | Written |
+
+Concurrency: two tasks get distinct paths (`<worktree_root>/<repo>/<task-id>`) and branches, so
+there is no shared writable directory. A per-task `fcntl` advisory lock (`WorktreeManager.task_lock`)
+serializes `prepare` and `cleanup`, and the registry's unique constraints on branch and worktree path
+back it at the database. A second `prepare` for the same task is idempotent.
+
+Failure handling: a failed launch marks the registry row `failed` and leaves the worktree in place;
+`recover_interrupted()` returns tasks in `preparing`/`failed` (never a task whose child was launched)
+so the coordinator can re-drive them, and the next `launch` reuses the existing worktree. A duplicate
+launch returns the existing conversation instead of starting a second child.
+
+Merge verification: cleanup never trusts a caller-supplied boolean. `cleanup_after_merge` requires the
+recorded pull request to exist, be merged, and target `ai-dev`; an unverifiable or wrong-branch merge
+fails closed and leaves the worktree in place. GitHub remains the only authority on merge status.
+
+The coordinator prepares worktrees automatically, but launching a real (paid) child conversation is an
+explicit operator action: `development-ops worktree launch` requires `--agent-settings`. See
+[../architecture/AGENT_OPERATING_MODEL.md](../architecture/AGENT_OPERATING_MODEL.md) and ADR 0012.
+
+### Persistent runner (Phase B — implemented)
+
+The tick above is driven by a long-running, restart-safe runner. It owns process
+lifecycle only; scheduling policy stays in the engine.
+
+| Concern | Implementation | Status |
+|---|---|---|
+| Loop, single-flight ticks, SIGTERM/SIGINT | `development_ops.runner.CoordinatorRunner` | Implemented, unit- and integration-tested |
+| Single-instance ownership (`flock`) | `development_ops.instance_lock.CoordinatorInstanceLock` | Implemented, integration-tested |
+| Durable pause/resume | `development_ops.runner_state.RunnerStateStore` | Implemented, integration-tested |
+| Config + fail-fast validation | `development_ops.runner_config.RunnerConfig` | Implemented, unit-tested |
+| Startup recovery, lease heartbeat | `runner_service.py` + `CoordinatorTaskRepository` | Implemented, integration-tested |
+| Structured JSON logs | `development_ops.runner_logging` | Implemented, unit-tested |
+| Read-only health | `development-ops runner status` | Implemented, integration-tested |
+| launchd integration | `infrastructure/launchd/` + `scripts/coordinator_runner.sh` | Template provided; **not** activated by CI |
+| Decision recorded in an ADR | `docs/adr/0013-persistent-coordinator-runner.md` | Written |
+
+```bash
+development-ops-record runner run      # loop until signalled
+development-ops-record runner once     # one recovery + tick cycle
+development-ops-record runner status   # read-only health
+development-ops-record runner pause --by "$USER" --reason maintenance
+development-ops-record runner resume
+```
+
+Ownership is a `flock` on a lock file, not a PID file: the kernel releases it when
+the owner dies, so a crash never leaves a permanent lock. This is a
+**single-workstation** guarantee and gives no protection across machines. See
+[COORDINATOR_RUNNER.md](COORDINATOR_RUNNER.md).
 
 ### Recovery
 
 | Variable | Purpose |
 |---|---|
-| `DEVELOPMENT_OPS_RECLAIM_STALE=1` | Release in-progress assignments owned by another `DEVELOPMENT_OPS_RUN_ID` |
+| `DEVELOPMENT_OPS_RECLAIM_STALE=1` | Release in-flight tasks whose lease expired. A live run with a fresh heartbeat is not touched |
 | `DEVELOPMENT_OPS_TASK_ID` | Resume an in-flight task instead of picking a new one |
+| `DEVELOPMENT_OPS_LEASE_SECONDS` | Lease length for a claim (default 900) |
 | `DEVELOPMENT_OPS_DISABLE_GITHUB=1` | Offline tick using backlog + persisted state only |
 
 ### Databases
@@ -65,27 +190,9 @@ delivery with `development-ops-record confirm-slack` when using MCP.
 
 ## Human intervention still required
 
-- Pull request **review** and ruleset enforcement on `develop`
+- Pull request **review** and ruleset enforcement on `ai-dev`
 - **Auto-merge** when GraphQL returns errors such as “Pull request is in clean status”
 - **Merge** of coordinated pull requests (agents never REST-merge)
-- Backlog edits in `ENGINEERING_BACKLOG.md` and `data/coordinator/backlog.yaml`
+- Backlog **task authoring** in `ENGINEERING_BACKLOG.md` and `data/coordinator/backlog.yaml`
+  (agents do not hand-edit the catalog; the coordinator records merges itself)
 - Resolving Alembic revision ordering when feature branches both add migrations
-- Closing **superseded** pull requests that only touched `data/coordinator/backlog.yaml`
-  after a consolidated catalog change merged
-
-## Superseded catalog-only pull requests
-
-After [pull request #61](https://github.com/anotherhale/ai-solutions-lab/pull/61)
-(`COORD-CATALOG-2`) and follow-up catalog reconciliation, these open pull requests
-are redundant. They repeat the same merged-marker edits. A human may close them
-without merging:
-
-| Pull request | Superseded by |
-|---|---|
-| [#53](https://github.com/anotherhale/ai-solutions-lab/pull/53) | [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58) (`COORD-PR-SLOT-1`, already on `develop`) |
-| [#55](https://github.com/anotherhale/ai-solutions-lab/pull/55) | [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) / [#62](https://github.com/anotherhale/ai-solutions-lab/pull/62) |
-| [#57](https://github.com/anotherhale/ai-solutions-lab/pull/57) | [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) |
-| [#59](https://github.com/anotherhale/ai-solutions-lab/pull/59) | [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) |
-| [#60](https://github.com/anotherhale/ai-solutions-lab/pull/60) | [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) |
-
-Agents must not open additional catalog-only branches for those merges.

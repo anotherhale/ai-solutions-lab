@@ -5,7 +5,7 @@
 # depends_on: task ids that must reach merged before this task is eligible
 
 repository: anotherhale/ai-solutions-lab
-integration_branch: develop
+integration_branch: ai-dev
 
 tasks:
   - id: FIN-1
@@ -28,108 +28,21 @@ tasks:
 
   - id: STATUS-1
     title: Refresh PROJECT_STATUS after FIN-2 and FIN-3 merge
-    status: merged
-    merge_commit: 5b076f7
+    status: in_progress
     depends_on: [FIN-3]
     pr_number: 38
     branch: cursor/project-status-fin-merge-ef97
 
   - id: DOC-COORD-1
     title: Coordinator continuity operating documentation
-    status: merged
-    merge_commit: c0ed984
+    status: in_progress
     depends_on: []
     branch: cursor/coordinator-continuity-ef97
     pr_number: 37
 
   - id: CONTRACT-FIN-1
     title: Finance enum alignment with JSON Schema
-    status: merged
-    merge_commit: 3c9a933
+    status: in_progress
     depends_on: [FIN-3]
     branch: cursor/contract-fin-1-513c
     pr_number: 39
-
-  - id: COORD-SYNC-1
-    title: Reconcile backlog catalog and status docs after CONTRACT-FIN-1
-    status: merged
-    merge_commit: a5f46e7
-    depends_on: [CONTRACT-FIN-1]
-    branch: cursor/coordinator-backlog-reconcile-1104
-    pr_number: 48
-
-  - id: DOC-DBMAP-1
-    title: Document finance tables in DATABASE_MAPPING.md
-    status: merged
-    merge_commit: 76e6e3f
-    depends_on: [CONTRACT-FIN-1]
-    branch: cursor/doc-dbmap-1-finance
-    pr_number: 49
-
-  - id: COORD-PR-SLOT-1
-    title: PR_OPEN tasks do not consume coordinator concurrency slots
-    status: merged
-    merge_commit: defca15
-    depends_on: []
-    branch: cursor/coordinator-tick-unblock-1104
-    pr_number: 58
-
-  - id: DOC-README-FIN-1
-    title: Finance read routes in wasatch-api README
-    status: merged
-    merge_commit: 7df5a56
-    depends_on: [FIN-3]
-    branch: cursor/doc-readme-fin-1
-    pr_number: 56
-
-  - id: DOC-DEBT-MIG-1
-    title: Align downgrade technical-debt note through Alembic 0011
-    status: in_progress
-    depends_on: [CONTRACT-FIN-1]
-    branch: cursor/doc-debt-mig-1-1104
-    pr_number: 50
-
-  - id: DOC-API-FIN-1
-    title: Document payment read routes in API_CONVENTIONS.md
-    status: in_progress
-    depends_on: [FIN-3]
-    branch: cursor/doc-api-fin-1
-    pr_number: 54
-
-  - id: PORT-CASE-FIN-1
-    title: Align laboratory case study with finance read routes
-    status: in_progress
-    depends_on: [CONTRACT-FIN-1]
-    branch: cursor/port-case-fin-1
-    pr_number: 51
-
-  - id: COORD-CATALOG-2
-    title: Consolidate coordinator catalog after finance documentation merges
-    status: merged
-    merge_commit: bcf404b
-    depends_on: []
-    branch: cursor/coord-catalog-consolidate-1104
-    pr_number: 61
-
-  - id: STATUS-2
-    title: Refresh PROJECT_STATUS after finance documentation merges
-    status: pending
-    depends_on:
-      - DOC-DEBT-MIG-1
-      - DOC-API-FIN-1
-      - PORT-CASE-FIN-1
-      - COORD-CATALOG-2
-
-  - id: COORD-STALE-1
-    title: Record superseded catalog-only pull requests after COORD-CATALOG-2
-    status: in_progress
-    depends_on: []
-    branch: cursor/coord-catalog-2-merged-marker
-    pr_number: 62
-
-  - id: SMOKE-FIN-1
-    title: Compose smoke checks for finance read routes
-    status: in_progress
-    depends_on: [FIN-3]
-    branch: cursor/smoke-fin-1-compose
-    pr_number: 63

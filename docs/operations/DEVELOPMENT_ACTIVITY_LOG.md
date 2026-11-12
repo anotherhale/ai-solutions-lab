@@ -53,6 +53,8 @@ after insert; event content remains append-only.
 | Variable | Purpose |
 |---|---|
 | `DEVELOPMENT_OPS_DATABASE_URL` | PostgreSQL URL for activity + coordinator state (default `wasatch_development_ops`) |
+| `DEVELOPMENT_OPS_TEST_DATABASE_URL` | Optional disposable ops-test URL for pytest; must name a `*_test`/`*_disposable` database |
+| `WASATCH_TEST_DATABASE_URL` | Disposable database for pytest; must name a `*_test`/`*_disposable` database |
 | `WASATCH_DATABASE_URL` | Wasatch API only; do **not** point laboratory agents at `wasatch_test` |
 | `DEVELOPMENT_OPS_RUN_ID` | Correlate all events in one agent/coordinator run |
 | `DEVELOPMENT_OPS_TASK_ID` | Active backlog/task identifier |
