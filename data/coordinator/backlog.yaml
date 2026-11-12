@@ -105,7 +105,8 @@ tasks:
 
   - id: COORD-CATALOG-2
     title: Consolidate coordinator catalog after finance documentation merges
-    status: in_progress
+    status: merged
+    merge_commit: bcf404b
     depends_on: []
     branch: cursor/coord-catalog-consolidate-1104
     pr_number: 61
@@ -118,3 +119,22 @@ tasks:
       - DOC-API-FIN-1
       - PORT-CASE-FIN-1
       - COORD-CATALOG-2
+
+  - id: COORD-STALE-1
+    title: Record superseded catalog-only pull requests after COORD-CATALOG-2
+    status: in_progress
+    depends_on: []
+    branch: cursor/coord-catalog-2-merged-marker
+    pr_number: 62
+
+  - id: SMOKE-FIN-1
+    title: Compose smoke checks for finance read routes
+    status: in_progress
+    depends_on: [FIN-3]
+    branch: cursor/smoke-fin-1-compose
+    pr_number: 63
+
+  - id: COORD-BACKLOG-3
+    title: Preregister open PRs and develop-sync note for coordinator automation
+    status: pending
+    depends_on: []

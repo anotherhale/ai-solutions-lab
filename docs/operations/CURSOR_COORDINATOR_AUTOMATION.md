@@ -10,6 +10,11 @@ It must invoke the coordinator script first.
 scripts/coordinator_automation_entrypoint.sh
 ```
 
+Before the entrypoint, reconcile the working tree with `origin/develop` when the
+automation branch lags integration (`git fetch origin develop` and merge or rebase).
+The tick reads `data/coordinator/backlog.yaml` from the working tree; a stale catalog
+marks completed work as still active and hides open pull requests from scheduling.
+
 That script:
 
 1. Migrates/prepares `wasatch_development_ops` (never `wasatch_test`).

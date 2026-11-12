@@ -70,3 +70,21 @@ delivery with `development-ops-record confirm-slack` when using MCP.
 - **Merge** of coordinated pull requests (agents never REST-merge)
 - Backlog edits in `ENGINEERING_BACKLOG.md` and `data/coordinator/backlog.yaml`
 - Resolving Alembic revision ordering when feature branches both add migrations
+- Closing **superseded** pull requests that only touched `data/coordinator/backlog.yaml`
+  after a consolidated catalog change merged
+
+## Superseded catalog-only pull requests
+
+After [pull request #61](https://github.com/anotherhale/ai-solutions-lab/pull/61)
+(`COORD-CATALOG-2`), these open pull requests repeat merged-marker catalog edits. A
+human may close them without merging:
+
+| Pull request | Superseded by |
+|---|---|
+| [#53](https://github.com/anotherhale/ai-solutions-lab/pull/53) | [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58) (`COORD-PR-SLOT-1`, on `develop`) |
+| [#55](https://github.com/anotherhale/ai-solutions-lab/pull/55) | [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) / [#62](https://github.com/anotherhale/ai-solutions-lab/pull/62) |
+| [#57](https://github.com/anotherhale/ai-solutions-lab/pull/57) | [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) |
+| [#59](https://github.com/anotherhale/ai-solutions-lab/pull/59) | [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) |
+| [#60](https://github.com/anotherhale/ai-solutions-lab/pull/60) | [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) |
+
+Agents must not open additional catalog-only branches for those merges.
