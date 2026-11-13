@@ -288,6 +288,7 @@ tasks:
 
   - id: DOC-DBMAP-2
     title: Document coordinator scheduling tables for Alembic 0012
-    status: in_progress
+    status: pr_open
     depends_on: [COORD-CATALOG-10]
     branch: cursor/doc-dbmap-coordinator-0012
+    pr_number: 88
