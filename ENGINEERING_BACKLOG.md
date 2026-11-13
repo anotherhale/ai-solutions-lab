@@ -373,6 +373,14 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Documentation only.
 - Acceptance met: `python3 scripts/validate_repo.py` passes; coordinator catalog marks STATUS-2 merged.
 
+### COORD-CATALOG-3 — Mark STATUS-2 merged in coordinator catalog
+
+- Status: in progress (pull request [#72](https://github.com/anotherhale/ai-solutions-lab/pull/72))
+- Depends on: STATUS-2
+- Set `STATUS-2` to `merged` at `0b8a571` in `data/coordinator/backlog.yaml`. Register `DOC-ENG-AIDEV-1` and follow-on `pending` tasks for the coordinator.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select a pending task after merge.
+
 ### DOC-ENG-AIDEV-1 — Document the `ai-dev` integration branch
 
 - Status: done in this change
@@ -389,6 +397,22 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 |---|---|
 | `develop` | Wasatch slice, finance read routes, `apps/wasatch-review`, coordinator catalog default |
 | `ai-dev` | Autonomous agents, review gate, child orchestration, ahead migrations until promoted |
+
+### FIN-4 — Filter work orders by `invoice_id`
+
+- Status: pending
+- Depends on: FIN-3
+- Add optional `invoice_id` query parameter to `GET /api/v1/work-orders`. Filter persisted rows using the `work_orders.invoice_id` foreign key from Alembic `0008`. No write routes.
+- Update `docs/architecture/API_CONVENTIONS.md` and add API tests using synthetic fixtures that already link work orders to invoices.
+- Acceptance: filtered list returns only matching work orders; CI green; finance row counts unchanged on unrelated writes.
+
+### STATUS-3 — Refresh PROJECT_STATUS after DOC-ENG-AIDEV-1
+
+- Status: pending
+- Depends on: DOC-ENG-AIDEV-1
+- Update `PROJECT_STATUS.md` with the integration-branch summary and catalog state after pull request #72 merges.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
 
 ## Explicitly out of the next implementation
 
