@@ -163,12 +163,14 @@ tasks:
     status: in_progress
     depends_on: [STATUS-3]
     branch: cursor/coord-catalog-4-post-74
+    pr_number: 76
 
   - id: STATUS-4
     title: Refresh PROJECT_STATUS after FIN-4 and catalog reconciliation
     status: in_progress
     depends_on: [FIN-4, STATUS-3]
     branch: cursor/coord-catalog-4-post-74
+    pr_number: 76
 
   - id: DOC-README-FIN-4
     title: Work-order invoice_id filter in wasatch-api README
