@@ -10,10 +10,10 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 | Item | Value |
 |---|---|
-| Assessed commit | `93c23c5fee314fb5ac8b4dc54d4b14ef84c9297a` |
-| Commit subject | COORD-CATALOG-12: catalog and PROJECT_STATUS after #96 (#97) |
-| Integration branch | `develop` at `93c23c5` |
-| Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `20`/`21` on 2026-11-13) |
+| Assessed commit | `2ade1aed3482ad94864abfd6635502f01768606a` |
+| Commit subject | COORD-CATALOG-13: catalog and PROJECT_STATUS after #97 (#98) |
+| Integration branch | `develop` at `2ade1ae` |
+| Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `22`/`21` on 2026-11-13) |
 | Production branch | `main` at `881cfc0` (unchanged at assessment) |
 | Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
 
@@ -26,7 +26,7 @@ That relationship was true at `881cfc0`. `develop` later received the Ruff pin (
 | Branch | Tip | Notes |
 |---|---|---|
 | `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
-| `develop` | `93c23c5` | Wasatch slice, finance read routes, coordinator lifecycle (ADR 0009, Alembic `0013`), catalog through COORD-CATALOG-12 (#97). Application database Alembic head `0013` on `development_ops`; Wasatch API head `0012`. |
+| `develop` | `2ade1ae` | Wasatch slice, finance read routes, coordinator lifecycle (ADR 0009, Alembic `0013`), catalog through COORD-CATALOG-13 (#98). Application database Alembic head `0013` on `development_ops`; Wasatch API head `0012`. |
 | `ai-dev` | `0af252d` | Autonomous agents, review gate, Alembic head through `0016` until promoted to `develop`. |
 | `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
@@ -134,10 +134,12 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | STATUS-9 PROJECT_STATUS after DOC-DBMAP-2 | Done in pull request [#96](https://github.com/anotherhale/ai-solutions-lab/pull/96). Documentation only. |
 | COORD-CATALOG-12 coordinator catalog after #96 | Done. Pull request [#97](https://github.com/anotherhale/ai-solutions-lab/pull/97) merged as `93c23c5`. Catalog marks #96 tasks merged. |
 | STATUS-10 PROJECT_STATUS after #96 | Done in pull request [#97](https://github.com/anotherhale/ai-solutions-lab/pull/97). Documentation only. |
-| COORD-CATALOG-13 coordinator catalog after #97 | In progress. Catalog marks #97 tasks merged. |
-| STATUS-11 PROJECT_STATUS after #97 | In progress. Documentation only. |
+| COORD-CATALOG-13 coordinator catalog after #97 | Done. Pull request [#98](https://github.com/anotherhale/ai-solutions-lab/pull/98) merged as `2ade1ae`. Catalog marks #97 tasks merged. |
+| STATUS-11 PROJECT_STATUS after #97 | Done in pull request [#98](https://github.com/anotherhale/ai-solutions-lab/pull/98). Documentation only. |
+| COORD-CATALOG-14 coordinator catalog after #98 | In progress. Catalog marks #98 tasks merged. |
+| STATUS-12 PROJECT_STATUS after #98 | In progress. Documentation only. |
 
-Open pull requests targeting `develop`: [#98](https://github.com/anotherhale/ai-solutions-lab/pull/98) (COORD-CATALOG-13 / STATUS-11). Superseded develop pull requests [#88](https://github.com/anotherhale/ai-solutions-lab/pull/88), [#89](https://github.com/anotherhale/ai-solutions-lab/pull/89), [#91](https://github.com/anotherhale/ai-solutions-lab/pull/91), and [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82) were closed without merge when [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95) landed.
+Open pull requests targeting `develop`: catalog follow-up for COORD-CATALOG-14 / STATUS-12 (this reconciliation pass). Superseded develop pull requests [#88](https://github.com/anotherhale/ai-solutions-lab/pull/88), [#89](https://github.com/anotherhale/ai-solutions-lab/pull/89), [#91](https://github.com/anotherhale/ai-solutions-lab/pull/91), and [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82) were closed without merge when [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95) landed.
 
 Open pull requests targeting `ai-dev` (do not block `develop` scheduling):
 
@@ -145,7 +147,7 @@ Open pull requests targeting `ai-dev` (do not block `develop` scheduling):
 |---|---|---|
 | [#93](https://github.com/anotherhale/ai-solutions-lab/pull/93) | DOC-BRANCH-POLICY-1 | Branch roles and deliberate promotion flow (ADR 0016). |
 | [#94](https://github.com/anotherhale/ai-solutions-lab/pull/94) | COORD-ENTRY-CATALOG-1, STATUS-AIDEV-1 | Consolidates #69 and #70 with one catalog entry per task; supersedes them. |
-| [#92](https://github.com/anotherhale/ai-solutions-lab/pull/92) | COORD-HARDEN-1 | Hardened coordinator. Blocked: GitHub refuses auto-merge on a clean pull request. |
+| [#92](https://github.com/anotherhale/ai-solutions-lab/pull/92) | COORD-HARDEN-1 | Phase E.2 coordinator CI checks and integration preflight. Five CI checks green; human review required. |
 
 Autonomous laboratory work continues on `ai-dev` until those pull requests merge.
 
