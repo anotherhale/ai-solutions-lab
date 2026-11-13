@@ -445,16 +445,34 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-5 — Mark DOC-README-FIN-4 merged in coordinator catalog
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/78
+- Merge: `c095cfe`
 - Depends on: DOC-README-FIN-4
 - Reconcile `data/coordinator/backlog.yaml` after pull request #77.
-- Acceptance: `python3 scripts/validate_repo.py` passes.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
 
 ### STATUS-5 — Refresh PROJECT_STATUS after DOC-README-FIN-4
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/78
+- Merge: `c095cfe`
 - Depends on: DOC-README-FIN-4
-- Update `PROJECT_STATUS.md` baseline and finance documentation rows through #77.
+- Updated `PROJECT_STATUS.md` baseline and finance documentation rows through #77.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
+
+### COORD-CATALOG-6 — Mark COORD-CATALOG-5 and STATUS-5 merged after #78
+
+- Status: in progress (this change)
+- Depends on: COORD-CATALOG-5 and STATUS-5
+- Flip catalog rows left `in_progress` when #78 merged; register DOC-API-FIN-4 as `pending`.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### DOC-API-FIN-4 — Work-order `invoice_id` filter in API_CONVENTIONS.md
+
+- Status: in progress (this change)
+- Depends on: FIN-4
+- Document optional `invoice_id` on `GET /api/v1/work-orders` in `docs/architecture/API_CONVENTIONS.md`, including an example request.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
 ## Explicitly out of the next implementation
