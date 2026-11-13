@@ -203,6 +203,7 @@ tasks:
     status: in_progress
     depends_on: [COORD-CATALOG-5, STATUS-5]
     branch: cursor/coord-catalog-6-post-78
+    pr_number: 79
 
   - id: DOC-API-FIN-4
     title: Work-order invoice_id filter in API_CONVENTIONS.md
