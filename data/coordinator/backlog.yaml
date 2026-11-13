@@ -184,14 +184,28 @@ tasks:
 
   - id: COORD-CATALOG-5
     title: Mark DOC-README-FIN-4 merged in coordinator catalog
-    status: in_progress
+    status: merged
+    merge_commit: c095cfe
     depends_on: [DOC-README-FIN-4]
     branch: cursor/coord-catalog-5-post-77
     pr_number: 78
 
   - id: STATUS-5
     title: Refresh PROJECT_STATUS after DOC-README-FIN-4
-    status: in_progress
+    status: merged
+    merge_commit: c095cfe
     depends_on: [DOC-README-FIN-4]
     branch: cursor/coord-catalog-5-post-77
     pr_number: 78
+
+  - id: COORD-CATALOG-6
+    title: Mark COORD-CATALOG-5 and STATUS-5 merged after pull request #78
+    status: in_progress
+    depends_on: [COORD-CATALOG-5, STATUS-5]
+    branch: cursor/coord-catalog-6-post-78
+
+  - id: DOC-API-FIN-4
+    title: Work-order invoice_id filter in API_CONVENTIONS.md
+    status: in_progress
+    depends_on: [FIN-4]
+    branch: cursor/coord-catalog-6-post-78
