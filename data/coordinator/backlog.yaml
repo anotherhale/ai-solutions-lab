@@ -315,12 +315,14 @@ tasks:
     status: in_progress
     depends_on: [COORD-CATALOG-11, STATUS-9]
     branch: cursor/coord-catalog-12-post-96
+    pr_number: 97
 
   - id: STATUS-10
     title: Refresh PROJECT_STATUS after #96
     status: in_progress
     depends_on: [COORD-CATALOG-11, STATUS-9]
     branch: cursor/coord-catalog-12-post-96
+    pr_number: 97
 
   - id: COORD-BACKLOG-PR-OPEN-1
     title: Accept lifecycle statuses in the backlog catalog YAML
