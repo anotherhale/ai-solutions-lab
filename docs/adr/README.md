@@ -69,3 +69,4 @@ Optional sections such as related ADRs or rollback notes may be added when they 
 | [0013](0013-persistent-coordinator-runner.md) | Persistent coordinator runner with single-workstation ownership | Accepted |
 | [0014](0014-autonomous-integration-branch-consolidation.md) | One authoritative integration branch and coordinator-owned backlog catalog | Accepted |
 | [0015](0015-bounded-concurrent-child-agents.md) | Bounded concurrent child-agent orchestration | Accepted |
+| [0016](0016-branch-promotion-policy.md) | Branch roles and deliberate promotion flow | Accepted |

@@ -4,7 +4,7 @@ This workflow applies to human contributors and AI coding agents. Persistent age
 
 ## Branch Naming
 
-Create branches from an updated `ai-dev`. `ai-dev` is the autonomous integration branch. `main` is the production branch. `develop` is a protected human branch and is no longer the integration branch. Do not commit directly to `ai-dev`, `develop`, or `main`. See [ADR 0010](adr/0010-autonomous-integration-branch.md).
+Create branches from an updated `ai-dev`. `ai-dev` is the authoritative autonomous development and integration branch. `develop` is the laboratory integration and acceptance branch. `main` is the production branch. Do not commit directly to `ai-dev`, `develop`, or `main`. Promotion is deliberate and one-directional: `ai-dev → develop → main`, and never automatic. See [ADR 0010](adr/0010-autonomous-integration-branch.md) and [ADR 0016](adr/0016-branch-promotion-policy.md).
 
 | Prefix | Use |
 |---|---|

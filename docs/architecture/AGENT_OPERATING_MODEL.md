@@ -19,13 +19,15 @@ Prior chat is not a source of status. The tree and the documents above are. If a
 
 | Branch | Role |
 |---|---|
-| `ai-dev` | Autonomous integration branch. Autonomous pull requests merge here. |
-| `develop` | Protected branch. No longer the autonomous integration branch. |
-| `main` | Stable release branch. Exclusively human-controlled. |
+| `ai-dev` | Authoritative autonomous development and integration branch. Autonomous pull requests merge here. |
+| `develop` | Laboratory integration and acceptance branch. |
+| `main` | Production branch. Exclusively human-controlled. |
 
 Create feature branches from an up-to-date `ai-dev`. `ai-dev` was cut from `main`; `develop` was created from `main` at `881cfc0`. Do not recreate either branch.
 
-Never merge to `main`. Never force-push `main`, `develop`, or `ai-dev`. A normal fast-forward or a pull-request merge on `ai-dev` is the integration path. Autonomous processes never open or merge a pull request into `main`; promotion from `ai-dev` to `main` is a human step. The coordinator owns merges. After opening a pull request against `ai-dev`, an agent records `pr-opened`, attempts the approved GraphQL auto-merge when appropriate, and **does not wait for merge** before the coordinator selects the next independent backlog task. See [../operations/COORDINATOR_CONTINUITY.md](../operations/COORDINATOR_CONTINUITY.md) and [ADR 0010](../adr/0010-autonomous-integration-branch.md).
+Promotion is deliberate and validated, in one direction only: `ai-dev → develop → main`. Promotion from `ai-dev` to `develop` is a reviewed step, and promotion from `develop` to `main` is a reviewed release step. There is **no automatic synchronization** between long-lived branches: `develop` is never synchronized into `ai-dev`, and `ai-dev` is never automatically promoted into `develop` or `develop` into `main`. See [ADR 0016](../adr/0016-branch-promotion-policy.md).
+
+Never merge to `main`. Never force-push `main`, `develop`, or `ai-dev`. A normal fast-forward or a pull-request merge on `ai-dev` is the integration path. Autonomous processes never open or merge a pull request into `main`. The coordinator owns merges. After opening a pull request against `ai-dev`, an agent records `pr-opened`, attempts the approved GraphQL auto-merge when appropriate, and **does not wait for merge** before the coordinator selects the next independent backlog task. See [../operations/COORDINATOR_CONTINUITY.md](../operations/COORDINATOR_CONTINUITY.md) and [ADR 0010](../adr/0010-autonomous-integration-branch.md).
 
 Repository branch prefixes in [../DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) remain the human convention: `feature/`, `fix/`, `docs/`, `chore/`, `adr/`. Cloud-agent branches in this program use the `cursor/` prefix required by the agent runtime, still based on `ai-dev`.
 
