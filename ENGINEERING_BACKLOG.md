@@ -495,7 +495,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### PORT-CASE-FIN-2 — Case study finance read slice on `develop`
 
-- Status: pending
+- Status: in progress (this change)
 - Depends on: FIN-4 and DOC-API-FIN-4
 - Extend `docs/case-studies/wasatch-laboratory-slice.md` with read-only finance routes on `develop`, including optional `invoice_id` on `GET /api/v1/work-orders`.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
