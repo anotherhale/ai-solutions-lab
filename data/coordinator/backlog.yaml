@@ -116,7 +116,8 @@ tasks:
 
   - id: STATUS-2
     title: Refresh PROJECT_STATUS after finance documentation merges
-    status: in_progress
+    status: merged
+    merge_commit: 0b8a571
     depends_on:
       - DOC-DEBT-MIG-1
       - DOC-API-FIN-1
@@ -124,3 +125,27 @@ tasks:
       - COORD-CATALOG-2
     branch: cursor/status-2-1104
     pr_number: 71
+
+  - id: COORD-CATALOG-3
+    title: Mark STATUS-2 merged and document ai-dev branch
+    status: in_progress
+    depends_on: [STATUS-2]
+    branch: cursor/status-2-catalog-post-71
+    pr_number: 72
+
+  - id: DOC-ENG-AIDEV-1
+    title: Document ai-dev integration branch in ENGINEERING_BACKLOG
+    status: in_progress
+    depends_on: [STATUS-2]
+    branch: cursor/status-2-catalog-post-71
+    pr_number: 72
+
+  - id: FIN-4
+    title: Filter work orders by invoice_id
+    status: pending
+    depends_on: [FIN-3]
+
+  - id: STATUS-3
+    title: Refresh PROJECT_STATUS after DOC-ENG-AIDEV-1
+    status: pending
+    depends_on: [DOC-ENG-AIDEV-1]
