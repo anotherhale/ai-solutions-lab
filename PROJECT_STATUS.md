@@ -137,7 +137,7 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | COORD-CATALOG-13 coordinator catalog after #97 | In progress. Catalog marks #97 tasks merged. |
 | STATUS-11 PROJECT_STATUS after #97 | In progress. Documentation only. |
 
-Open pull requests targeting `develop`: COORD-CATALOG-13 / STATUS-11 follow-up opening on branch `cursor/coord-catalog-13-post-97`. Superseded develop pull requests [#88](https://github.com/anotherhale/ai-solutions-lab/pull/88), [#89](https://github.com/anotherhale/ai-solutions-lab/pull/89), [#91](https://github.com/anotherhale/ai-solutions-lab/pull/91), and [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82) were closed without merge when [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95) landed.
+Open pull requests targeting `develop`: [#98](https://github.com/anotherhale/ai-solutions-lab/pull/98) (COORD-CATALOG-13 / STATUS-11). Superseded develop pull requests [#88](https://github.com/anotherhale/ai-solutions-lab/pull/88), [#89](https://github.com/anotherhale/ai-solutions-lab/pull/89), [#91](https://github.com/anotherhale/ai-solutions-lab/pull/91), and [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82) were closed without merge when [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95) landed.
 
 Open pull requests targeting `ai-dev` (do not block `develop` scheduling):
 
