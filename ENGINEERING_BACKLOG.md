@@ -463,16 +463,41 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-6 — Mark COORD-CATALOG-5 and STATUS-5 merged after #78
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/79
+- Merge: `274703c`
 - Depends on: COORD-CATALOG-5 and STATUS-5
-- Flip catalog rows left `in_progress` when #78 merged; register DOC-API-FIN-4 as `pending`.
-- Acceptance: `python3 scripts/validate_repo.py` passes.
+- Reconciled catalog after pull request #78 and registered DOC-API-FIN-4.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
 
 ### DOC-API-FIN-4 — Work-order `invoice_id` filter in API_CONVENTIONS.md
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/79
+- Merge: `274703c`
 - Depends on: FIN-4
-- Document optional `invoice_id` on `GET /api/v1/work-orders` in `docs/architecture/API_CONVENTIONS.md`, including an example request.
+- Documented optional `invoice_id` on `GET /api/v1/work-orders` in `docs/architecture/API_CONVENTIONS.md`, including an example request.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
+
+### COORD-CATALOG-7 — Mark COORD-CATALOG-6 and DOC-API-FIN-4 merged after #79
+
+- Status: in progress (this change)
+- Depends on: COORD-CATALOG-6 and DOC-API-FIN-4
+- Flip catalog rows left `in_progress` when #79 merged; register PORT-CASE-FIN-2 as `pending`.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### STATUS-6 — Refresh PROJECT_STATUS after DOC-API-FIN-4
+
+- Status: in progress (this change)
+- Depends on: DOC-API-FIN-4
+- Update `PROJECT_STATUS.md` baseline and finance documentation rows through #79.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### PORT-CASE-FIN-2 — Case study finance read slice on `develop`
+
+- Status: pending
+- Depends on: FIN-4 and DOC-API-FIN-4
+- Extend `docs/case-studies/wasatch-laboratory-slice.md` with read-only finance routes on `develop`, including optional `invoice_id` on `GET /api/v1/work-orders`.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
 ## Explicitly out of the next implementation
