@@ -157,3 +157,10 @@ tasks:
     depends_on: [DOC-ENG-AIDEV-1]
     branch: cursor/status-3-project-status
     pr_number: 74
+
+  - id: COORD-CATALOG-4
+    title: Reconcile catalog after FIN-4 and STATUS-3 merges
+    status: in_progress
+    depends_on: [STATUS-3, FIN-4]
+    branch: cursor/status-3-post-fin4
+    pr_number: 75
