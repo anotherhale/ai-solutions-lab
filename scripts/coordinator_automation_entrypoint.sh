@@ -21,6 +21,9 @@ if [[ -z "${DEVELOPMENT_OPS_RUN_ID:-}" ]]; then
 fi
 export DEVELOPMENT_OPS_AGENT_NAME="${DEVELOPMENT_OPS_AGENT_NAME:-coordinator-automation}"
 export DEVELOPMENT_OPS_GITHUB_REPOSITORY="${DEVELOPMENT_OPS_GITHUB_REPOSITORY:-anotherhale/ai-solutions-lab}"
+# One variable governs both the catalog sync source and the delegation target so a
+# run never integrates on a different branch than the one it read catalog state from.
+export DEVELOPMENT_OPS_INTEGRATION_BRANCH="${DEVELOPMENT_OPS_INTEGRATION_BRANCH:-develop}"
 
 "${ROOT}/scripts/coordinator_sync_integration_backlog.sh"
 
@@ -42,5 +45,5 @@ scripts/coordinator_activity.sh task-delegated "Delegated ${SELECTED} to impleme
   --no-slack || true
 
 cat <<EOF
-{"delegation":"implementation","task_id":"${SELECTED}","instruction":"Implement backlog task ${SELECTED} on a cursor/* branch from develop. Record activity milestones, run tests, open a PR to develop, then run scripts/coordinator_tick.sh again without waiting for merge."}
+{"delegation":"implementation","task_id":"${SELECTED}","instruction":"Implement backlog task ${SELECTED} on a cursor/* branch from ${DEVELOPMENT_OPS_INTEGRATION_BRANCH}. Record activity milestones, run tests, open a PR to ${DEVELOPMENT_OPS_INTEGRATION_BRANCH}, then run scripts/coordinator_tick.sh again without waiting for merge."}
 EOF

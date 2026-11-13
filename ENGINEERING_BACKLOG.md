@@ -546,18 +546,52 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-10 — Mark DOC-DEBT-MIG-2 merged after #86
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/87
+- Merge: `e8c2a22`
 - Depends on: DOC-DEBT-MIG-2, COORD-ENTRY-SYNC-1, and STATUS-7
-- Reconcile `data/coordinator/backlog.yaml` after pull request #86; register `DOC-DBMAP-2`.
-- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select a pending task after merge.
+- Reconciled `data/coordinator/backlog.yaml` after pull request #86; registered `DOC-DBMAP-2`.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
 
 ### STATUS-8 — Refresh PROJECT_STATUS after DOC-DEBT-MIG-2
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/87
+- Merge: `e8c2a22`
 - Depends on: DOC-DEBT-MIG-2
-- Update baseline, current-work table, and superseded open-pull-request notes through #85 and #86.
+- Updated baseline, current-work table, and superseded open-pull-request notes through #85 and #86.
+- Documentation only.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
+
+### DOC-DBMAP-2 — Coordinator scheduling tables in DATABASE_MAPPING.md
+
+- Status: in progress (pull request [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95))
+- Depends on: COORD-CATALOG-10
+- Update `docs/architecture/DATABASE_MAPPING.md` for the `development_ops` schema: `activity_events`, `coordinator_tasks`, the extended `event_type` check, and the task lifecycle statuses.
+- No schema, migration, or API changes beyond documentation.
+- Acceptance: `python3 scripts/validate_repo.py` passes; table list matches the `development_ops` revisions.
+
+### COORD-CATALOG-11 — Mark DOC-DBMAP-2 merged after #95
+
+- Status: pending
+- Depends on: DOC-DBMAP-2
+- Reconcile `data/coordinator/backlog.yaml` when the DOC-DBMAP-2 change merges; register the next eligible documentation task.
+- Acceptance: coordinator tick selects a new task after merge without duplicate assignment.
+
+### STATUS-9 — Refresh PROJECT_STATUS after DOC-DBMAP-2
+
+- Status: pending
+- Depends on: DOC-DBMAP-2
+- Update `PROJECT_STATUS.md` for the coordinator documentation delivered with DOC-DBMAP-2.
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### COORD-BACKLOG-PR-OPEN-1 — Catalog lifecycle statuses
+
+- Status: in progress (pull request [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95))
+- Depends on: none
+- Teach the backlog catalog and coordinator a single task lifecycle (`pending`, `assigned`, `in_progress`, `pr_open`, `merge_ready`, `merged`, `blocked`) and reconcile catalog sync monotonically so a stale row never regresses a merged task.
+- Acceptance: `pytest libs/development_ops` passes; `ruff check` passes.
 
 ## Explicitly out of the next implementation
 

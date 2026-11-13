@@ -21,6 +21,31 @@ class PullRequestState:
     auto_merge_enabled: bool
     checks_green: bool | None
     review_decision: str | None
+    closed: bool = False
+
+    @property
+    def has_conflicts(self) -> bool:
+        return (self.mergeable or "").upper() == "CONFLICTING"
+
+    @property
+    def closed_unmerged(self) -> bool:
+        return self.closed and not self.merged
+
+    @property
+    def merge_ready(self) -> bool:
+        """The pull request is ready to merge, regardless of auto-merge support.
+
+        Merge readiness is a property of the change (green required checks, no
+        conflict, still open). GitHub may refuse ``enablePullRequestAutoMerge``
+        for a pull request that is already in a clean status; that refusal does
+        not make the pull request unready.
+        """
+        return bool(
+            self.checks_green
+            and not self.merged
+            and not self.closed
+            and not self.has_conflicts
+        )
 
 
 @dataclass(frozen=True, slots=True)

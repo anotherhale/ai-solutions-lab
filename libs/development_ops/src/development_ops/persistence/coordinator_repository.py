@@ -18,13 +18,46 @@ def _utc_now() -> datetime:
 
 
 def _runtime_from_catalog(status: BacklogTaskStatus) -> str:
-    if status == BacklogTaskStatus.MERGED:
+    mapping = {
+        BacklogTaskStatus.PENDING: RuntimeTaskStatus.PENDING.value,
+        BacklogTaskStatus.ASSIGNED: RuntimeTaskStatus.ASSIGNED.value,
+        BacklogTaskStatus.IN_PROGRESS: RuntimeTaskStatus.IN_PROGRESS.value,
+        BacklogTaskStatus.PR_OPEN: RuntimeTaskStatus.PR_OPEN.value,
+        BacklogTaskStatus.MERGE_READY: RuntimeTaskStatus.MERGE_READY.value,
+        BacklogTaskStatus.MERGED: RuntimeTaskStatus.MERGED.value,
+        BacklogTaskStatus.BLOCKED: RuntimeTaskStatus.BLOCKED.value,
+    }
+    return mapping[status]
+
+
+# Catalog sync must never move a task backwards. A later lifecycle state wins so
+# that a stale catalog row cannot regress runtime state that GitHub already
+# advanced (for example, a merged task is never reopened by a pending row).
+_RUNTIME_PRECEDENCE: dict[str, int] = {
+    RuntimeTaskStatus.PENDING.value: 0,
+    RuntimeTaskStatus.ASSIGNED.value: 1,
+    RuntimeTaskStatus.IN_PROGRESS.value: 2,
+    RuntimeTaskStatus.PR_OPEN.value: 3,
+    RuntimeTaskStatus.MERGE_READY.value: 4,
+    RuntimeTaskStatus.MERGED.value: 5,
+}
+
+
+def reconcile_status(current: str, catalog: BacklogTaskStatus) -> str:
+    """Return the runtime status after applying a catalog row to current state.
+
+    Catalog sync never moves a task backwards: the later of the current runtime
+    status and the catalog status wins. ``merged`` and ``blocked`` are terminal
+    and always apply.
+    """
+    if catalog == BacklogTaskStatus.MERGED:
         return RuntimeTaskStatus.MERGED.value
-    if status == BacklogTaskStatus.IN_PROGRESS:
-        return RuntimeTaskStatus.PR_OPEN.value
-    if status == BacklogTaskStatus.BLOCKED:
+    if catalog == BacklogTaskStatus.BLOCKED:
         return RuntimeTaskStatus.BLOCKED.value
-    return RuntimeTaskStatus.PENDING.value
+    candidate = _runtime_from_catalog(catalog)
+    if _RUNTIME_PRECEDENCE.get(candidate, 0) > _RUNTIME_PRECEDENCE.get(current, 0):
+        return candidate
+    return current
 
 
 class CoordinatorTaskRepository:
@@ -49,13 +82,14 @@ class CoordinatorTaskRepository:
                 continue
             row.title = task.title
             row.depends_on = list(task.depends_on)
-            if task.status == BacklogTaskStatus.MERGED:
-                row.status = RuntimeTaskStatus.MERGED.value
-                if task.merge_commit:
-                    row.merge_commit_sha = task.merge_commit
-            elif row.status == RuntimeTaskStatus.PENDING.value and task.pr_number:
-                row.pr_number = task.pr_number
-                row.branch_name = task.branch
+            row.status = reconcile_status(row.status, task.status)
+            if task.status == BacklogTaskStatus.MERGED and task.merge_commit:
+                row.merge_commit_sha = task.merge_commit
+            if task.status != BacklogTaskStatus.BLOCKED:
+                if task.pr_number is not None:
+                    row.pr_number = task.pr_number
+                if task.branch is not None:
+                    row.branch_name = task.branch
             row.updated_at = _utc_now()
         self._session.commit()
 
@@ -102,6 +136,19 @@ class CoordinatorTaskRepository:
         self._session.commit()
         return row
 
+    def mark_merge_ready(self, task_id: str) -> CoordinatorTaskORM:
+        """Record that the open pull request is ready to merge.
+
+        Merge readiness is derived from GitHub (a non-draft, conflict-free pull
+        request whose required checks are green) and is independent of whether
+        GitHub will accept an auto-merge request.
+        """
+        row = self._require(task_id)
+        row.status = RuntimeTaskStatus.MERGE_READY.value
+        row.updated_at = _utc_now()
+        self._session.commit()
+        return row
+
     def mark_merged(self, task_id: str, *, merge_commit_sha: str | None) -> None:
         row = self._require(task_id)
         row.status = RuntimeTaskStatus.MERGED.value
@@ -126,8 +173,10 @@ class CoordinatorTaskRepository:
         if run_id is not None and row.active_run_id != run_id:
             return False
         if row.status not in {
+            RuntimeTaskStatus.ASSIGNED.value,
             RuntimeTaskStatus.IN_PROGRESS.value,
             RuntimeTaskStatus.PR_OPEN.value,
+            RuntimeTaskStatus.MERGE_READY.value,
         }:
             return False
         row.status = RuntimeTaskStatus.PENDING.value
