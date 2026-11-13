@@ -13,7 +13,7 @@ scripts/coordinator_automation_entrypoint.sh
 That script:
 
 1. Migrates/prepares `wasatch_development_ops` (never `wasatch_test`).
-2. Runs `development-ops-record coordinator tick` (GitHub reconcile, optional auto-merge).
+2. Runs `development-ops-record coordinator tick --update-catalog` (GitHub reconcile, marks merged tasks in the catalog, optional auto-merge).
 3. Emits JSON including `selected_task_id` when a new assignment is made.
 4. Records `task.delegated` when a task is handed to an implementation agent.
 

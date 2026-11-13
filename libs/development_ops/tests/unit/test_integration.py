@@ -73,5 +73,6 @@ def test_automation_entrypoint_does_not_hardcode_a_branch() -> None:
         / "coordinator_automation_entrypoint.sh"
     ).read_text(encoding="utf-8")
     assert "development-ops-record delegation" in script
+    assert "--update-catalog" in script
     assert "from develop" not in script
     assert "PR to develop" not in script
