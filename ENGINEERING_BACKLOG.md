@@ -673,17 +673,37 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-16 — Mark COORD-CATALOG-15 and STATUS-13 merged after #100
 
-- Status: in progress
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/101
+- Merge: `2ebae87`
 - Depends on: COORD-CATALOG-15 and STATUS-13
 - Reconciled `data/coordinator/backlog.yaml` after pull request #100.
 - Documentation only.
-- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select work after merge.
+- Acceptance met: `python3 scripts/validate_repo.py` passes; coordinator tick can select work after merge.
 
 ### STATUS-14 — Refresh PROJECT_STATUS after #100
 
-- Status: in progress
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/101
+- Merge: `2ebae87`
 - Depends on: COORD-CATALOG-15 and STATUS-13
 - Updated baseline and open-pull-request notes after #100 merge.
+- Documentation only.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
+
+### COORD-CATALOG-17 — Mark COORD-CATALOG-16 and STATUS-14 merged after #101
+
+- Status: in progress
+- Depends on: COORD-CATALOG-16 and STATUS-14
+- Reconciled `data/coordinator/backlog.yaml` after pull request #101.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes; develop catalog has no stale `in_progress` rows for merged #101 work.
+
+### STATUS-15 — Refresh PROJECT_STATUS after #101
+
+- Status: in progress
+- Depends on: COORD-CATALOG-16 and STATUS-14
+- Updated baseline and open-pull-request notes after #101 merge.
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
