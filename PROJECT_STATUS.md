@@ -10,10 +10,10 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 | Item | Value |
 |---|---|
-| Assessed commit | `0a0ee7ba85797cbe5bcab1dccf80393ffcf154d2` |
-| Commit subject | COORD-CATALOG-3: mark STATUS-2 merged after PR #71 (#72) |
-| Integration branch | `develop` at `0a0ee7b` |
-| Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `7` then `21` on 2026-11-13) |
+| Assessed commit | `d54ff60b1a309b04f17225217079226f15435a86` |
+| Commit subject | FIN-4: filter work orders by invoice_id (#73) |
+| Integration branch | `develop` at `d54ff60` |
+| Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `8` then `21` on 2026-11-13) |
 | Production branch | `main` at `881cfc0` (unchanged at assessment) |
 | Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
 
@@ -26,7 +26,7 @@ That relationship was true at `881cfc0`. `develop` later received the Ruff pin (
 | Branch | Tip | Notes |
 |---|---|---|
 | `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
-| `develop` | `0a0ee7b` | Wasatch slice and coordinator catalog default. Open [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) (FIN-4). |
+| `develop` | `d54ff60` | Wasatch slice, FIN-4 work-order filter, coordinator catalog default. Open [#74](https://github.com/anotherhale/ai-solutions-lab/pull/74) (STATUS-3). |
 | `ai-dev` | `0af252d` | Autonomous agents, review gate, Alembic head through `0016` until promoted to `develop`. |
 | `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
@@ -112,12 +112,13 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | STATUS-2 finance documentation refresh | Done. Pull request [#71](https://github.com/anotherhale/ai-solutions-lab/pull/71) merged as `0b8a571`. Documentation only. |
 | COORD-CATALOG-3 coordinator catalog after STATUS-2 | Done. Pull request [#72](https://github.com/anotherhale/ai-solutions-lab/pull/72) merged as `0a0ee7b`. Catalog marks STATUS-2 merged; registers DOC-ENG-AIDEV-1, FIN-4, and STATUS-3. |
 | DOC-ENG-AIDEV-1 `ai-dev` branch documented in backlog | Done in pull request [#72](https://github.com/anotherhale/ai-solutions-lab/pull/72). `ENGINEERING_BACKLOG.md` integration-branch summary. Documentation only. |
+| FIN-4 work-order `invoice_id` filter | Done. Pull request [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) merged as `d54ff60`. Optional query parameter on `GET /api/v1/work-orders`. |
 
 Open pull requests targeting `develop`:
 
 | Pull request | Backlog task | Notes |
 |---|---|---|
-| [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) | FIN-4 | Optional `invoice_id` filter on `GET /api/v1/work-orders`. Squash auto-merge requested 2026-11-13. |
+| [#74](https://github.com/anotherhale/ai-solutions-lab/pull/74) | STATUS-3 | Refresh `PROJECT_STATUS.md` after DOC-ENG-AIDEV-1 and record FIN-4 merge. Documentation only. |
 
 Autonomous laboratory work also continues on `ai-dev` (open pull requests there do not block `develop` scheduling).
 
@@ -544,9 +545,9 @@ From the repository root, same session:
 
 ## Verification for STATUS-3
 
-Documentation only. Parent branch is `develop` at `0a0ee7b` after pull request [#72](https://github.com/anotherhale/ai-solutions-lab/pull/72) merged DOC-ENG-AIDEV-1. This change updates the baseline, integration-branch summary, open pull request [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73), and `ai-dev` divergence counts. No application code, migrations, or CI workflow files were edited.
+Documentation only. Parent branch is `develop` at `d54ff60` after pull request [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) merged FIN-4. This change updates the baseline, integration-branch summary, open pull request [#74](https://github.com/anotherhale/ai-solutions-lab/pull/74), FIN-4 completion, and `ai-dev` divergence counts (`8` then `21`). No application code, migrations, or CI workflow files were edited.
 
-From the repository root, coordinator run 2026-11-13:
+From the repository root, coordinator run 2026-11-13 (after PR #73 merge):
 
 | Command | Result | Exit |
 |---|---|---|

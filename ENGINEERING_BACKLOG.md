@@ -400,11 +400,12 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### FIN-4 — Filter work orders by `invoice_id`
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/73
+- Merge: `d54ff60`
 - Depends on: FIN-3
-- Add optional `invoice_id` query parameter to `GET /api/v1/work-orders`. Filter persisted rows using the `work_orders.invoice_id` foreign key from Alembic `0008`. No write routes.
-- Update `docs/architecture/API_CONVENTIONS.md` and add API tests using synthetic fixtures that already link work orders to invoices.
-- Acceptance: filtered list returns only matching work orders; CI green; finance row counts unchanged on unrelated writes.
+- Optional `invoice_id` query parameter on `GET /api/v1/work-orders`; API conventions and tests.
+- Acceptance met: filtered list returns only matching work orders; no write routes added.
 
 ### STATUS-3 — Refresh PROJECT_STATUS after DOC-ENG-AIDEV-1
 

@@ -144,7 +144,8 @@ tasks:
 
   - id: FIN-4
     title: Filter work orders by invoice_id
-    status: in_progress
+    status: merged
+    merge_commit: d54ff60
     depends_on: [FIN-3]
     branch: cursor/fin-4-work-order-invoice-filter
     pr_number: 73
