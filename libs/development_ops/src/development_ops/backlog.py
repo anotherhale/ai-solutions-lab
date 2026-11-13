@@ -12,7 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class BacklogTaskStatus(StrEnum):
     PENDING = "pending"
+    ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
+    PR_OPEN = "pr_open"
+    MERGE_READY = "merge_ready"
     MERGED = "merged"
     BLOCKED = "blocked"
 

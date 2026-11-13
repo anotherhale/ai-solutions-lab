@@ -126,17 +126,20 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | STATUS-7 PROJECT_STATUS after PORT-CASE-FIN-2 | Done in pull request [#85](https://github.com/anotherhale/ai-solutions-lab/pull/85). Documentation only. |
 | COORD-ENTRY-SYNC-1 catalog sync before coordinator tick | Done in pull request [#85](https://github.com/anotherhale/ai-solutions-lab/pull/85). |
 | DOC-DEBT-MIG-2 downgrade debt through Alembic 0012 | Done. Pull request [#86](https://github.com/anotherhale/ai-solutions-lab/pull/86) merged as `62067a2`. Documentation only. |
-| COORD-CATALOG-10 coordinator catalog after #86 | This change. Marks DOC-DEBT-MIG-2 merged; registers DOC-DBMAP-2. |
-| STATUS-8 PROJECT_STATUS after DOC-DEBT-MIG-2 | This change. Documentation only. |
+| COORD-CATALOG-10 coordinator catalog after #86 | Done. Pull request [#87](https://github.com/anotherhale/ai-solutions-lab/pull/87) merged as `e8c2a22`. Marks DOC-DEBT-MIG-2 merged; registers DOC-DBMAP-2. |
+| STATUS-8 PROJECT_STATUS after DOC-DEBT-MIG-2 | Done in pull request [#87](https://github.com/anotherhale/ai-solutions-lab/pull/87). Documentation only. |
+| DOC-DBMAP-2 coordinator tables in DATABASE_MAPPING | In progress. Pull request [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95). Documents the `development_ops` schema and task lifecycle. Documentation only. |
+| COORD-BACKLOG-PR-OPEN-1 catalog lifecycle statuses | In progress. Pull request [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95). One task lifecycle with monotonic catalog sync and a `merge_ready` status independent of auto-merge eligibility. |
 
-Open pull requests targeting `develop`: COORD-CATALOG-10 from this coordinator run. Close stale [#75](https://github.com/anotherhale/ai-solutions-lab/pull/75), [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81), [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82), and [#83](https://github.com/anotherhale/ai-solutions-lab/pull/83) without merging (superseded by #85, #84, and this catalog pass).
+Open pull requests targeting `develop`: [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95) from this coordinator run, consolidating the catalog lifecycle work and superseding [#88](https://github.com/anotherhale/ai-solutions-lab/pull/88), [#89](https://github.com/anotherhale/ai-solutions-lab/pull/89), and [#91](https://github.com/anotherhale/ai-solutions-lab/pull/91). Close stale [#75](https://github.com/anotherhale/ai-solutions-lab/pull/75), [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81), [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82), [#83](https://github.com/anotherhale/ai-solutions-lab/pull/83), and [#90](https://github.com/anotherhale/ai-solutions-lab/pull/90) without merging (superseded by #85, #84, #87, and #95).
 
 Open pull requests targeting `ai-dev` (do not block `develop` scheduling):
 
 | Pull request | Backlog task | Notes |
 |---|---|---|
-| [#69](https://github.com/anotherhale/ai-solutions-lab/pull/69) | COORD-ENTRY-CATALOG-1 | Entrypoint `--update-catalog`; marks COORD-REVIEW-GATE-1 merged on `ai-dev`. |
-| [#70](https://github.com/anotherhale/ai-solutions-lab/pull/70) | STATUS-AIDEV-1 | `PROJECT_STATUS` autonomous baseline on `ai-dev`. Merge after #69. |
+| [#93](https://github.com/anotherhale/ai-solutions-lab/pull/93) | DOC-BRANCH-POLICY-1 | Branch roles and deliberate promotion flow (ADR 0016). |
+| [#94](https://github.com/anotherhale/ai-solutions-lab/pull/94) | COORD-ENTRY-CATALOG-1, STATUS-AIDEV-1 | Consolidates #69 and #70 with one catalog entry per task; supersedes them. |
+| [#92](https://github.com/anotherhale/ai-solutions-lab/pull/92) | COORD-HARDEN-1 | Hardened coordinator. Blocked: GitHub refuses auto-merge on a clean pull request. |
 
 Autonomous laboratory work continues on `ai-dev` until those pull requests merge.
 
@@ -161,8 +164,8 @@ Open pull requests on `ai-dev` (do not block `develop` integration):
 
 | Pull request | Backlog task | Notes |
 |---|---|---|
-| [#69](https://github.com/anotherhale/ai-solutions-lab/pull/69) | COORD-ENTRY-CATALOG-1 | Catalog after review gate merge; entrypoint `--update-catalog`. |
-| [#70](https://github.com/anotherhale/ai-solutions-lab/pull/70) | STATUS-AIDEV-1 | `PROJECT_STATUS` baseline for `ai-dev` at `0af252d`. |
+| [#93](https://github.com/anotherhale/ai-solutions-lab/pull/93) | DOC-BRANCH-POLICY-1 | Branch roles and deliberate promotion flow (ADR 0016). |
+| [#94](https://github.com/anotherhale/ai-solutions-lab/pull/94) | COORD-ENTRY-CATALOG-1, STATUS-AIDEV-1 | Consolidates #69 and #70 with one catalog entry per task. |
 
 Seeded document counts: 30 documents, 31 document versions, and 18 extractions. `doc_0004` has two versions and current version `dv_0031`. Needs-review extractions are `dx_0003`, `dx_0009`, and `dx_0015`. Seeded governance counts: 10 approval requests, 11 decision-history rows, and 50 audit events. `msg_0016` (`pending_approval`, `requires_approval` true) references `apr_0001`. Audit rows are insert-only: revision `0003` installs a trigger that rejects `UPDATE` and `DELETE`. The customer-message decision, the extraction-review decision, and each follow-up transition insert one new audit row and do not update or delete audit events. A second seed skips existing audit rows. Seed copies fixture extraction status and does not accept a low-confidence or financial row.
 

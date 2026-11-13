@@ -22,6 +22,7 @@ from development_ops.recorder import ActivityRecorder
 from development_ops.scheduling import (
     CoordinatorTaskView,
     RuntimeTaskStatus,
+    is_active,
     merge_backlog_with_runtime,
     select_next_eligible,
 )
@@ -79,11 +80,7 @@ class CoordinatorEngine:
                 if (
                     row.active_run_id
                     and row.active_run_id != self._run_id
-                    and row.status
-                    in {
-                        RuntimeTaskStatus.IN_PROGRESS.value,
-                        RuntimeTaskStatus.PR_OPEN.value,
-                    }
+                    and is_active(RuntimeTaskStatus(row.status))
                 ):
                     self._tasks.release_stale_assignment(
                         row.task_id,
@@ -139,12 +136,28 @@ class CoordinatorEngine:
         if selected_id is None and decision.task is not None:
             existing = self._tasks.get(decision.task.task_id)
             if (
+                decision.task.pr_number is not None
+                and decision.task.pr_number in open_prs
+            ):
+                # The catalog already carries an open pull request for this task.
+                # Treat it as an existing assignment and never dispatch it again.
+                self._tasks.mark_pr_open(
+                    decision.task.task_id,
+                    run_id=self._run_id,
+                    branch_name=decision.task.branch_name or decision.task.task_id,
+                    pr_number=decision.task.pr_number,
+                    owner_agent=os.environ.get(
+                        "DEVELOPMENT_OPS_AGENT_NAME", "coordinator"
+                    ),
+                )
+                skipped_duplicate = True
+                notes.append(
+                    f"catalog task {decision.task.task_id} already has open pr "
+                    f"#{decision.task.pr_number}; skipped new assignment"
+                )
+            elif (
                 existing is not None
-                and existing.status
-                in {
-                    RuntimeTaskStatus.IN_PROGRESS.value,
-                    RuntimeTaskStatus.PR_OPEN.value,
-                }
+                and is_active(RuntimeTaskStatus(existing.status))
                 and existing.active_run_id != self._run_id
                 and os.environ.get("DEVELOPMENT_OPS_RECLAIM_STALE") != "1"
             ):
@@ -273,14 +286,21 @@ class CoordinatorEngine:
             state = by_pr.get(task.pr_number)
             row = self._tasks.get(task.id)
             if state is None:
-                if row and row.status == RuntimeTaskStatus.PR_OPEN.value:
+                if row and row.status in {
+                    RuntimeTaskStatus.PR_OPEN.value,
+                    RuntimeTaskStatus.MERGE_READY.value,
+                }:
                     notes.append(f"pr #{task.pr_number} closed or merged externally")
                     self._tasks.mark_merged(task.id, merge_commit_sha=task.merge_commit)
                 continue
             if state.merged:
                 self._tasks.mark_merged(task.id, merge_commit_sha=None)
                 continue
-            if row is not None and row.status == RuntimeTaskStatus.PENDING.value:
+            if row is not None and row.status in {
+                RuntimeTaskStatus.PENDING.value,
+                RuntimeTaskStatus.ASSIGNED.value,
+                RuntimeTaskStatus.IN_PROGRESS.value,
+            }:
                 self._tasks.mark_pr_open(
                     task.id,
                     run_id=row.active_run_id or self._run_id,
@@ -288,8 +308,25 @@ class CoordinatorEngine:
                     pr_number=state.number,
                     owner_agent=row.owner_agent,
                 )
+                row = self._tasks.get(task.id)
+            # Merge readiness is recorded independently of auto-merge eligibility.
+            # A clean, green pull request is merge-ready even when GitHub refuses
+            # to arm auto-merge ("Pull request is in clean status"); that refusal
+            # is not a test failure and never authorizes bypassing branch rules.
+            if (
+                state.merge_ready
+                and row is not None
+                and row.status
+                in {
+                    RuntimeTaskStatus.IN_PROGRESS.value,
+                    RuntimeTaskStatus.PR_OPEN.value,
+                }
+            ):
+                self._tasks.mark_merge_ready(task.id)
+                row = self._tasks.get(task.id)
             if (
                 state.checks_green
+                and not state.has_conflicts
                 and not state.auto_merge_enabled
                 and os.environ.get("DEVELOPMENT_OPS_ATTEMPT_AUTO_MERGE", "1") == "1"
             ):

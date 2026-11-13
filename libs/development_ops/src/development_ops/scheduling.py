@@ -17,10 +17,29 @@ class TaskBlockReason(StrEnum):
 
 class RuntimeTaskStatus(StrEnum):
     PENDING = "pending"
+    ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
     PR_OPEN = "pr_open"
+    MERGE_READY = "merge_ready"
     MERGED = "merged"
     BLOCKED = "blocked"
+
+
+# A task with an open pull request has already released its implementer, so it
+# never consumes an implementation slot (see COORDINATOR_CONTINUITY.md).
+ACTIVE_RUNTIME_STATUSES = frozenset(
+    {
+        RuntimeTaskStatus.ASSIGNED,
+        RuntimeTaskStatus.IN_PROGRESS,
+        RuntimeTaskStatus.PR_OPEN,
+        RuntimeTaskStatus.MERGE_READY,
+    }
+)
+
+
+def is_active(status: RuntimeTaskStatus) -> bool:
+    """True when the task holds an assignment and must not be re-dispatched."""
+    return status in ACTIVE_RUNTIME_STATUSES
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,10 +78,7 @@ def _dependencies_satisfied(
 
 
 def _is_active(task: CoordinatorTaskView) -> bool:
-    return task.runtime_status in {
-        RuntimeTaskStatus.IN_PROGRESS,
-        RuntimeTaskStatus.PR_OPEN,
-    }
+    return is_active(task.runtime_status)
 
 
 def select_next_eligible(

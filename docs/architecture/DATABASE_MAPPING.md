@@ -60,6 +60,19 @@ No production database has been deployed. Local PostgreSQL is provided by Docker
 
 Do not load `data/fixtures/quality-issues/` into this database.
 
+## Development operations schema
+
+Coordinator telemetry and scheduling state live in PostgreSQL schema **`development_ops`**, usually on database **`wasatch_development_ops`**. That database is separate from **`wasatch_test`**, which pytest uses for the synthetic Wasatch application slice, so Alembic downgrades on disposable test databases do not drop activity rows. See [docs/operations/DEVELOPMENT_ACTIVITY_LOG.md](../operations/DEVELOPMENT_ACTIVITY_LOG.md) and [docs/operations/COORDINATOR_CONTINUITY.md](../operations/COORDINATOR_CONTINUITY.md).
+
+These tables are not seeded from `data/fixtures/valid/` and are not exposed on `/api/v1`.
+
+| Table | Populated by | Notes |
+|---|---|---|
+| `activity_events` | `development-ops-record` and coordinator scripts | Append-only operational events with JSONB `metadata`, GitHub refs, and Slack delivery columns. Created in revision `0009`. Revision `0012` widens the `event_type` check to add `coordinator.recovery`, `coordinator.scheduled`, and `coordinator.auto_merge` |
+| `coordinator_tasks` | `CoordinatorEngine.tick()` after syncing `data/coordinator/backlog.yaml` | One row per backlog task id. `depends_on` is a JSONB list of task ids. `status` is constrained to the lifecycle `pending`, `assigned`, `in_progress`, `pr_open`, `merge_ready`, `merged`, or `blocked` (revisions `0012` and `0013`). Optional `active_run_id`, `branch_name`, `pr_number`, `owner_agent`, and `merge_commit_sha` track an in-flight assignment. Added in revision `0012` with index `ix_coordinator_tasks_status` |
+
+Human narrative backlog ordering stays in `ENGINEERING_BACKLOG.md`. `data/coordinator/backlog.yaml` is the machine-readable catalog the coordinator reconciles into `coordinator_tasks`.
+
 ## Retrieval
 
 Ticket retrieval reads one customer's persisted text: ticket subjects, message bodies, interaction summaries, and work-order text (summary, description, completion notes, cancellation reason, reopen reason, and task descriptions). Procedure pages stay files under `data/documents/procedures/`. They are not rows in `documents` and they are not seeded from `data/fixtures/valid/`. Matching starts from whole-word text search over the ticket subject and message bodies. When `procedure_page_embeddings` has a vector for a matched page, retrieval orders that match with the stored vector. There is no second vector database. The vectors are the fake port's output and are not a trusted semantic model.
@@ -78,11 +91,15 @@ Revision `0007` downgrade drops `follow_up_visits`. That is safe on the syntheti
 
 Revision `0008` downgrade drops the foreign key on `work_orders.invoice_id` (values stay invoice business id strings), then drops `invoices`. Reload `data/fixtures/valid/` after that downgrade.
 
-Revision `0009` is the development-activity log schema in `wasatch_development_ops`. Wasatch API pytest does not downgrade it on the synthetic application database.
+Revision `0009` creates schema `development_ops` and table `activity_events`. Downgrade drops `activity_events` and the schema. Wasatch API pytest does not apply that downgrade on `wasatch_development_ops`. Disposable migration tests use a throwaway database only.
 
 Revision `0010` downgrade drops `invoice_lines`. Reload `data/fixtures/valid/` after that downgrade.
 
 Revision `0011` downgrade drops `payments`. Reload `data/fixtures/valid/` after that downgrade.
+
+Revision `0012` adds `coordinator_tasks` and widens the `activity_events` `event_type` check with the three `coordinator.*` event types. Downgrade drops `coordinator_tasks` and restores the revision `0009` check. It is safe on disposable test databases; do not downgrade `wasatch_development_ops` in production-style coordinator runs, or scheduling state is lost.
+
+Revision `0013` widens the `coordinator_tasks.status` check to the full lifecycle (`assigned` and `merge_ready` added). Downgrade restores the revision `0012` check; it fails if a row currently holds a status the earlier check does not allow, so downgrade only when no task is `assigned` or `merge_ready`.
 
 ## Contract layers
 

@@ -27,12 +27,39 @@ The coordinator runs as a **tick** (library, CLI, or `scripts/coordinator_tick.s
    Record the exact error when `autoMergeRequest` stays null; **do not block**
    unrelated tasks.
 4. Select the next **eligible** task (respecting `depends_on` and
-   `DEVELOPMENT_OPS_MAX_CONCURRENT`). Only tasks with runtime status `in_progress`
-   (an agent is implementing) count toward the concurrency limit. Tasks in `pr_open`
-   awaiting human review do not. Open PRs on other tasks do not serialize the entire
-   backlog.
+   `DEVELOPMENT_OPS_MAX_CONCURRENT`). Only tasks with an active assignment
+   (`assigned`, `in_progress`, `pr_open`, or `merge_ready`) hold a slot; in
+   practice only `in_progress` consumes an implementation slot because an open
+   pull request has already released its implementer. Tasks in `pr_open` or
+   `merge_ready` awaiting human review do not. Open PRs on other tasks do not
+   serialize the entire backlog.
 5. Persist `coordinator.recovery`, `coordinator.scheduled`, and `task.selected`
    events before Slack notification.
+
+### Task lifecycle
+
+`development_ops.coordinator_tasks.status` follows one lifecycle. The catalog
+status in `data/coordinator/backlog.yaml` is the intent; runtime status is what
+GitHub reconciliation has established.
+
+| Status | Meaning | Holds a slot |
+|---|---|---|
+| `pending` | Registered, not yet assigned | no |
+| `assigned` | Dispatched to an agent, implementation not started | yes |
+| `in_progress` | An agent is implementing | yes (implementation slot) |
+| `pr_open` | Pull request open, awaiting review | no |
+| `merge_ready` | Open pull request is green and conflict-free | no |
+| `merged` | Merged | terminal |
+| `blocked` | Stopped by a dependency or human block | no |
+
+`merge_ready` is derived from GitHub (green required checks, no conflict, still
+open) and is **independent of auto-merge eligibility**. GitHub may refuse
+`enablePullRequestAutoMerge` for a pull request that is already in a clean
+status; that refusal marks the task `merge_ready`, not failed, and never
+authorizes bypassing branch rules or a direct merge.
+
+Catalog sync is monotonic: a stale catalog row never moves a task backwards, so
+a `merged` task is never reopened by a `pending` row.
 
 ### Recovery
 
