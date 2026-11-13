@@ -10,10 +10,10 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 | Item | Value |
 |---|---|
-| Assessed commit | `0a0ee7ba85797cbe5bcab1dccf80393ffcf154d2` |
-| Commit subject | COORD-CATALOG-3: mark STATUS-2 merged after PR #71 (#72) |
-| Integration branch | `develop` at `0a0ee7b` |
-| Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `7` then `21` on 2026-11-13) |
+| Assessed commit | `f6469ea6213a61f6c68247231e2e2e1283664170` |
+| Commit subject | STATUS-3: refresh PROJECT_STATUS after DOC-ENG-AIDEV-1 (#74) |
+| Integration branch | `develop` at `f6469ea` |
+| Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `9` then `21` on 2026-11-13) |
 | Production branch | `main` at `881cfc0` (unchanged at assessment) |
 | Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
 
@@ -26,7 +26,7 @@ That relationship was true at `881cfc0`. `develop` later received the Ruff pin (
 | Branch | Tip | Notes |
 |---|---|---|
 | `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
-| `develop` | `0a0ee7b` | Wasatch slice and coordinator catalog default. Open [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) (FIN-4). |
+| `develop` | `f6469ea` | Wasatch slice, FIN-4 work-order filter, coordinator catalog default. No open PRs targeting `develop` at assessment (before COORD-CATALOG-4). |
 | `ai-dev` | `0af252d` | Autonomous agents, review gate, Alembic head through `0016` until promoted to `develop`. |
 | `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
@@ -112,14 +112,20 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | STATUS-2 finance documentation refresh | Done. Pull request [#71](https://github.com/anotherhale/ai-solutions-lab/pull/71) merged as `0b8a571`. Documentation only. |
 | COORD-CATALOG-3 coordinator catalog after STATUS-2 | Done. Pull request [#72](https://github.com/anotherhale/ai-solutions-lab/pull/72) merged as `0a0ee7b`. Catalog marks STATUS-2 merged; registers DOC-ENG-AIDEV-1, FIN-4, and STATUS-3. |
 | DOC-ENG-AIDEV-1 `ai-dev` branch documented in backlog | Done in pull request [#72](https://github.com/anotherhale/ai-solutions-lab/pull/72). `ENGINEERING_BACKLOG.md` integration-branch summary. Documentation only. |
+| FIN-4 work-order filter by `invoice_id` | Done. Pull request [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) merged as `d54ff60`. Optional `invoice_id` on `GET /api/v1/work-orders`; read-only. |
+| STATUS-3 integration-branch status refresh | Done. Pull request [#74](https://github.com/anotherhale/ai-solutions-lab/pull/74) merged as `f6469ea`. Documentation only. |
+| COORD-CATALOG-4 coordinator catalog after FIN-4 | This change. Reconciles catalog after #73 and #74. Documentation only. |
 
-Open pull requests targeting `develop`:
+No open pull requests target `develop` at the assessed commit `f6469ea`. COORD-CATALOG-4 opens a new catalog reconciliation pull request from this coordinator run.
+
+Open pull requests targeting `ai-dev` (do not block `develop` scheduling):
 
 | Pull request | Backlog task | Notes |
 |---|---|---|
-| [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) | FIN-4 | Optional `invoice_id` filter on `GET /api/v1/work-orders`. Squash auto-merge requested 2026-11-13. |
+| [#69](https://github.com/anotherhale/ai-solutions-lab/pull/69) | COORD-ENTRY-CATALOG-1 | Entrypoint `--update-catalog`; marks COORD-REVIEW-GATE-1 merged on `ai-dev`. |
+| [#70](https://github.com/anotherhale/ai-solutions-lab/pull/70) | STATUS-AIDEV-1 | `PROJECT_STATUS` autonomous baseline on `ai-dev`. Merge after #69. |
 
-Autonomous laboratory work also continues on `ai-dev` (open pull requests there do not block `develop` scheduling).
+Autonomous laboratory work continues on `ai-dev` until those pull requests merge.
 
 ## Integration branches (laboratory)
 
@@ -551,3 +557,14 @@ From the repository root, coordinator run 2026-11-13:
 | Command | Result | Exit |
 |---|---|---|
 | `python3 scripts/validate_repo.py` | Repository conventions validated | 0 |
+
+## Verification for STATUS-4
+
+Documentation only. Parent branch is `develop` at `f6469ea` after pull requests [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) (FIN-4) and [#74](https://github.com/anotherhale/ai-solutions-lab/pull/74) (STATUS-3). This change updates the baseline through those merges, records FIN-4 and STATUS-3 in the current-work table, lists open `ai-dev` pull requests #69 and #70, and reconciles `data/coordinator/backlog.yaml`. No application code, migrations, or CI workflow files were edited.
+
+From the repository root, coordinator run 2026-11-13 after PR #74 merge:
+
+| Command | Result | Exit |
+|---|---|---|
+| `python3 scripts/validate_repo.py` | Repository conventions validated | 0 |
+| `WASATCH_REQUIRE_DATABASE=1 services/wasatch-api/.venv/bin/pytest services/wasatch-api/tests/api/test_health_and_resources.py -q` | API resource tests including `invoice_id` work-order filter | 0 |

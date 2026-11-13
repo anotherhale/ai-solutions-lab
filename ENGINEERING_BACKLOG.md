@@ -400,18 +400,44 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### FIN-4 — Filter work orders by `invoice_id`
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/73
+- Merge: `d54ff60`
 - Depends on: FIN-3
-- Add optional `invoice_id` query parameter to `GET /api/v1/work-orders`. Filter persisted rows using the `work_orders.invoice_id` foreign key from Alembic `0008`. No write routes.
-- Update `docs/architecture/API_CONVENTIONS.md` and add API tests using synthetic fixtures that already link work orders to invoices.
-- Acceptance: filtered list returns only matching work orders; CI green; finance row counts unchanged on unrelated writes.
+- Optional `invoice_id` query parameter on `GET /api/v1/work-orders`; filter uses `work_orders.invoice_id` from Alembic `0008`. Documented in `API_CONVENTIONS.md`; API tests added.
+- Acceptance met: filtered list returns only matching work orders; CI green.
 
 ### STATUS-3 — Refresh PROJECT_STATUS after DOC-ENG-AIDEV-1
 
-- Status: in progress (branch `cursor/status-3-project-status`)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/74
+- Merge: `f6469ea`
 - Depends on: DOC-ENG-AIDEV-1
-- Update `PROJECT_STATUS.md` with the integration-branch summary and catalog state after pull request #72 merges.
+- Updated integration-branch summary and baseline through pull request #72. Documentation only.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
+
+### COORD-CATALOG-4 — Mark FIN-4 and STATUS-3 merged in coordinator catalog
+
+- Status: in progress (this change)
+- Depends on: STATUS-3
+- Reconcile `data/coordinator/backlog.yaml` after pull requests #73 and #74. Register follow-on `pending` tasks.
 - Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select a pending task after merge.
+
+### STATUS-4 — Refresh PROJECT_STATUS after FIN-4 and catalog reconciliation
+
+- Status: in progress (this change)
+- Depends on: FIN-4 and STATUS-3
+- Update `PROJECT_STATUS.md` baseline, current-work table, and open pull request state after FIN-4 and STATUS-3 merge.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### DOC-README-FIN-4 — Work-order `invoice_id` filter in service README
+
+- Status: pending
+- Depends on: FIN-4
+- Document optional `invoice_id` on `GET /api/v1/work-orders` in `services/wasatch-api/README.md`.
+- Documentation only; no API changes.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
 ## Explicitly out of the next implementation
