@@ -267,3 +267,4 @@ tasks:
     status: in_progress
     depends_on: [COORD-ENTRY-SYNC-1]
     branch: cursor/doc-debt-mig-2-develop
+    pr_number: 86
