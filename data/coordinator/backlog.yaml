@@ -264,7 +264,28 @@ tasks:
 
   - id: DOC-DEBT-MIG-2
     title: Align ENGINEERING_BACKLOG downgrade debt through Alembic 0012
-    status: in_progress
+    status: merged
+    merge_commit: 62067a2
     depends_on: [COORD-ENTRY-SYNC-1]
     branch: cursor/doc-debt-mig-2-develop
     pr_number: 86
+
+  - id: COORD-CATALOG-10
+    title: Mark DOC-DEBT-MIG-2 merged after pull request #86
+    status: in_progress
+    depends_on: [DOC-DEBT-MIG-2, COORD-ENTRY-SYNC-1, STATUS-7]
+    branch: cursor/coord-catalog-10-post-86
+    pr_number: 87
+
+  - id: STATUS-8
+    title: Refresh PROJECT_STATUS after DOC-DEBT-MIG-2
+    status: in_progress
+    depends_on: [DOC-DEBT-MIG-2]
+    branch: cursor/coord-catalog-10-post-86
+    pr_number: 87
+
+  - id: DOC-DBMAP-2
+    title: Document coordinator scheduling tables for Alembic 0012
+    status: pending
+    depends_on: [COORD-CATALOG-10]
+    branch: cursor/doc-dbmap-coordinator-0012
