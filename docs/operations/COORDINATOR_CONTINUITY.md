@@ -121,7 +121,18 @@ location.
 | Cleanup only after verified merge + clean tree | `TaskWorktreeOrchestrator.cleanup_after_merge` (re-verifies via `verify_pull_request_merged`) | Implemented, integration-tested |
 | Coordinator loop uses it | `development_ops.coordinator_engine` (`coordinator tick --worktrees`) | Implemented, end-to-end tested |
 | CLI subcommands | `development-ops worktree list\|status\|prepare\|launch\|cleanup` | Implemented, integration-tested |
+| Integration-branch preflight before cutting a fresh worktree | `development_ops.preflight.IntegrationBranchPreflight` | Implemented, unit- and integration-tested |
 | Decision recorded in an ADR | `docs/adr/0012-isolated-worktrees-for-child-agents.md` | Written |
+
+Preflight: before a fresh worktree is cut, `TaskWorktreeOrchestrator.prepare` runs
+`IntegrationBranchPreflight` against the primary checkout. The preflight is read-only and never
+fetches or mutates a ref. It fails closed (raises `PreflightError`) when the remote is unreachable
+or the local integration branch has unpushed commits, so a child is never branched from a diverged
+base. A missing local branch and a dirty primary checkout are surfaced as advisories only; a
+behind-but-not-ahead local branch is advisory because `WorktreeManager` fetches before it resolves
+the base. An existing worktree is reused without re-running the preflight, so a child already in
+flight is never disturbed. Run it directly with `development-ops preflight` (exit `0` when no
+blocking check fails).
 
 Concurrency: two tasks get distinct paths (`<worktree_root>/<repo>/<task-id>`) and branches, so
 there is no shared writable directory. A per-task `fcntl` advisory lock (`WorktreeManager.task_lock`)

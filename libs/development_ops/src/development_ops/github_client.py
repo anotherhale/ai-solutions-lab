@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Protocol
 
 from development_ops.integration import (
@@ -13,15 +14,47 @@ from development_ops.integration import (
     is_authorized_base_branch,
 )
 
-# A pull request must expose at least one check. Zero checks means "unknown",
-# never "green".
+# A pull request must expose every required check context. Zero checks, or a
+# missing required context, means "not scheduled", never "green". ``none`` is a
+# distinct state from ``pending`` so the coordinator can tell "the workflow has
+# not been triggered" apart from "the workflow is still running".
 _CHECKS_GREEN = "green"
 _CHECKS_FAILED = "failed"
+_CHECKS_TIMED_OUT = "timed_out"
+_CHECKS_RUNNING = "running"
 _CHECKS_PENDING = "pending"
 _CHECKS_NONE = "none"
 
 _PASSING_CONCLUSIONS = {"SUCCESS", "NEUTRAL", "SKIPPED"}
 _PENDING_CONCLUSIONS = {"PENDING", "QUEUED", "IN_PROGRESS", "WAITING", "EXPECTED"}
+_RUNNING_STATUSES = {"IN_PROGRESS"}
+_TIMED_OUT_CONCLUSIONS = {"TIMED_OUT", "STALE", "STARTUP_FAILURE"}
+
+# How long a required check may stay unfinished before it is treated as timed
+# out rather than still running. GitHub's own limit is six hours; the
+# coordinator uses a much shorter bound so a wedged run is surfaced quickly.
+CHECK_TIMEOUT_SECONDS = 45 * 60
+
+# The check contexts the ``ai-dev`` branch ruleset marks as required. The
+# coordinator verifies every one of them is present before arming auto-merge;
+# a workflow whose trigger did not fire produces no check at all, and GitHub
+# would otherwise report the pull request as "no required checks" rather than
+# blocking it. Overridable for repositories with a different ruleset.
+DEFAULT_REQUIRED_CHECKS: tuple[str, ...] = (
+    "Format, lint, and conventions",
+    "Wasatch review frontend",
+    "Compose API smoke",
+    "Wasatch API tests",
+    "Review workbench browser tests",
+)
+
+
+def required_check_contexts() -> tuple[str, ...]:
+    """Required status-check contexts for the integration branch ruleset."""
+    override = os.environ.get("DEVELOPMENT_OPS_REQUIRED_CHECKS", "").strip()
+    if override:
+        return tuple(item.strip() for item in override.split(",") if item.strip())
+    return DEFAULT_REQUIRED_CHECKS
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +71,7 @@ class PullRequestState:
     review_decision: str | None
     closed: bool = False
     checks_state: str = _CHECKS_NONE
+    missing_required_checks: tuple[str, ...] = ()
     merge_state_status: str | None = None
     is_draft: bool = False
     unresolved_threads: int = 0
@@ -82,6 +116,11 @@ class PullRequestState:
             reasons.append("pull request is a draft")
         if self.checks_green is not True:
             reasons.append(f"checks are not all passing (state: {self.checks_state})")
+        if self.missing_required_checks:
+            reasons.append(
+                "required check(s) not scheduled: "
+                + ", ".join(self.missing_required_checks)
+            )
         if self.threads_unresolved:
             reasons.append(f"{self.unresolved_threads} unresolved review thread(s)")
         if self.has_conflicts:
@@ -204,39 +243,133 @@ def verify_pull_request_merged(
     )
 
 
-def _classify_checks(rollup: list[dict]) -> str:
-    """Classify a status check rollup.
+def _parse_timestamp(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
 
-    GitHub reports two node kinds: ``CheckRun`` (GitHub Actions) and
-    ``StatusContext`` (legacy commit statuses). Both carry a conclusion or a
-    state, and both must be considered. A missing or empty rollup is unknown,
-    not green.
+
+def _age_seconds(value: str | None, now: datetime) -> float | None:
+    parsed = _parse_timestamp(value)
+    if parsed is None:
+        return None
+    return (now - parsed).total_seconds()
+
+
+def _check_identity(item: dict) -> str:
+    """The rollup entry's display name, falling back to its context."""
+    return str(item.get("name") or item.get("context") or "")
+
+
+def _classify_check_rollup(
+    rollup: list[dict],
+    *,
+    required: tuple[str, ...] = (),
+    now: datetime | None = None,
+    timeout_seconds: float = CHECK_TIMEOUT_SECONDS,
+) -> tuple[str, tuple[str, ...]]:
+    """Classify a status check rollup into one of six states.
+
+    Returns ``(state, missing_required)`` where ``state`` is one of ``green``,
+    ``failed``, ``timed_out``, ``running``, ``pending`` or ``none``:
+
+    * ``none``    - no check of any kind has been reported (not scheduled).
+    * ``running`` - at least one check is actively executing.
+    * ``pending`` - at least one check is queued or waiting to start.
+    * ``timed_out`` - an unfinished check exceeded ``timeout_seconds``.
+    * ``failed``  - a check reported a failing conclusion.
+    * ``green``   - every reported check passed and every required context is
+      present.
+
+    A missing or empty rollup is never green. When ``required`` contexts are
+    supplied, a rollup that omits one is reported as ``none`` with the missing
+    contexts listed, because GitHub will not run a required workflow whose
+    trigger did not fire.
     """
+    now = now or datetime.now(UTC)
+    required_set = set(required)
+    present: set[str] = set()
+
     if not rollup:
-        return _CHECKS_NONE
+        return _CHECKS_NONE, tuple(sorted(required_set))
+
+    saw_failed = False
+    saw_timed_out = False
+    saw_running = False
     saw_pending = False
+
     for item in rollup:
+        name = _check_identity(item)
+        if name:
+            present.add(name)
         typename = item.get("__typename")
         if typename == "CheckRun":
-            if item.get("status") not in {None, "COMPLETED"}:
-                saw_pending = True
-                continue
+            status = item.get("status")
             conclusion = (item.get("conclusion") or "").upper()
+            if status not in {None, "COMPLETED"}:
+                if _is_timed_out(item, now, timeout_seconds):
+                    saw_timed_out = True
+                elif status in _RUNNING_STATUSES:
+                    saw_running = True
+                else:
+                    saw_pending = True
+                continue
             if conclusion in _PASSING_CONCLUSIONS:
+                continue
+            if conclusion in _TIMED_OUT_CONCLUSIONS:
+                saw_failed = True
                 continue
             if conclusion in _PENDING_CONCLUSIONS or conclusion == "":
                 saw_pending = True
                 continue
-            return _CHECKS_FAILED
+            saw_failed = True
+            continue
         # StatusContext or unknown node: use ``state``/``conclusion``.
         raw = (item.get("conclusion") or item.get("state") or "").upper()
         if raw in _PASSING_CONCLUSIONS:
             continue
+        if raw in _TIMED_OUT_CONCLUSIONS:
+            saw_failed = True
+            continue
         if raw in _PENDING_CONCLUSIONS or raw == "":
             saw_pending = True
             continue
-        return _CHECKS_FAILED
-    return _CHECKS_PENDING if saw_pending else _CHECKS_GREEN
+        saw_failed = True
+
+    missing = tuple(sorted(required_set - present))
+    if saw_failed:
+        return _CHECKS_FAILED, missing
+    if saw_timed_out:
+        return _CHECKS_TIMED_OUT, missing
+    if missing:
+        return _CHECKS_NONE, missing
+    if saw_running:
+        return _CHECKS_RUNNING, missing
+    if saw_pending:
+        return _CHECKS_PENDING, missing
+    return _CHECKS_GREEN, missing
+
+
+def _is_timed_out(item: dict, now: datetime, timeout_seconds: float) -> bool:
+    """True when an unfinished check has been waiting past the timeout."""
+    started = item.get("startedAt") or item.get("createdAt")
+    age = _age_seconds(started, now)
+    if age is None:
+        return False
+    return age > timeout_seconds
+
+
+def _classify_checks(rollup: list[dict]) -> str:
+    """Backwards-compatible single-value classification (no required contexts).
+
+    Kept for callers that only need the state string. Prefer
+    :func:`_classify_check_rollup` when the required check contexts are known.
+    """
+    state, _ = _classify_check_rollup(rollup)
+    return state
 
 
 class GhCliGitHubClient:
@@ -272,7 +405,9 @@ class GhCliGitHubClient:
         payload = json.loads(result.stdout)
         auto = payload.get("autoMergeRequest")
         rollup = payload.get("statusCheckRollup") or []
-        checks_state = _classify_checks(rollup)
+        checks_state, missing_required = _classify_check_rollup(
+            rollup, required=required_check_contexts()
+        )
         merged = payload.get("mergedAt") is not None or payload.get("state") == "MERGED"
         closed = payload.get("state") == "CLOSED" or merged
         base_ref = str(payload.get("baseRefName") or "")
@@ -302,6 +437,7 @@ class GhCliGitHubClient:
             review_decision=payload.get("reviewDecision"),
             closed=bool(closed),
             checks_state=checks_state,
+            missing_required_checks=missing_required,
             merge_state_status=payload.get("mergeStateStatus"),
             is_draft=bool(payload.get("isDraft")),
             unresolved_threads=threads,

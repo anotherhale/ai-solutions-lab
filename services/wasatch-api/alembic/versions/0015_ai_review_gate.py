@@ -146,6 +146,15 @@ def downgrade() -> None:
     op.drop_table("review_verdicts", schema="development_ops")
 
     prior_check = ", ".join(f"'{value}'" for value in PRIOR_EVENT_TYPES)
+    # Remove any event type the restored constraint cannot hold before narrowing
+    # it. The child branch (``0015``) merges at 0016 as well; when this branch is
+    # downgraded first, ``child.*`` rows would otherwise violate the restored
+    # constraint. Purging every type outside the restored set makes this
+    # downgrade order-independent from ``0015_child_executions``.
+    op.execute(
+        "DELETE FROM development_ops.activity_events "
+        f"WHERE event_type NOT IN ({prior_check})"
+    )
     op.drop_constraint(
         "ck_activity_events_event_type",
         "activity_events",

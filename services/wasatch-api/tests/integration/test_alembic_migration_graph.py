@@ -240,3 +240,75 @@ def test_child_event_types_accepted_by_constraint(disposable_engine: Engine) -> 
                 "type": EventType.CHILD_LAUNCH_SUCCEEDED.value,
             },
         )
+
+
+def test_gate_event_types_accepted_by_constraint(disposable_engine: Engine) -> None:
+    """The merged constraint also accepts the AI review gate event types."""
+    from development_ops.taxonomy import EventType
+
+    with disposable_engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO development_ops.activity_events "
+                "(id, run_id, event_type, severity, title, occurred_at, "
+                "slack_delivery_status) "
+                "VALUES (:id, :run, :type, 'info', 'probe', now(), 'skipped')"
+            ),
+            {
+                "id": uuid.uuid4(),
+                "run": uuid.uuid4(),
+                "type": EventType.GATE_PUBLISHED.value,
+            },
+        )
+
+
+def test_downgrade_from_0016_tolerates_child_and_gate_rows(
+    disposable_engine: Engine,
+) -> None:
+    """Downgrading 0016 -> 0014 must survive child.* and gate.* rows.
+
+    The two 0015 branches both restore the 20-type 0012 constraint. Alembic
+    downgrades the child branch before the gate branch, so gate rows are still
+    present when the child branch narrows the constraint. Regression guard for
+    the ordering hazard introduced when Phase D and the AI review gate were
+    merged at 0016.
+    """
+    from development_ops.taxonomy import EventType
+
+    config = Config(str(API_ROOT / "alembic.ini"))
+    config.set_main_option("script_location", str(API_ROOT / "alembic"))
+    config.set_main_option(
+        "sqlalchemy.url",
+        disposable_engine.url.render_as_string(hide_password=False),
+    )
+    with disposable_engine.begin() as connection:
+        for event_type in (
+            EventType.CHILD_MERGED.value,
+            EventType.GATE_PUBLISHED.value,
+        ):
+            connection.execute(
+                text(
+                    "INSERT INTO development_ops.activity_events "
+                    "(id, run_id, event_type, severity, title, occurred_at, "
+                    "slack_delivery_status) "
+                    "VALUES (:id, :run, :type, 'info', 'probe', now(), 'skipped')"
+                ),
+                {"id": uuid.uuid4(), "run": uuid.uuid4(), "type": event_type},
+            )
+    command.downgrade(config, "0014")
+    try:
+        with disposable_engine.connect() as connection:
+            revision = connection.execute(
+                text("SELECT version_num FROM alembic_version")
+            ).scalar()
+            definition = connection.execute(
+                text(
+                    "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+                    "WHERE conname = 'ck_activity_events_event_type'"
+                )
+            ).scalar()
+        assert revision == "0014"
+        assert "child.merged" not in (definition or "")
+        assert "gate.published" not in (definition or "")
+    finally:
+        command.upgrade(config, "head")

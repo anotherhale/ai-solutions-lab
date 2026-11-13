@@ -871,6 +871,7 @@ class CoordinatorEngine:
                     "merge_state_status": state.merge_state_status,
                     "unresolved_threads": state.unresolved_threads,
                     "checks_state": state.checks_state,
+                    "missing_required_checks": list(state.missing_required_checks),
                     "blockers": list(state.auto_merge_blockers()),
                 },
                 idempotency_key=(

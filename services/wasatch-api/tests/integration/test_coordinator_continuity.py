@@ -59,6 +59,7 @@ def _pr(
     checks_state: str = "green",
     unresolved_threads: int = 0,
     is_draft: bool = False,
+    missing_required_checks: tuple[str, ...] = (),
 ) -> PullRequestState:
     return PullRequestState(
         number=number,
@@ -73,6 +74,7 @@ def _pr(
         review_decision="REVIEW_REQUIRED",
         closed=closed or merged,
         checks_state=checks_state,
+        missing_required_checks=missing_required_checks,
         unresolved_threads=unresolved_threads,
         is_draft=is_draft,
     )
@@ -165,6 +167,57 @@ def test_auto_merge_failure_does_not_stop_selection(
         result = engine.tick()
         assert github.auto_merge_calls == [100]
         assert result.auto_merge_attempts[0].error is not None
+        assert result.selected_task_id == "TASK-B"
+    finally:
+        session.close()
+
+
+def test_missing_required_check_blocks_auto_merge_and_records_context(
+    ops_engine: Engine, backlog_file: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A PR whose required workflow never triggered must not arm auto-merge.
+
+    Reproduces the Phase 2 trigger-gap: the required checks are absent, so the
+    coordinator records an auto-merge-blocked event naming the missing context
+    instead of treating the PR as green.
+    """
+    monkeypatch.setenv("DEVELOPMENT_OPS_ATTEMPT_AUTO_MERGE", "1")
+    run_id = uuid.uuid4()
+    session = sessionmaker(bind=ops_engine, autoflush=False)()
+    missing = ("Wasatch API tests",)
+    github = FakeGitHub(
+        {
+            100: _pr(
+                100,
+                checks_green=False,
+                checks_state="none",
+                missing_required_checks=missing,
+            )
+        }
+    )
+    try:
+        engine = CoordinatorEngine(
+            session,
+            github=github,
+            recorder=ActivityRecorder(session, notify_slack=False),
+            run_id=run_id,
+            repository="example/test",
+            backlog_path=backlog_file,
+        )
+        result = engine.tick()
+        assert github.auto_merge_calls == []
+        rows = (
+            session.execute(
+                text(
+                    "SELECT metadata FROM development_ops.activity_events "
+                    "WHERE event_type = 'coordinator.auto_merge'"
+                )
+            )
+            .scalars()
+            .all()
+        )
+        assert rows, "expected an auto-merge-blocked event with missing contexts"
+        assert any(row.get("missing_required_checks") == list(missing) for row in rows)
         assert result.selected_task_id == "TASK-B"
     finally:
         session.close()

@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import os
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -48,6 +49,7 @@ from development_ops.persistence.worktree_repository import (
     AgentWorktreeRepository,
     WorktreeState,
 )
+from development_ops.preflight import PreflightReport
 from development_ops.worktrees import WorktreeManager, WorktreeSpec
 
 # A conversation that exists means a child was launched and must not be
@@ -89,6 +91,7 @@ class TaskWorktreeOrchestrator:
         launcher: ChildAgentLauncher | None = None,
         github: GitHubClient | None = None,
         run_id: uuid.UUID | None = None,
+        preflight: Callable[[], PreflightReport] | None = None,
     ) -> None:
         self._repo = AgentWorktreeRepository(session)
         self._manager = manager
@@ -100,6 +103,7 @@ class TaskWorktreeOrchestrator:
         self._launcher = launcher
         self._github = github
         self._run_id = run_id
+        self._preflight = preflight
 
     @property
     def manager(self) -> WorktreeManager:
@@ -109,12 +113,29 @@ class TaskWorktreeOrchestrator:
     def registry(self) -> AgentWorktreeRepository:
         return self._repo
 
+    def check_preflight(self) -> PreflightReport | None:
+        """Run the integration-branch preflight, failing closed on a blocker.
+
+        Returns ``None`` when no preflight is configured. A blocking failure
+        raises :class:`PreflightError` so no worktree is cut from a stale or
+        diverged base. Advisory findings are returned for the caller to log.
+        """
+        if self._preflight is None:
+            return None
+        report = self._preflight()
+        report.raise_if_failed()
+        return report
+
     def prepare(self, task_id: str, *, title: str = "") -> AgentWorktreeRecord:
         """Create the worktree and register it before a child is launched.
 
         Registration happens first so an interrupted launch still leaves a
-        durable record that recovery can act on.
+        durable record that recovery can act on. A fresh worktree is cut only
+        after the integration-branch preflight passes; reusing an existing
+        worktree is never blocked, so a child already in flight is undisturbed.
         """
+        if not self._manager.worktree_path(task_id).exists():
+            self.check_preflight()
         self._repo.upsert(
             task_id,
             branch_name=self._manager.branch_name(task_id),

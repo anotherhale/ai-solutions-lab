@@ -18,6 +18,11 @@ from development_ops.persistence.worktree_repository import (
     AgentWorktreeRepository,
     WorktreeState,
 )
+from development_ops.preflight import (
+    IntegrationBranchPreflight,
+    PreflightError,
+    PreflightReport,
+)
 from development_ops.task_worktrees import TaskWorktreeOrchestrator
 from development_ops.worktrees import (
     WorktreeError,
@@ -150,6 +155,7 @@ def _orchestrator(
     repo: tuple[Path, Path],
     launcher=None,
     github=None,
+    preflight=None,
 ) -> TaskWorktreeOrchestrator:
     work, wt_root = repo
     manager = WorktreeManager(work, wt_root)
@@ -160,6 +166,7 @@ def _orchestrator(
         launcher=launcher,
         github=github,
         run_id=uuid.uuid4(),
+        preflight=preflight,
     )
 
 
@@ -350,3 +357,41 @@ def test_cleanup_is_idempotent(session: Session, repo: tuple[Path, Path]) -> Non
     # A second cleanup finds the row already MERGED and is a no-op.
     second = orchestrator.cleanup_after_merge("PHASE-C-9")
     assert second.cleaned is False
+
+
+def test_preflight_blocks_worktree_creation_when_base_diverged(
+    session: Session, repo: tuple[Path, Path]
+) -> None:
+    """A blocking preflight must stop a fresh worktree from being cut."""
+    work, _ = repo
+    _git(["checkout", "-q", "ai-dev"], work)
+    (work / "unpushed.txt").write_text("local\n", encoding="utf-8")
+    _git(["add", "-A"], work)
+    _git(["commit", "-qm", "unpushed"], work)
+
+    def blocking() -> PreflightReport:
+        return IntegrationBranchPreflight(work).run()
+
+    launcher = _RecordingLauncher()
+    orchestrator = _orchestrator(session, repo, launcher, preflight=blocking)
+    with pytest.raises(PreflightError):
+        orchestrator.launch("PHASE-E2-1", title="blocked", agent_settings={"llm": {}})
+    assert launcher.payloads == []
+    assert AgentWorktreeRepository(session).get("PHASE-E2-1") is None
+
+
+def test_preflight_allows_worktree_when_base_in_sync(
+    session: Session, repo: tuple[Path, Path]
+) -> None:
+    work, _ = repo
+
+    def passing() -> PreflightReport:
+        return IntegrationBranchPreflight(work).run()
+
+    launcher = _RecordingLauncher()
+    orchestrator = _orchestrator(session, repo, launcher, preflight=passing)
+    result = orchestrator.launch(
+        "PHASE-E2-2", title="allowed", agent_settings={"llm": {}}
+    )
+    assert result.launched is True
+    assert result.worktree_path.exists()

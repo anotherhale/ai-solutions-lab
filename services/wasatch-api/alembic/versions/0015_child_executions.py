@@ -263,11 +263,17 @@ def downgrade() -> None:
     )
     op.drop_table("child_executions", schema="development_ops")
 
-    # Restore the prior event-type constraint. Child events must be removed from
-    # the log first or the tightened constraint would fail.
+    # Restore the prior event-type constraint. Any event type the restored
+    # constraint cannot hold must be removed first or the ALTER fails on
+    # existing rows. This is not limited to ``CHILD_EVENT_TYPES``: the AI
+    # review gate branch (``gate.*``) also merges at 0016 and sits *below*
+    # this revision on the merged graph. Alembic runs this branch's downgrade
+    # before ``0015_ai_review_gate``'s, so gate rows are still present here and
+    # would violate the narrowed constraint. Purging every type outside the
+    # restored set keeps the two 0015 downgrades order-independent.
     op.execute(
         "DELETE FROM development_ops.activity_events "
-        f"WHERE event_type IN ({_in_list(CHILD_EVENT_TYPES)})"
+        f"WHERE event_type NOT IN ({_in_list(PRIOR_EVENT_TYPES)})"
     )
     op.drop_constraint(
         "ck_activity_events_event_type",

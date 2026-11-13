@@ -37,6 +37,10 @@ from development_ops.integration import (
 )
 from development_ops.models import ActivityEventCreate, GitHubReference
 from development_ops.persistence.verdict_repository import ReviewVerdictRepository
+from development_ops.preflight import (
+    IntegrationBranchPreflight,
+    preflight_callable_from_env,
+)
 from development_ops.recorder import ActivityRecorder, RecordResult
 from development_ops.review_gate import build_gate_from_env
 from development_ops.runner_config import RunnerConfig
@@ -203,6 +207,7 @@ def coordinator_tick_command(args: argparse.Namespace) -> int:
                 launcher=None,
                 github=github_client_from_env(),
                 run_id=run_id,
+                preflight=preflight_callable_from_env(),
             )
         gate, gate_config = build_gate_from_env(repository=repository)
         engine = CoordinatorEngine(
@@ -321,6 +326,7 @@ def _worktree_orchestrator(
         repository=repository,
         launcher=launcher,
         github=github_client_from_env(),
+        preflight=preflight_callable_from_env(),
     )
 
 
@@ -464,6 +470,15 @@ def worktree_launch_command(args: argparse.Namespace) -> int:
         session.close()
 
 
+def integration_preflight_command(args: argparse.Namespace) -> int:
+    """Read-only check that the local integration branch agrees with the remote."""
+    repo_root = args.repo_root or os.environ.get("DEVELOPMENT_OPS_REPO_ROOT") or None
+    remote = args.remote or os.environ.get("DEVELOPMENT_OPS_REMOTE", "origin")
+    report = IntegrationBranchPreflight(repo_root or Path.cwd(), remote=remote).run()
+    print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+    return EXIT_OK if report.ok else EXIT_PERSISTENCE_FAILED
+
+
 def worktree_cleanup_command(args: argparse.Namespace) -> int:
     factory = _session_factory()
     session = factory()
@@ -600,6 +615,7 @@ def _child_orchestrator_from_args(args: argparse.Namespace) -> Any:
         repository=repository,
         launcher=None,
         github=github_client_from_env(),
+        preflight=preflight_callable_from_env(),
     )
     orchestrator = ChildOrchestrator(
         session,
@@ -855,6 +871,14 @@ def build_parser() -> argparse.ArgumentParser:
     wt_cleanup.add_argument("task_id")
     wt_cleanup.add_argument("--github-repository")
     wt_cleanup.set_defaults(func=worktree_cleanup_command)
+
+    preflight = sub.add_parser(
+        "preflight",
+        help="Read-only check that the local integration branch matches the remote",
+    )
+    preflight.add_argument("--repo-root", help="Primary checkout (default: cwd)")
+    preflight.add_argument("--remote", help="Remote name (default: origin)")
+    preflight.set_defaults(func=integration_preflight_command)
 
     runner = sub.add_parser(
         "runner",

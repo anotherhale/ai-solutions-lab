@@ -4,17 +4,43 @@ from __future__ import annotations
 
 import json
 import subprocess
+from datetime import UTC
 
 from development_ops.github_client import (
     AUTONOMOUS_INTEGRATION_BRANCH,
+    DEFAULT_REQUIRED_CHECKS,
     GhCliGitHubClient,
     PullRequestState,
+    _classify_check_rollup,
     _classify_checks,
 )
 
 
-def _check_run(conclusion: str | None, status: str = "COMPLETED") -> dict:
-    return {"__typename": "CheckRun", "status": status, "conclusion": conclusion}
+def _check_run(
+    conclusion: str | None,
+    status: str = "COMPLETED",
+    name: str = "Format, lint, and conventions",
+    started_at: str | None = None,
+) -> dict:
+    item = {
+        "__typename": "CheckRun",
+        "status": status,
+        "conclusion": conclusion,
+        "name": name,
+    }
+    if started_at is not None:
+        item["startedAt"] = started_at
+    return item
+
+
+def _required_rollup(
+    conclusion: str = "SUCCESS", status: str = "COMPLETED"
+) -> list[dict]:
+    """A rollup covering every required check context."""
+    return [
+        _check_run(conclusion, status=status, name=name)
+        for name in DEFAULT_REQUIRED_CHECKS
+    ]
 
 
 def _status_context(state: str) -> dict:
@@ -40,8 +66,13 @@ def test_check_run_failure_is_failed() -> None:
     assert _classify_checks([_check_run("FAILURE")]) == "failed"
 
 
-def test_check_run_in_progress_is_pending() -> None:
-    assert _classify_checks([_check_run(None, status="IN_PROGRESS")]) == "pending"
+def test_check_run_in_progress_is_running() -> None:
+    """An actively executing check is 'running', distinct from 'pending'."""
+    assert _classify_checks([_check_run(None, status="IN_PROGRESS")]) == "running"
+
+
+def test_check_run_queued_is_pending() -> None:
+    assert _classify_checks([_check_run(None, status="QUEUED")]) == "pending"
 
 
 def test_check_run_without_conclusion_is_pending() -> None:
@@ -69,6 +100,84 @@ def test_neutral_and_skipped_conclusions_are_green() -> None:
 def test_unknown_node_type_is_conservative() -> None:
     """An unrecognised node with no state must not be treated as success."""
     assert _classify_checks([{"__typename": "Mystery"}]) == "pending"
+
+
+# --- Six-state classification with required contexts -------------------------
+
+
+def test_rollup_green_requires_every_required_context() -> None:
+    state, missing = _classify_check_rollup(
+        _required_rollup(), required=DEFAULT_REQUIRED_CHECKS
+    )
+    assert state == "green"
+    assert missing == ()
+
+
+def test_rollup_missing_required_context_is_none_not_pending() -> None:
+    """A workflow that never triggered yields no check; that is 'none'."""
+    partial = [
+        _check_run("SUCCESS", name=name) for name in DEFAULT_REQUIRED_CHECKS[:-1]
+    ]
+    state, missing = _classify_check_rollup(partial, required=DEFAULT_REQUIRED_CHECKS)
+    assert state == "none"
+    assert missing == (DEFAULT_REQUIRED_CHECKS[-1],)
+
+
+def test_rollup_empty_with_required_is_none() -> None:
+    state, missing = _classify_check_rollup([], required=DEFAULT_REQUIRED_CHECKS)
+    assert state == "none"
+    assert set(missing) == set(DEFAULT_REQUIRED_CHECKS)
+
+
+def test_rollup_in_progress_is_running() -> None:
+    rollup = _required_rollup()
+    rollup[0] = _check_run(None, status="IN_PROGRESS")
+    state, _ = _classify_check_rollup(rollup, required=DEFAULT_REQUIRED_CHECKS)
+    assert state == "running"
+
+
+def test_rollup_queued_is_pending() -> None:
+    rollup = _required_rollup()
+    rollup[0] = _check_run(None, status="QUEUED")
+    state, _ = _classify_check_rollup(rollup, required=DEFAULT_REQUIRED_CHECKS)
+    assert state == "pending"
+
+
+def test_rollup_failure_is_failed() -> None:
+    rollup = _required_rollup()
+    rollup[0] = _check_run("FAILURE")
+    state, _ = _classify_check_rollup(rollup, required=DEFAULT_REQUIRED_CHECKS)
+    assert state == "failed"
+
+
+def test_rollup_timed_out_conclusion_is_failed() -> None:
+    rollup = _required_rollup()
+    rollup[0] = _check_run("TIMED_OUT")
+    state, _ = _classify_check_rollup(rollup, required=DEFAULT_REQUIRED_CHECKS)
+    assert state == "failed"
+
+
+def test_rollup_stale_unfinished_check_is_timed_out() -> None:
+    """An unfinished check older than the timeout is reported as timed_out."""
+    from datetime import datetime, timedelta
+
+    now = datetime(2026, 11, 13, 12, 0, tzinfo=UTC)
+    stale = (now - timedelta(hours=2)).isoformat()
+    rollup = _required_rollup()
+    rollup[0] = _check_run(None, status="IN_PROGRESS", started_at=stale)
+    state, _ = _classify_check_rollup(rollup, required=DEFAULT_REQUIRED_CHECKS, now=now)
+    assert state == "timed_out"
+
+
+def test_rollup_recent_unfinished_check_is_running_not_timed_out() -> None:
+    from datetime import datetime, timedelta
+
+    now = datetime(2026, 11, 13, 12, 0, tzinfo=UTC)
+    recent = (now - timedelta(minutes=5)).isoformat()
+    rollup = _required_rollup()
+    rollup[0] = _check_run(None, status="IN_PROGRESS", started_at=recent)
+    state, _ = _classify_check_rollup(rollup, required=DEFAULT_REQUIRED_CHECKS, now=now)
+    assert state == "running"
 
 
 # --- GhCliGitHubClient parsing and guards -------------------------------------
@@ -158,16 +267,17 @@ def _pr_view(
         "baseRefName": base,
         "id": "PR_node_7",
         "autoMergeRequest": {"enabledAt": "x"} if auto_merge else None,
-        "statusCheckRollup": rollup if rollup is not None else [_check_run("SUCCESS")],
+        "statusCheckRollup": (rollup if rollup is not None else _required_rollup()),
         "reviewDecision": "REVIEW_REQUIRED",
     }
 
 
 def test_get_pull_request_marks_actions_green() -> None:
-    runner = _FakeRunner(_pr_view(rollup=[_check_run("SUCCESS")]))
+    runner = _FakeRunner(_pr_view(rollup=_required_rollup()))
     pr = _client(runner).get_pull_request("o/r", 7)
     assert pr.checks_green is True
     assert pr.checks_state == "green"
+    assert pr.missing_required_checks == ()
     assert pr.targets_integration_branch is True
 
 
@@ -176,6 +286,32 @@ def test_get_pull_request_empty_checks_is_not_green() -> None:
     pr = _client(runner).get_pull_request("o/r", 7)
     assert pr.checks_green is False
     assert pr.checks_state == "none"
+    assert set(pr.missing_required_checks) == set(DEFAULT_REQUIRED_CHECKS)
+
+
+def test_get_pull_request_missing_required_context_is_not_green() -> None:
+    """A subset of required checks present must not be treated as green."""
+    partial = [
+        _check_run("SUCCESS", name=name) for name in DEFAULT_REQUIRED_CHECKS[:-1]
+    ]
+    runner = _FakeRunner(_pr_view(rollup=partial))
+    pr = _client(runner).get_pull_request("o/r", 7)
+    assert pr.checks_green is False
+    assert pr.checks_state == "none"
+    assert pr.missing_required_checks == (DEFAULT_REQUIRED_CHECKS[-1],)
+    assert any("not scheduled" in blocker for blocker in pr.auto_merge_blockers())
+
+
+def test_enable_auto_merge_refuses_when_required_context_missing() -> None:
+    partial = [
+        _check_run("SUCCESS", name=name) for name in DEFAULT_REQUIRED_CHECKS[:-1]
+    ]
+    runner = _FakeRunner(_pr_view(base="ai-dev", rollup=partial))
+    attempt = _client(runner).enable_squash_auto_merge("o/r", 7)
+    assert attempt.requested is False
+    assert attempt.auto_merge_request_present is False
+    assert attempt.error is not None and "not scheduled" in attempt.error
+    assert not any(call[:2] == ("api", "graphql") for call in runner.calls)
 
 
 def test_enable_auto_merge_refuses_main() -> None:
@@ -211,7 +347,7 @@ def test_enable_auto_merge_refuses_closed_unmerged() -> None:
 
 
 def test_enable_auto_merge_issues_graphql_for_green_ai_dev() -> None:
-    runner = _FakeRunner(_pr_view(base="ai-dev", rollup=[_check_run("SUCCESS")]))
+    runner = _FakeRunner(_pr_view(base="ai-dev", rollup=_required_rollup()))
     attempt = _client(runner).enable_squash_auto_merge("o/r", 7)
     assert attempt.requested is True
     assert any(call[:2] == ("api", "graphql") for call in runner.calls)
