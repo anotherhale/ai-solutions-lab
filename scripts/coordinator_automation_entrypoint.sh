@@ -22,6 +22,8 @@ fi
 export DEVELOPMENT_OPS_AGENT_NAME="${DEVELOPMENT_OPS_AGENT_NAME:-coordinator-automation}"
 export DEVELOPMENT_OPS_GITHUB_REPOSITORY="${DEVELOPMENT_OPS_GITHUB_REPOSITORY:-anotherhale/ai-solutions-lab}"
 
+"${ROOT}/scripts/coordinator_sync_integration_backlog.sh"
+
 "${PYTHON}" "${ROOT}/scripts/prepare_development_ops_database.py" >/dev/null
 
 TICK_JSON="$(mktemp)"

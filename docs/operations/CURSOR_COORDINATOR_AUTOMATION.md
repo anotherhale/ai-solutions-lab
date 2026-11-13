@@ -12,10 +12,11 @@ scripts/coordinator_automation_entrypoint.sh
 
 That script:
 
-1. Migrates/prepares `wasatch_development_ops` (never `wasatch_test`).
-2. Runs `development-ops-record coordinator tick` (GitHub reconcile, optional auto-merge).
-3. Emits JSON including `selected_task_id` when a new assignment is made.
-4. Records `task.delegated` when a task is handed to an implementation agent.
+1. Syncs `data/coordinator/backlog.yaml` from `origin/develop` when the remote catalog has more tasks than the working tree (so agents that boot from `main` do not truncate coordinator state).
+2. Migrates/prepares `wasatch_development_ops` (never `wasatch_test`).
+3. Runs `development-ops-record coordinator tick` (GitHub reconcile, optional auto-merge).
+4. Emits JSON including `selected_task_id` when a new assignment is made.
+5. Records `task.delegated` when a task is handed to an implementation agent.
 
 ## Automation prompt (coordinator)
 

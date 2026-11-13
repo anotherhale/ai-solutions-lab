@@ -481,23 +481,61 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-7 — Mark COORD-CATALOG-6 and DOC-API-FIN-4 merged after #79
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/80
+- Merge: `0d3d894`
 - Depends on: COORD-CATALOG-6 and DOC-API-FIN-4
-- Flip catalog rows left `in_progress` when #79 merged; register PORT-CASE-FIN-2 as `pending`.
-- Acceptance: `python3 scripts/validate_repo.py` passes.
+- Registered PORT-CASE-FIN-2 as `pending` in the coordinator catalog.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
 
 ### STATUS-6 — Refresh PROJECT_STATUS after DOC-API-FIN-4
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/80
+- Merge: `0d3d894`
 - Depends on: DOC-API-FIN-4
-- Update `PROJECT_STATUS.md` baseline and finance documentation rows through #79.
-- Acceptance: `python3 scripts/validate_repo.py` passes.
+- Updated `PROJECT_STATUS.md` baseline and finance documentation rows through #79.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
 
 ### PORT-CASE-FIN-2 — Case study finance read slice on `develop`
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/84
+- Merge: `fb27969`
 - Depends on: FIN-4 and DOC-API-FIN-4
-- Extend `docs/case-studies/wasatch-laboratory-slice.md` with read-only finance routes on `develop`, including optional `invoice_id` on `GET /api/v1/work-orders`.
+- Extended `docs/case-studies/wasatch-laboratory-slice.md` with read-only finance routes on `develop`, including optional `invoice_id` on `GET /api/v1/work-orders`.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
+
+### COORD-CATALOG-9 — Mark PORT-CASE-FIN-2 merged after #84
+
+- Status: in progress (this change)
+- Depends on: PORT-CASE-FIN-2, COORD-CATALOG-7, and STATUS-6
+- Reconcile `data/coordinator/backlog.yaml` after pull request #84; register `COORD-ENTRY-SYNC-1` as `pending`.
+- Close stale [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81) and [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82) without merging (superseded by #84 and this catalog pass).
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### STATUS-7 — Refresh PROJECT_STATUS after PORT-CASE-FIN-2
+
+- Status: in progress (this change)
+- Depends on: PORT-CASE-FIN-2
+- Update `PROJECT_STATUS.md` baseline through #84 and open-pull-request notes.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### COORD-ENTRY-SYNC-1 — Sync coordinator catalog from origin/develop before tick
+
+- Status: in progress (this change)
+- Depends on: none
+- `scripts/coordinator_sync_integration_backlog.sh` copies `data/coordinator/backlog.yaml` from `origin/develop` when the remote catalog lists more tasks than the working tree (typical when Cloud Agents boot from `main`).
+- `scripts/coordinator_automation_entrypoint.sh` invokes the sync step before `development-ops-record coordinator tick`.
+- Closes stale pull request [#83](https://github.com/anotherhale/ai-solutions-lab/pull/83) when merged via [#85](https://github.com/anotherhale/ai-solutions-lab/pull/85).
+- Acceptance: `python3 scripts/validate_repo.py` passes; integration test for coordinator continuity still passes.
+
+### DOC-DEBT-MIG-2 — Align ENGINEERING_BACKLOG downgrade debt through Alembic 0012
+
+- Status: pending
+- Depends on: COORD-ENTRY-SYNC-1
+- Update the technical-debt table in this file so downgrade coverage cites revisions `0001`–`0012` and matches `services/wasatch-api/tests/integration/README.md`.
+- Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
 ## Explicitly out of the next implementation
