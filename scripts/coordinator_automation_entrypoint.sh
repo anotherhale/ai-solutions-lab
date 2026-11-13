@@ -25,7 +25,7 @@ export DEVELOPMENT_OPS_GITHUB_REPOSITORY="${DEVELOPMENT_OPS_GITHUB_REPOSITORY:-a
 "${PYTHON}" "${ROOT}/scripts/prepare_development_ops_database.py" >/dev/null
 
 TICK_JSON="$(mktemp)"
-development-ops-record coordinator tick --notify-slack >"${TICK_JSON}"
+development-ops-record coordinator tick --notify-slack --update-catalog >"${TICK_JSON}"
 cat "${TICK_JSON}"
 
 SELECTED="$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d.get('selected_task_id') or '')" "${TICK_JSON}")"
