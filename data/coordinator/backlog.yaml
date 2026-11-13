@@ -187,9 +187,11 @@ tasks:
     status: in_progress
     depends_on: [DOC-README-FIN-4]
     branch: cursor/coord-catalog-5-post-77
+    pr_number: 78
 
   - id: STATUS-5
     title: Refresh PROJECT_STATUS after DOC-README-FIN-4
     status: in_progress
     depends_on: [DOC-README-FIN-4]
     branch: cursor/coord-catalog-5-post-77
+    pr_number: 78
