@@ -60,7 +60,7 @@ def disposable_engine() -> Engine:
     get_settings.cache_clear()
 
 
-def test_linear_head_is_0012(disposable_engine: Engine) -> None:
+def test_linear_head_is_0013(disposable_engine: Engine) -> None:
     config = Config(str(API_ROOT / "alembic.ini"))
     config.set_main_option("script_location", str(API_ROOT / "alembic"))
     config.set_main_option(
@@ -68,7 +68,7 @@ def test_linear_head_is_0012(disposable_engine: Engine) -> None:
         disposable_engine.url.render_as_string(hide_password=False),
     )
     command.downgrade(config, "0011")
-    command.upgrade(config, "0012")
+    command.upgrade(config, "0013")
     with disposable_engine.connect() as connection:
         coordinator = connection.execute(
             text(
