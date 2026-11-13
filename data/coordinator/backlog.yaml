@@ -292,3 +292,13 @@ tasks:
     depends_on: [COORD-CATALOG-10]
     branch: cursor/doc-dbmap-coordinator-0012
     pr_number: 88
+
+  - id: COORD-CATALOG-11
+    title: Mark DOC-DBMAP-2 merged after pull request #88
+    status: pending
+    depends_on: [DOC-DBMAP-2]
+
+  - id: STATUS-9
+    title: Refresh PROJECT_STATUS after DOC-DBMAP-2
+    status: pending
+    depends_on: [DOC-DBMAP-2]
