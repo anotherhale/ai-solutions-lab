@@ -400,7 +400,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### FIN-4 — Filter work orders by `invoice_id`
 
-- Status: pending
+- Status: in progress (this change)
 - Depends on: FIN-3
 - Add optional `invoice_id` query parameter to `GET /api/v1/work-orders`. Filter persisted rows using the `work_orders.invoice_id` foreign key from Alembic `0008`. No write routes.
 - Update `docs/architecture/API_CONVENTIONS.md` and add API tests using synthetic fixtures that already link work orders to invoices.

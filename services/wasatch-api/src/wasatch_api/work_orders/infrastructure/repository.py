@@ -59,6 +59,7 @@ class WorkOrderRepository:
         status: str | None = None,
         assigned_employee_id: str | None = None,
         service_location_id: str | None = None,
+        invoice_id: str | None = None,
     ) -> tuple[list[WorkOrder], int]:
         stmt: Select[tuple[WorkOrderORM]] = select(WorkOrderORM).options(
             selectinload(WorkOrderORM.customer),
@@ -95,6 +96,9 @@ class WorkOrderRepository:
             )
             stmt = stmt.where(assignment_filter)
             count_stmt = count_stmt.where(assignment_filter)
+        if invoice_id:
+            stmt = stmt.where(WorkOrderORM.invoice_id == invoice_id)
+            count_stmt = count_stmt.where(WorkOrderORM.invoice_id == invoice_id)
         total = int(self.session.scalar(count_stmt) or 0)
         rows = self.session.scalars(
             stmt.order_by(WorkOrderORM.business_id)
