@@ -242,6 +242,7 @@ tasks:
     status: in_progress
     depends_on: [COORD-CATALOG-7, STATUS-6]
     branch: cursor/coord-catalog-8-post-80
+    pr_number: 82
 
   - id: STATUS-7
     title: Refresh PROJECT_STATUS after PORT-CASE-FIN-2
