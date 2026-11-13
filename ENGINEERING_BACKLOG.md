@@ -574,16 +574,36 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-11 — Mark DOC-DBMAP-2 merged after #95
 
-- Status: in progress (pull request [#96](https://github.com/anotherhale/ai-solutions-lab/pull/96))
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/96
+- Merge: `2b9f3e45`
 - Depends on: DOC-DBMAP-2
 - Reconciled `data/coordinator/backlog.yaml` after pull request #95; marked DOC-DBMAP-2 and COORD-BACKLOG-PR-OPEN-1 merged.
-- Acceptance: coordinator tick runs without held dependency on DOC-DBMAP-2 after this pull request merges.
+- Acceptance met: coordinator tick runs without held dependency on DOC-DBMAP-2.
 
 ### STATUS-9 — Refresh PROJECT_STATUS after DOC-DBMAP-2
 
-- Status: in progress (pull request [#96](https://github.com/anotherhale/ai-solutions-lab/pull/96))
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/96
+- Merge: `2b9f3e45`
 - Depends on: DOC-DBMAP-2
 - Updated baseline, current-work table, and open-pull-request notes through #95.
+- Documentation only.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
+
+### COORD-CATALOG-12 — Mark COORD-CATALOG-11 and STATUS-9 merged after #96
+
+- Status: in progress
+- Depends on: COORD-CATALOG-11 and STATUS-9
+- Reconciled `data/coordinator/backlog.yaml` after pull request #96.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select work after merge.
+
+### STATUS-10 — Refresh PROJECT_STATUS after #96
+
+- Status: in progress
+- Depends on: COORD-CATALOG-11 and STATUS-9
+- Updated baseline and open-pull-request notes after #96 merge.
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 

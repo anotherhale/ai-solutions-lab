@@ -296,17 +296,33 @@ tasks:
 
   - id: COORD-CATALOG-11
     title: Mark DOC-DBMAP-2 merged after pull request #95
-    status: in_progress
+    status: merged
+    merge_commit: 2b9f3e45
     depends_on: [DOC-DBMAP-2]
     branch: cursor/coord-catalog-11-post-95
     pr_number: 96
 
   - id: STATUS-9
     title: Refresh PROJECT_STATUS after DOC-DBMAP-2
-    status: in_progress
+    status: merged
+    merge_commit: 2b9f3e45
     depends_on: [DOC-DBMAP-2]
     branch: cursor/coord-catalog-11-post-95
     pr_number: 96
+
+  - id: COORD-CATALOG-12
+    title: Mark COORD-CATALOG-11 and STATUS-9 merged after pull request #96
+    status: in_progress
+    depends_on: [COORD-CATALOG-11, STATUS-9]
+    branch: cursor/coord-catalog-12-post-96
+    pr_number: 97
+
+  - id: STATUS-10
+    title: Refresh PROJECT_STATUS after #96
+    status: in_progress
+    depends_on: [COORD-CATALOG-11, STATUS-9]
+    branch: cursor/coord-catalog-12-post-96
+    pr_number: 97
 
   - id: COORD-BACKLOG-PR-OPEN-1
     title: Accept lifecycle statuses in the backlog catalog YAML
