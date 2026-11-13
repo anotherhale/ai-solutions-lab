@@ -160,19 +160,23 @@ tasks:
 
   - id: COORD-CATALOG-4
     title: Mark FIN-4 and STATUS-3 merged in coordinator catalog
-    status: in_progress
+    status: merged
+    merge_commit: 2517ce4
     depends_on: [STATUS-3]
     branch: cursor/coord-catalog-4-post-74
     pr_number: 76
 
   - id: STATUS-4
     title: Refresh PROJECT_STATUS after FIN-4 and catalog reconciliation
-    status: in_progress
+    status: merged
+    merge_commit: 2517ce4
     depends_on: [FIN-4, STATUS-3]
     branch: cursor/coord-catalog-4-post-74
     pr_number: 76
 
   - id: DOC-README-FIN-4
     title: Work-order invoice_id filter in wasatch-api README
-    status: pending
+    status: in_progress
     depends_on: [FIN-4]
+    branch: cursor/doc-readme-fin-4
+    pr_number: 77

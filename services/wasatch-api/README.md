@@ -8,6 +8,8 @@ This is the modular-monolith slice. Synthetic procedure-page embeddings live in 
 
 Finance on `develop` is read-only reference data from Alembic revisions `0008`, `0010`, and `0011`. Authenticated laboratory actors may list and fetch synthetic invoices (`GET /api/v1/invoices`, `GET /api/v1/invoices/{invoice_id}`), list invoice lines for an invoice and fetch one line by id (`GET /api/v1/invoices/{invoice_id}/lines`, `GET /api/v1/invoice-lines/{invoice_line_id}`), and list or fetch payments (`GET /api/v1/payments`, `GET /api/v1/payments/{payment_id}`). Amounts are persisted reference values only. These routes do not post invoices, apply payments, or change totals. Approver and dispatcher commands elsewhere in the slice still do not post finance.
 
+Work orders are read-only. `GET /api/v1/work-orders` accepts an optional query parameter `invoice_id` (synthetic invoice business id, for example `inv_0005`) to return only work orders linked to that invoice via Alembic revision `0008`. Omit the parameter to list all work orders. The filter does not post finance or change invoice totals.
+
 ## Prerequisites
 
 - Python 3.12+
