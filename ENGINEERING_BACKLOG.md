@@ -502,6 +502,20 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Extend `docs/case-studies/wasatch-laboratory-slice.md` with read-only finance routes on `develop`, including optional `invoice_id` on `GET /api/v1/work-orders`.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
+### COORD-CATALOG-8 — Mark PORT-CASE-FIN-2 merged after #81
+
+- Status: pending
+- Depends on: PORT-CASE-FIN-2
+- Update `data/coordinator/backlog.yaml` and this file when pull request [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81) merges.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### STATUS-7 — Refresh PROJECT_STATUS after PORT-CASE-FIN-2
+
+- Status: pending
+- Depends on: PORT-CASE-FIN-2
+- Document the case study finance update in `PROJECT_STATUS.md` after #81 merges.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
 ## Explicitly out of the next implementation
 
 - Rebuilding Phase 2.1.1

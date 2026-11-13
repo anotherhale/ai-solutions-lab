@@ -236,3 +236,13 @@ tasks:
     depends_on: [DOC-API-FIN-4, FIN-4]
     branch: cursor/port-case-fin-2-develop
     pr_number: 81
+
+  - id: COORD-CATALOG-8
+    title: Mark PORT-CASE-FIN-2 merged after pull request #81
+    status: pending
+    depends_on: [PORT-CASE-FIN-2]
+
+  - id: STATUS-7
+    title: Refresh PROJECT_STATUS after PORT-CASE-FIN-2
+    status: pending
+    depends_on: [PORT-CASE-FIN-2]
