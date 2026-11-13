@@ -10,10 +10,10 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 | Item | Value |
 |---|---|
-| Assessed commit | `fb27969632c42393c965389c1a5ddaa4366c102e` |
-| Commit subject | PORT-CASE-FIN-2: case study finance reads and work-order invoice_id filter (#84) |
-| Integration branch | `develop` at `fb27969` |
-| Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `11` then `21` on 2026-11-13) |
+| Assessed commit | `62067a2abdb8714cf9445d2f9792f72e7cdec90a` |
+| Commit subject | DOC-DEBT-MIG-2: downgrade debt through Alembic 0012 (#86) |
+| Integration branch | `develop` at `62067a2` |
+| Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `17` then `21` on 2026-11-13) |
 | Production branch | `main` at `881cfc0` (unchanged at assessment) |
 | Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
 
@@ -26,7 +26,7 @@ That relationship was true at `881cfc0`. `develop` later received the Ruff pin (
 | Branch | Tip | Notes |
 |---|---|---|
 | `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
-| `develop` | `fb27969` | Wasatch slice, finance read routes, case study PORT-CASE-FIN-2 (#84), coordinator catalog through COORD-CATALOG-7 (#80). |
+| `develop` | `62067a2` | Wasatch slice, finance read routes, coordinator catalog through DOC-DEBT-MIG-2 (#86), Alembic head `0012` on the application database. |
 | `ai-dev` | `0af252d` | Autonomous agents, review gate, Alembic head through `0016` until promoted to `develop`. |
 | `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
@@ -122,10 +122,14 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | COORD-CATALOG-7 coordinator catalog after #79 | Done. Pull request [#80](https://github.com/anotherhale/ai-solutions-lab/pull/80) merged as `0d3d894`. Registers PORT-CASE-FIN-2. |
 | STATUS-6 PROJECT_STATUS after DOC-API-FIN-4 | Done in pull request [#80](https://github.com/anotherhale/ai-solutions-lab/pull/80). Documentation only. |
 | PORT-CASE-FIN-2 case study finance on `develop` | Done. Pull request [#84](https://github.com/anotherhale/ai-solutions-lab/pull/84) merged as `fb27969`. Finance read routes and FIN-4 work-order filter in the case study. Documentation only. |
-| COORD-CATALOG-9 coordinator catalog after #84 | This change. Marks PORT-CASE-FIN-2 merged; registers COORD-ENTRY-SYNC-1. |
-| STATUS-7 PROJECT_STATUS after PORT-CASE-FIN-2 | This change. Documentation only. |
+| COORD-CATALOG-9 coordinator catalog after #84 | Done. Pull request [#85](https://github.com/anotherhale/ai-solutions-lab/pull/85) merged as `00ef109`. Registers COORD-ENTRY-SYNC-1 and DOC-DEBT-MIG-2. |
+| STATUS-7 PROJECT_STATUS after PORT-CASE-FIN-2 | Done in pull request [#85](https://github.com/anotherhale/ai-solutions-lab/pull/85). Documentation only. |
+| COORD-ENTRY-SYNC-1 catalog sync before coordinator tick | Done in pull request [#85](https://github.com/anotherhale/ai-solutions-lab/pull/85). |
+| DOC-DEBT-MIG-2 downgrade debt through Alembic 0012 | Done. Pull request [#86](https://github.com/anotherhale/ai-solutions-lab/pull/86) merged as `62067a2`. Documentation only. |
+| COORD-CATALOG-10 coordinator catalog after #86 | This change. Marks DOC-DEBT-MIG-2 merged; registers DOC-DBMAP-2. |
+| STATUS-8 PROJECT_STATUS after DOC-DEBT-MIG-2 | This change. Documentation only. |
 
-Open pull requests targeting `develop`: [#83](https://github.com/anotherhale/ai-solutions-lab/pull/83) (COORD-ENTRY-SYNC-1), COORD-CATALOG-9 from this coordinator run. Close stale [#75](https://github.com/anotherhale/ai-solutions-lab/pull/75), [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81), and [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82) without merging (superseded by #84 and this catalog pass).
+Open pull requests targeting `develop`: COORD-CATALOG-10 from this coordinator run. Close stale [#75](https://github.com/anotherhale/ai-solutions-lab/pull/75), [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81), [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82), and [#83](https://github.com/anotherhale/ai-solutions-lab/pull/83) without merging (superseded by #85, #84, and this catalog pass).
 
 Open pull requests targeting `ai-dev` (do not block `develop` scheduling):
 

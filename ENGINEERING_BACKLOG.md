@@ -536,9 +536,26 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### DOC-DEBT-MIG-2 — Align ENGINEERING_BACKLOG downgrade debt through Alembic 0012
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/86
+- Merge: `62067a2`
 - Depends on: COORD-ENTRY-SYNC-1
-- Update the technical-debt table in this file so downgrade coverage cites revisions `0001`–`0012` and matches `services/wasatch-api/tests/integration/README.md`.
+- Updated the technical-debt table so downgrade coverage cites revisions `0001`–`0012` and matches `services/wasatch-api/tests/integration/README.md`.
+- Documentation only.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
+
+### COORD-CATALOG-10 — Mark DOC-DEBT-MIG-2 merged after #86
+
+- Status: in progress (this change)
+- Depends on: DOC-DEBT-MIG-2, COORD-ENTRY-SYNC-1, and STATUS-7
+- Reconcile `data/coordinator/backlog.yaml` after pull request #86; register `DOC-DBMAP-2`.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select a pending task after merge.
+
+### STATUS-8 — Refresh PROJECT_STATUS after DOC-DEBT-MIG-2
+
+- Status: in progress (this change)
+- Depends on: DOC-DEBT-MIG-2
+- Update baseline, current-work table, and superseded open-pull-request notes through #85 and #86.
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
