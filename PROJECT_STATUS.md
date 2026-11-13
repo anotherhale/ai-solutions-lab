@@ -126,10 +126,11 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | STATUS-7 PROJECT_STATUS after PORT-CASE-FIN-2 | Done in pull request [#85](https://github.com/anotherhale/ai-solutions-lab/pull/85). Documentation only. |
 | COORD-ENTRY-SYNC-1 catalog sync before coordinator tick | Done in pull request [#85](https://github.com/anotherhale/ai-solutions-lab/pull/85). |
 | DOC-DEBT-MIG-2 downgrade debt through Alembic 0012 | Done. Pull request [#86](https://github.com/anotherhale/ai-solutions-lab/pull/86) merged as `62067a2`. Documentation only. |
-| COORD-CATALOG-10 coordinator catalog after #86 | This change. Marks DOC-DEBT-MIG-2 merged; registers DOC-DBMAP-2. |
-| STATUS-8 PROJECT_STATUS after DOC-DEBT-MIG-2 | This change. Documentation only. |
+| COORD-CATALOG-10 coordinator catalog after #86 | Done. Pull request [#87](https://github.com/anotherhale/ai-solutions-lab/pull/87) merged as `e8c2a22`. Marks DOC-DEBT-MIG-2 merged; registers DOC-DBMAP-2. |
+| STATUS-8 PROJECT_STATUS after DOC-DEBT-MIG-2 | Done in pull request [#87](https://github.com/anotherhale/ai-solutions-lab/pull/87). Documentation only. |
+| DOC-DBMAP-2 coordinator tables in DATABASE_MAPPING | This change. Documents Alembic `0012` `development_ops` tables. Documentation only. |
 
-Open pull requests targeting `develop`: COORD-CATALOG-10 from this coordinator run. Close stale [#75](https://github.com/anotherhale/ai-solutions-lab/pull/75), [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81), [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82), and [#83](https://github.com/anotherhale/ai-solutions-lab/pull/83) without merging (superseded by #85, #84, and this catalog pass).
+Open pull requests targeting `develop`: DOC-DBMAP-2 from this coordinator run. Close stale [#75](https://github.com/anotherhale/ai-solutions-lab/pull/75), [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81), [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82), and [#83](https://github.com/anotherhale/ai-solutions-lab/pull/83) without merging (superseded by #85, #84, and this catalog pass).
 
 Open pull requests targeting `ai-dev` (do not block `develop` scheduling):
 

@@ -546,18 +546,30 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-10 — Mark DOC-DEBT-MIG-2 merged after #86
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/87
+- Merge: `e8c2a22`
 - Depends on: DOC-DEBT-MIG-2, COORD-ENTRY-SYNC-1, and STATUS-7
-- Reconcile `data/coordinator/backlog.yaml` after pull request #86; register `DOC-DBMAP-2`.
-- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select a pending task after merge.
+- Reconciled `data/coordinator/backlog.yaml` after pull request #86; registered `DOC-DBMAP-2`.
+- Acceptance met: `python3 scripts/validate_repo.py` passes; coordinator tick selected `DOC-DBMAP-2` after merge.
 
 ### STATUS-8 — Refresh PROJECT_STATUS after DOC-DEBT-MIG-2
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/87
+- Merge: `e8c2a22`
 - Depends on: DOC-DEBT-MIG-2
-- Update baseline, current-work table, and superseded open-pull-request notes through #85 and #86.
+- Updated baseline, current-work table, and superseded open-pull-request notes through #85 and #86.
 - Documentation only.
-- Acceptance: `python3 scripts/validate_repo.py` passes.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
+
+### DOC-DBMAP-2 — Coordinator scheduling tables in DATABASE_MAPPING.md
+
+- Status: in progress (this change)
+- Depends on: COORD-CATALOG-10
+- Update `docs/architecture/DATABASE_MAPPING.md` for Alembic revision `0012`: `development_ops.coordinator_tasks`, the extended `activity_events.event_type` check, and downgrade notes separate from the Wasatch application database.
+- No schema, migration, or API changes.
+- Acceptance: `python3 scripts/validate_repo.py` passes; table list matches `0012_development_ops_coordinator.py`.
 
 ## Explicitly out of the next implementation
 
