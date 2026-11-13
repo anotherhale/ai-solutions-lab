@@ -200,13 +200,33 @@ tasks:
 
   - id: COORD-CATALOG-6
     title: Mark COORD-CATALOG-5 and STATUS-5 merged after pull request #78
-    status: in_progress
+    status: merged
+    merge_commit: 274703c
     depends_on: [COORD-CATALOG-5, STATUS-5]
     branch: cursor/coord-catalog-6-post-78
     pr_number: 79
 
   - id: DOC-API-FIN-4
     title: Work-order invoice_id filter in API_CONVENTIONS.md
-    status: in_progress
+    status: merged
+    merge_commit: 274703c
     depends_on: [FIN-4]
     branch: cursor/coord-catalog-6-post-78
+    pr_number: 79
+
+  - id: COORD-CATALOG-7
+    title: Mark COORD-CATALOG-6 and DOC-API-FIN-4 merged after pull request #79
+    status: in_progress
+    depends_on: [COORD-CATALOG-6, DOC-API-FIN-4]
+    branch: cursor/coord-catalog-7-post-79
+
+  - id: STATUS-6
+    title: Refresh PROJECT_STATUS after DOC-API-FIN-4
+    status: in_progress
+    depends_on: [DOC-API-FIN-4]
+    branch: cursor/coord-catalog-7-post-79
+
+  - id: PORT-CASE-FIN-2
+    title: Case study finance read slice including FIN-4 work-order filter
+    status: pending
+    depends_on: [DOC-API-FIN-4, FIN-4]
