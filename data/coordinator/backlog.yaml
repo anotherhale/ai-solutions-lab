@@ -243,15 +243,18 @@ tasks:
     status: in_progress
     depends_on: [PORT-CASE-FIN-2, COORD-CATALOG-7, STATUS-6]
     branch: cursor/coord-catalog-reconcile-post-84
+    pr_number: 85
 
   - id: STATUS-7
     title: Refresh PROJECT_STATUS after PORT-CASE-FIN-2
     status: in_progress
     depends_on: [PORT-CASE-FIN-2]
     branch: cursor/coord-catalog-reconcile-post-84
+    pr_number: 85
 
   - id: COORD-ENTRY-SYNC-1
     title: Sync coordinator catalog from origin/develop before tick
     status: pending
     depends_on: []
     branch: cursor/coord-entry-sync-develop-catalog
+    pr_number: 83
