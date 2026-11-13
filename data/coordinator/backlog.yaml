@@ -254,7 +254,13 @@ tasks:
 
   - id: COORD-ENTRY-SYNC-1
     title: Sync coordinator catalog from origin/develop before tick
-    status: pending
+    status: in_progress
     depends_on: []
-    branch: cursor/coord-entry-sync-develop-catalog
-    pr_number: 83
+    branch: cursor/coord-catalog-reconcile-post-84
+    pr_number: 85
+
+  - id: DOC-DEBT-MIG-2
+    title: Align ENGINEERING_BACKLOG downgrade debt through Alembic 0012
+    status: pending
+    depends_on: [COORD-ENTRY-SYNC-1]
+    branch: cursor/doc-debt-mig-2-develop

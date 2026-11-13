@@ -521,6 +521,23 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Update `PROJECT_STATUS.md` baseline through #84 and open-pull-request notes.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
+### COORD-ENTRY-SYNC-1 — Sync coordinator catalog from origin/develop before tick
+
+- Status: in progress (this change)
+- Depends on: none
+- `scripts/coordinator_sync_integration_backlog.sh` copies `data/coordinator/backlog.yaml` from `origin/develop` when the remote catalog lists more tasks than the working tree (typical when Cloud Agents boot from `main`).
+- `scripts/coordinator_automation_entrypoint.sh` invokes the sync step before `development-ops-record coordinator tick`.
+- Closes stale pull request [#83](https://github.com/anotherhale/ai-solutions-lab/pull/83) when merged via [#85](https://github.com/anotherhale/ai-solutions-lab/pull/85).
+- Acceptance: `python3 scripts/validate_repo.py` passes; integration test for coordinator continuity still passes.
+
+### DOC-DEBT-MIG-2 — Align ENGINEERING_BACKLOG downgrade debt through Alembic 0012
+
+- Status: pending
+- Depends on: COORD-ENTRY-SYNC-1
+- Update the technical-debt table in this file so downgrade coverage cites revisions `0001`–`0012` and matches `services/wasatch-api/tests/integration/README.md`.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
 ## Explicitly out of the next implementation
 
 - Rebuilding Phase 2.1.1
