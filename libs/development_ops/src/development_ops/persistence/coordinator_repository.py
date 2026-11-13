@@ -53,6 +53,14 @@ class CoordinatorTaskRepository:
                 row.status = RuntimeTaskStatus.MERGED.value
                 if task.merge_commit:
                     row.merge_commit_sha = task.merge_commit
+            elif task.status == BacklogTaskStatus.IN_PROGRESS and task.pr_number:
+                if row.status in {
+                    RuntimeTaskStatus.PENDING.value,
+                    RuntimeTaskStatus.IN_PROGRESS.value,
+                }:
+                    row.status = RuntimeTaskStatus.PR_OPEN.value
+                row.pr_number = task.pr_number
+                row.branch_name = task.branch
             elif row.status == RuntimeTaskStatus.PENDING.value and task.pr_number:
                 row.pr_number = task.pr_number
                 row.branch_name = task.branch

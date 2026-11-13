@@ -154,16 +154,34 @@ class CoordinatorEngine:
                     f"(owned by run {existing.active_run_id})"
                 )
             else:
-                selected_id = decision.task.task_id
-                selected_title = decision.task.title
-                self._tasks.mark_in_progress(
-                    selected_id,
-                    run_id=self._run_id,
-                    owner_agent=os.environ.get(
-                        "DEVELOPMENT_OPS_AGENT_NAME", "coordinator"
-                    ),
-                )
-                self._record_scheduled(selected_id, selected_title)
+                chosen = decision.task
+                if chosen.pr_number is not None and chosen.pr_number in open_prs:
+                    catalog_branch = chosen.branch_name or chosen.task_id
+                    self._tasks.mark_pr_open(
+                        chosen.task_id,
+                        run_id=self._run_id,
+                        branch_name=catalog_branch,
+                        pr_number=chosen.pr_number,
+                        owner_agent=os.environ.get(
+                            "DEVELOPMENT_OPS_AGENT_NAME", "coordinator"
+                        ),
+                    )
+                    notes.append(
+                        f"catalog task {chosen.task_id} already has open pr "
+                        f"#{chosen.pr_number}; skipped new assignment"
+                    )
+                else:
+                    selected_id = chosen.task_id
+                    selected_title = chosen.title
+                    self._tasks.mark_in_progress(
+                        selected_id,
+                        run_id=self._run_id,
+                        owner_agent=os.environ.get(
+                            "DEVELOPMENT_OPS_AGENT_NAME", "coordinator"
+                        ),
+                        branch_name=chosen.branch_name,
+                    )
+                    self._record_scheduled(selected_id, selected_title)
         elif selected_id is not None and resume_task_id:
             self._record_recovery_only(selected_id, notes)
             return CoordinatorTickResult(
