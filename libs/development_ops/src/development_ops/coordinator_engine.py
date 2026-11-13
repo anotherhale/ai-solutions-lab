@@ -280,7 +280,10 @@ class CoordinatorEngine:
             if state.merged:
                 self._tasks.mark_merged(task.id, merge_commit_sha=None)
                 continue
-            if row is not None and row.status == RuntimeTaskStatus.PENDING.value:
+            if row is not None and row.status in {
+                RuntimeTaskStatus.PENDING.value,
+                RuntimeTaskStatus.IN_PROGRESS.value,
+            }:
                 self._tasks.mark_pr_open(
                     task.id,
                     run_id=row.active_run_id or self._run_id,
