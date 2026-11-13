@@ -563,6 +563,12 @@ tasks:
     branch: cursor/coord-catalog-26-post-110
     pr_number: 111
 
+  - id: OPENAPI-FIN-QP-1
+    title: OpenAPI documents finance and work-order list query parameters
+    status: pending
+    depends_on: [STATUS-24]
+    branch: cursor/openapi-fin-query-params
+
   - id: COORD-BACKLOG-PR-OPEN-1
     title: Accept lifecycle statuses in the backlog catalog YAML
     status: merged

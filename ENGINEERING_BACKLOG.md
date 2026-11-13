@@ -879,6 +879,14 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
+### OPENAPI-FIN-QP-1 — Finance list query parameters in OpenAPI contract tests
+
+- Status: pending
+- Depends on: STATUS-24
+- Extend `tests/api/test_openapi_contract.py` (or a focused companion) so OpenAPI documents optional list filters already implemented in the API: `invoice_id` on `GET /api/v1/work-orders` and `GET /api/v1/payments`, and status or type filters on finance read routes where they exist in the published schema.
+- No route or migration changes.
+- Acceptance: contract tests pass; `python3 scripts/validate_repo.py` passes; CI green.
+
 ### COORD-BACKLOG-PR-OPEN-1 — Catalog lifecycle statuses
 
 - Status: done
