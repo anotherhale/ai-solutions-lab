@@ -408,17 +408,33 @@ tasks:
 
   - id: COORD-CATALOG-18
     title: Mark COORD-CATALOG-17 and STATUS-15 merged after pull request #102
-    status: in_progress
+    status: merged
+    merge_commit: d03ba92
     depends_on: [COORD-CATALOG-17, STATUS-15]
     branch: cursor/coord-catalog-18-post-102
     pr_number: 103
 
   - id: STATUS-16
     title: Refresh PROJECT_STATUS after #102
-    status: in_progress
+    status: merged
+    merge_commit: d03ba92
     depends_on: [COORD-CATALOG-17, STATUS-15]
     branch: cursor/coord-catalog-18-post-102
     pr_number: 103
+
+  - id: COORD-CATALOG-19
+    title: Mark COORD-CATALOG-18 and STATUS-16 merged after pull request #103
+    status: in_progress
+    depends_on: [COORD-CATALOG-18, STATUS-16]
+    branch: cursor/coord-catalog-19-post-103
+    pr_number: 104
+
+  - id: STATUS-17
+    title: Refresh PROJECT_STATUS after #103
+    status: in_progress
+    depends_on: [COORD-CATALOG-18, STATUS-16]
+    branch: cursor/coord-catalog-19-post-103
+    pr_number: 104
 
   - id: COORD-BACKLOG-PR-OPEN-1
     title: Accept lifecycle statuses in the backlog catalog YAML
