@@ -145,6 +145,7 @@ tasks:
     status: in_progress
     depends_on: [FIN-3]
     branch: cursor/fin-4-work-order-invoice-filter
+    pr_number: 73
 
   - id: STATUS-3
     title: Refresh PROJECT_STATUS after DOC-ENG-AIDEV-1
