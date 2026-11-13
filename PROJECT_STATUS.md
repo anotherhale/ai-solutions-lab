@@ -13,7 +13,7 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 | Assessed commit | `0a0ee7ba85797cbe5bcab1dccf80393ffcf154d2` |
 | Commit subject | COORD-CATALOG-3: mark STATUS-2 merged after PR #71 (#72) |
 | Integration branch | `develop` at `0a0ee7b` |
-| Autonomous integration branch | `ai-dev` at `8577af5` (`git rev-list --left-right --count develop...ai-dev` → `7` then `11` on 2026-11-13) |
+| Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `7` then `21` on 2026-11-13) |
 | Production branch | `main` at `881cfc0` (unchanged at assessment) |
 | Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
 
@@ -27,7 +27,7 @@ That relationship was true at `881cfc0`. `develop` later received the Ruff pin (
 |---|---|---|
 | `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
 | `develop` | `0a0ee7b` | Wasatch slice and coordinator catalog default. Open [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) (FIN-4). |
-| `ai-dev` | `8577af5` | Autonomous agents, review gate, Alembic head through `0016` until promoted to `develop`. |
+| `ai-dev` | `0af252d` | Autonomous agents, review gate, Alembic head through `0016` until promoted to `develop`. |
 | `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
 
