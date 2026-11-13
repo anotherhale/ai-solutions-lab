@@ -128,14 +128,16 @@ tasks:
 
   - id: COORD-CATALOG-3
     title: Mark STATUS-2 merged and document ai-dev branch
-    status: in_progress
+    status: merged
+    merge_commit: 0a0ee7b
     depends_on: [STATUS-2]
     branch: cursor/status-2-catalog-post-71
     pr_number: 72
 
   - id: DOC-ENG-AIDEV-1
     title: Document ai-dev integration branch in ENGINEERING_BACKLOG
-    status: in_progress
+    status: merged
+    merge_commit: 0a0ee7b
     depends_on: [STATUS-2]
     branch: cursor/status-2-catalog-post-71
     pr_number: 72
@@ -149,5 +151,7 @@ tasks:
 
   - id: STATUS-3
     title: Refresh PROJECT_STATUS after DOC-ENG-AIDEV-1
-    status: pending
+    status: in_progress
     depends_on: [DOC-ENG-AIDEV-1]
+    branch: cursor/status-3-project-status
+    pr_number: 74

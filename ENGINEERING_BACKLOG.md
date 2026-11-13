@@ -408,7 +408,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### STATUS-3 — Refresh PROJECT_STATUS after DOC-ENG-AIDEV-1
 
-- Status: pending
+- Status: in progress (branch `cursor/status-3-project-status`)
 - Depends on: DOC-ENG-AIDEV-1
 - Update `PROJECT_STATUS.md` with the integration-branch summary and catalog state after pull request #72 merges.
 - Documentation only.
