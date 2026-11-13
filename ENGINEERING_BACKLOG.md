@@ -481,21 +481,23 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-7 — Mark COORD-CATALOG-6 and DOC-API-FIN-4 merged after #79
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/80
+- Merge: `0d3d894`
 - Depends on: COORD-CATALOG-6 and DOC-API-FIN-4
-- Flip catalog rows left `in_progress` when #79 merged; register PORT-CASE-FIN-2 as `pending`.
-- Acceptance: `python3 scripts/validate_repo.py` passes.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
 
 ### STATUS-6 — Refresh PROJECT_STATUS after DOC-API-FIN-4
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/80
+- Merge: `0d3d894`
 - Depends on: DOC-API-FIN-4
-- Update `PROJECT_STATUS.md` baseline and finance documentation rows through #79.
-- Acceptance: `python3 scripts/validate_repo.py` passes.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
 
 ### PORT-CASE-FIN-2 — Case study finance read slice on `develop`
 
-- Status: pending
+- Status: in progress (this change)
 - Depends on: FIN-4 and DOC-API-FIN-4
 - Extend `docs/case-studies/wasatch-laboratory-slice.md` with read-only finance routes on `develop`, including optional `invoice_id` on `GET /api/v1/work-orders`.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
