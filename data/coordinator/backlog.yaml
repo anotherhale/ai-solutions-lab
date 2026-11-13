@@ -234,3 +234,10 @@ tasks:
     depends_on: [DOC-API-FIN-4, FIN-4]
     branch: cursor/port-case-fin-2
     pr_number: 84
+
+  - id: COORD-ENTRY-SYNC-1
+    title: Sync coordinator catalog from origin/develop before tick
+    status: in_progress
+    depends_on: []
+    branch: cursor/coord-entry-sync-develop-catalog
+    pr_number: 83
