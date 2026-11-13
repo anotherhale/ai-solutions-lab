@@ -28,6 +28,7 @@ from development_ops.github_client import github_client_from_env
 from development_ops.models import ActivityEventCreate
 from development_ops.persistence.coordinator_repository import CoordinatorTaskRepository
 from development_ops.persistence.verdict_repository import ReviewVerdictRepository
+from development_ops.preflight import preflight_callable_from_env
 from development_ops.recorder import ActivityRecorder
 from development_ops.review_gate import build_gate_from_env
 from development_ops.runner import CoordinatorRunner, RecoveryReport, TickOutcome
@@ -100,6 +101,7 @@ def _build_engine(
         launcher=None,
         github=github_client_from_env(),
         run_id=run_id,
+        preflight=preflight_callable_from_env(),
     )
     children = _build_child_orchestrator(
         session, run_id=run_id, repository=repository, worktrees=worktrees
@@ -199,6 +201,7 @@ def build_runner_from_env(
                     launcher=None,
                     github=github_client_from_env(),
                     run_id=_run_id_from_env(),
+                    preflight=preflight_callable_from_env(),
                 )
                 recovered = worktrees.recover_interrupted()
             except Exception as exc:  # noqa: BLE001 - worktree recovery is optional
