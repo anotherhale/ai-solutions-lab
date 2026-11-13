@@ -21,6 +21,8 @@ def _runtime_from_catalog(status: BacklogTaskStatus) -> str:
     if status == BacklogTaskStatus.MERGED:
         return RuntimeTaskStatus.MERGED.value
     if status == BacklogTaskStatus.IN_PROGRESS:
+        return RuntimeTaskStatus.IN_PROGRESS.value
+    if status == BacklogTaskStatus.PR_OPEN:
         return RuntimeTaskStatus.PR_OPEN.value
     if status == BacklogTaskStatus.BLOCKED:
         return RuntimeTaskStatus.BLOCKED.value
@@ -53,6 +55,16 @@ class CoordinatorTaskRepository:
                 row.status = RuntimeTaskStatus.MERGED.value
                 if task.merge_commit:
                     row.merge_commit_sha = task.merge_commit
+            elif task.status == BacklogTaskStatus.PR_OPEN:
+                if row.status in {
+                    RuntimeTaskStatus.PENDING.value,
+                    RuntimeTaskStatus.IN_PROGRESS.value,
+                }:
+                    row.status = RuntimeTaskStatus.PR_OPEN.value
+                if task.pr_number is not None:
+                    row.pr_number = task.pr_number
+                if task.branch is not None:
+                    row.branch_name = task.branch
             elif row.status == RuntimeTaskStatus.PENDING.value and task.pr_number:
                 row.pr_number = task.pr_number
                 row.branch_name = task.branch
