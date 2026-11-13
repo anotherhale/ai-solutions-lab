@@ -68,7 +68,7 @@ Defaults: `page=1`, `page_size=20`, maximum `page_size=100`. Ordering is by busi
 | GET | `/api/v1/customers` | Search, status filter, pagination |
 | GET | `/api/v1/customers/{customer_id}` | Customer plus contacts and locations |
 | GET | `/api/v1/service-locations/{location_id}` | Location plus owning customer |
-| GET | `/api/v1/work-orders` | Filter by customer, status, employee, location |
+| GET | `/api/v1/work-orders` | Filter by customer, status, employee, location, or invoice |
 | GET | `/api/v1/work-orders/{work_order_id}` | Work order plus tasks, appointments, equipment |
 | GET | `/api/v1/invoices` | Filter by customer or invoice status |
 | GET | `/api/v1/invoices/{invoice_id}` | Invoice reference row (status and customer link only) |

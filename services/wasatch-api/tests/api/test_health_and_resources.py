@@ -116,6 +116,15 @@ def test_list_work_orders_filters(client: TestClient) -> None:
         for item in by_location.json()["items"]
     )
 
+    by_invoice = client.get(
+        "/api/v1/work-orders",
+        params={"invoice_id": "inv_0005", "page_size": 100},
+    )
+    assert by_invoice.status_code == 200
+    body = by_invoice.json()
+    assert body["total"] == 1
+    assert body["items"][0]["id"] == "wo_0028"
+
 
 def test_get_work_order_detail(client: TestClient) -> None:
     response = client.get("/api/v1/work-orders/wo_0004")

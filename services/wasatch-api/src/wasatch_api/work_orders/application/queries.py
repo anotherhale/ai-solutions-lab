@@ -25,6 +25,7 @@ class WorkOrderQueries:
         status: str | None,
         assigned_employee_id: str | None,
         service_location_id: str | None,
+        invoice_id: str | None,
     ) -> tuple[list[WorkOrder], int, PageRequest]:
         request = parse_page(page, page_size)
         items, total = self.repository.list_work_orders(
@@ -33,6 +34,7 @@ class WorkOrderQueries:
             status=validate_work_order_status(status),
             assigned_employee_id=assigned_employee_id,
             service_location_id=service_location_id,
+            invoice_id=invoice_id,
         )
         return items, total, request
 

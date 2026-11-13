@@ -38,6 +38,7 @@ def list_work_orders(
     status: str | None = None,
     assigned_employee_id: str | None = None,
     service_location_id: str | None = None,
+    invoice_id: str | None = None,
     page: int | None = Query(default=None, ge=1),
     page_size: int | None = Query(default=None, ge=1, le=100),
 ) -> PageOut[WorkOrderListItemOut]:
@@ -48,6 +49,7 @@ def list_work_orders(
         status=status,
         assigned_employee_id=assigned_employee_id,
         service_location_id=service_location_id,
+        invoice_id=invoice_id,
     )
     return PageOut(
         items=[WorkOrderListItemOut.from_domain(item) for item in items],
