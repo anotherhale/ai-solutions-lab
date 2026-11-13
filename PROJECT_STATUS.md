@@ -10,9 +10,9 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 | Item | Value |
 |---|---|
-| Assessed commit | `274703ce8d6ff4bf0b45573d5bfe7af07458900c` |
-| Commit subject | COORD-CATALOG-6: catalog after #78 and DOC-API-FIN-4 (#79) |
-| Integration branch | `develop` at `274703c` |
+| Assessed commit | `0d3d894f949d161b453bbcb05868667b4005ffa9` |
+| Commit subject | COORD-CATALOG-7: catalog after #79 (#80) |
+| Integration branch | `develop` at `0d3d894` |
 | Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `11` then `21` on 2026-11-13) |
 | Production branch | `main` at `881cfc0` (unchanged at assessment) |
 | Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
@@ -26,7 +26,7 @@ That relationship was true at `881cfc0`. `develop` later received the Ruff pin (
 | Branch | Tip | Notes |
 |---|---|---|
 | `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
-| `develop` | `274703c` | Wasatch slice, FIN-4 work-order `invoice_id` filter, finance docs through DOC-API-FIN-4 (#79), coordinator catalog through COORD-CATALOG-6. |
+| `develop` | `0d3d894` | Wasatch slice, finance reads through FIN-4, coordinator catalog through COORD-CATALOG-7 (#80). Open [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81) for PORT-CASE-FIN-2. |
 | `ai-dev` | `0af252d` | Autonomous agents, review gate, Alembic head through `0016` until promoted to `develop`. |
 | `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
@@ -119,9 +119,12 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | COORD-CATALOG-5 coordinator catalog after DOC-README-FIN-4 | Done. Pull request [#78](https://github.com/anotherhale/ai-solutions-lab/pull/78) merged as `c095cfe`. Catalog and PROJECT_STATUS reconciled after #77. Superseded stale [#75](https://github.com/anotherhale/ai-solutions-lab/pull/75) (conflicts; close without merging). |
 | COORD-CATALOG-6 coordinator catalog after #78 | Done. Pull request [#79](https://github.com/anotherhale/ai-solutions-lab/pull/79) merged as `274703c`. Catalog marks COORD-CATALOG-5 and STATUS-5 merged; documents FIN-4 `invoice_id` filter in `API_CONVENTIONS.md`. |
 | DOC-API-FIN-4 work-order `invoice_id` in API_CONVENTIONS | Done in pull request [#79](https://github.com/anotherhale/ai-solutions-lab/pull/79). Documentation only. |
-| COORD-CATALOG-7 coordinator catalog after #79 | This change. Marks COORD-CATALOG-6 and DOC-API-FIN-4 merged; registers PORT-CASE-FIN-2. |
+| COORD-CATALOG-7 coordinator catalog after #79 | Done. Pull request [#80](https://github.com/anotherhale/ai-solutions-lab/pull/80) merged as `0d3d894`. Registers PORT-CASE-FIN-2. |
+| STATUS-6 PROJECT_STATUS after DOC-API-FIN-4 | Done in pull request [#80](https://github.com/anotherhale/ai-solutions-lab/pull/80). Documentation only. |
+| PORT-CASE-FIN-2 case study finance on `develop` | In progress. Pull request [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81). Case study finance read routes and FIN-4 work-order filter. Documentation only. |
+| COORD-CATALOG-8 coordinator catalog after #80 | This change. Marks COORD-CATALOG-7 and STATUS-6 merged; tracks open pull request #81. |
 
-Open pull requests targeting `develop`: COORD-CATALOG-7 from this coordinator run. Close stale [#75](https://github.com/anotherhale/ai-solutions-lab/pull/75) without merging (superseded by #76–#79).
+Open pull requests targeting `develop`: [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81) (PORT-CASE-FIN-2), COORD-CATALOG-8 from this coordinator run. Close stale [#75](https://github.com/anotherhale/ai-solutions-lab/pull/75) without merging (superseded by #76–#80).
 
 Open pull requests targeting `ai-dev` (do not block `develop` scheduling):
 
