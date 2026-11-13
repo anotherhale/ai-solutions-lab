@@ -144,14 +144,16 @@ tasks:
 
   - id: FIN-4
     title: Filter work orders by invoice_id
-    status: in_progress
+    status: merged
+    merge_commit: d54ff60
     depends_on: [FIN-3]
     branch: cursor/fin-4-work-order-invoice-filter
     pr_number: 73
 
   - id: STATUS-3
     title: Refresh PROJECT_STATUS after DOC-ENG-AIDEV-1
-    status: in_progress
+    status: merged
+    merge_commit: f6469ea
     depends_on: [DOC-ENG-AIDEV-1]
     branch: cursor/status-3-project-status
     pr_number: 74
