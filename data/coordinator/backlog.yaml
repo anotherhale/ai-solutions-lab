@@ -176,7 +176,22 @@ tasks:
 
   - id: DOC-README-FIN-4
     title: Work-order invoice_id filter in wasatch-api README
-    status: in_progress
+    status: merged
+    merge_commit: a0cc77c
     depends_on: [FIN-4]
     branch: cursor/doc-readme-fin-4
     pr_number: 77
+
+  - id: COORD-CATALOG-5
+    title: Mark DOC-README-FIN-4 merged in coordinator catalog
+    status: in_progress
+    depends_on: [DOC-README-FIN-4]
+    branch: cursor/coord-catalog-5-post-77
+    pr_number: 78
+
+  - id: STATUS-5
+    title: Refresh PROJECT_STATUS after DOC-README-FIN-4
+    status: in_progress
+    depends_on: [DOC-README-FIN-4]
+    branch: cursor/coord-catalog-5-post-77
+    pr_number: 78

@@ -436,10 +436,25 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### DOC-README-FIN-4 — Work-order `invoice_id` filter in service README
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/77
+- Merge: `a0cc77c`
 - Depends on: FIN-4
-- Document optional `invoice_id` on `GET /api/v1/work-orders` in `services/wasatch-api/README.md`.
-- Documentation only; no API changes.
+- Documented optional `invoice_id` on `GET /api/v1/work-orders` in `services/wasatch-api/README.md`.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
+
+### COORD-CATALOG-5 — Mark DOC-README-FIN-4 merged in coordinator catalog
+
+- Status: in progress (this change)
+- Depends on: DOC-README-FIN-4
+- Reconcile `data/coordinator/backlog.yaml` after pull request #77.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### STATUS-5 — Refresh PROJECT_STATUS after DOC-README-FIN-4
+
+- Status: in progress (this change)
+- Depends on: DOC-README-FIN-4
+- Update `PROJECT_STATUS.md` baseline and finance documentation rows through #77.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
 ## Explicitly out of the next implementation

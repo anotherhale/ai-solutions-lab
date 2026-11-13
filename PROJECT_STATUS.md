@@ -10,10 +10,10 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 | Item | Value |
 |---|---|
-| Assessed commit | `f6469ea6213a61f6c68247231e2e2e1283664170` |
-| Commit subject | STATUS-3: refresh PROJECT_STATUS after DOC-ENG-AIDEV-1 (#74) |
-| Integration branch | `develop` at `f6469ea` |
-| Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `9` then `21` on 2026-11-13) |
+| Assessed commit | `a0cc77cd80646fd57a6922b2d1160fa93641e124` |
+| Commit subject | DOC-README-FIN-4: document work-order invoice_id list filter in README (#77) |
+| Integration branch | `develop` at `a0cc77c` |
+| Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `11` then `21` on 2026-11-13) |
 | Production branch | `main` at `881cfc0` (unchanged at assessment) |
 | Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
 
@@ -26,7 +26,7 @@ That relationship was true at `881cfc0`. `develop` later received the Ruff pin (
 | Branch | Tip | Notes |
 |---|---|---|
 | `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
-| `develop` | `f6469ea` | Wasatch slice, FIN-4 work-order filter, coordinator catalog default. No open PRs targeting `develop` at assessment (before COORD-CATALOG-4). |
+| `develop` | `a0cc77c` | Wasatch slice, FIN-4 work-order filter, service README documents `invoice_id` list filter. Coordinator catalog reconciled through COORD-CATALOG-5. |
 | `ai-dev` | `0af252d` | Autonomous agents, review gate, Alembic head through `0016` until promoted to `develop`. |
 | `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
@@ -114,9 +114,11 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | DOC-ENG-AIDEV-1 `ai-dev` branch documented in backlog | Done in pull request [#72](https://github.com/anotherhale/ai-solutions-lab/pull/72). `ENGINEERING_BACKLOG.md` integration-branch summary. Documentation only. |
 | FIN-4 work-order filter by `invoice_id` | Done. Pull request [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) merged as `d54ff60`. Optional `invoice_id` on `GET /api/v1/work-orders`; read-only. |
 | STATUS-3 integration-branch status refresh | Done. Pull request [#74](https://github.com/anotherhale/ai-solutions-lab/pull/74) merged as `f6469ea`. Documentation only. |
-| COORD-CATALOG-4 coordinator catalog after FIN-4 | This change. Reconciles catalog after #73 and #74. Documentation only. |
+| COORD-CATALOG-4 coordinator catalog after FIN-4 | Done. Pull request [#76](https://github.com/anotherhale/ai-solutions-lab/pull/76) merged as `2517ce4`. Documentation only. |
+| DOC-README-FIN-4 work-order `invoice_id` in service README | Done. Pull request [#77](https://github.com/anotherhale/ai-solutions-lab/pull/77) merged as `a0cc77c`. Documents optional `invoice_id` on `GET /api/v1/work-orders` in `services/wasatch-api/README.md`. |
+| COORD-CATALOG-5 coordinator catalog after DOC-README-FIN-4 | This change. Reconciles catalog after #77. Supersedes stale open pull request [#75](https://github.com/anotherhale/ai-solutions-lab/pull/75) (conflicts; #76 already landed the FIN-4 catalog work). |
 
-No open pull requests target `develop` at the assessed commit `f6469ea`. COORD-CATALOG-4 opens a new catalog reconciliation pull request from this coordinator run.
+Open pull requests targeting `develop`: COORD-CATALOG-5 from this coordinator run. Close #75 without merging.
 
 Open pull requests targeting `ai-dev` (do not block `develop` scheduling):
 
