@@ -219,12 +219,14 @@ tasks:
     status: in_progress
     depends_on: [COORD-CATALOG-6, DOC-API-FIN-4]
     branch: cursor/coord-catalog-7-post-79
+    pr_number: 80
 
   - id: STATUS-6
     title: Refresh PROJECT_STATUS after DOC-API-FIN-4
     status: in_progress
     depends_on: [DOC-API-FIN-4]
     branch: cursor/coord-catalog-7-post-79
+    pr_number: 80
 
   - id: PORT-CASE-FIN-2
     title: Case study finance read slice including FIN-4 work-order filter
