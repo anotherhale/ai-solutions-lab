@@ -275,12 +275,14 @@ tasks:
     status: in_progress
     depends_on: [DOC-DEBT-MIG-2, COORD-ENTRY-SYNC-1, STATUS-7]
     branch: cursor/coord-catalog-10-post-86
+    pr_number: 87
 
   - id: STATUS-8
     title: Refresh PROJECT_STATUS after DOC-DEBT-MIG-2
     status: in_progress
     depends_on: [DOC-DEBT-MIG-2]
     branch: cursor/coord-catalog-10-post-86
+    pr_number: 87
 
   - id: DOC-DBMAP-2
     title: Document coordinator scheduling tables for Alembic 0012
