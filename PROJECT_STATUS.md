@@ -1,6 +1,6 @@
 # Project Status
 
-Snapshot of AI Solutions Lab as verified on 2026-11-12. Wasatch Business Systems is a fictional company. All business records in this repository are synthetic.
+Snapshot of AI Solutions Lab as verified on 2026-11-13. Wasatch Business Systems is a fictional company. All business records in this repository are synthetic.
 
 This file records what is in the repository and what was run. Forward work is in [ENGINEERING_BACKLOG.md](ENGINEERING_BACKLOG.md). Phase design is in [docs/architecture/IMPLEMENTATION_PLAN.md](docs/architecture/IMPLEMENTATION_PLAN.md). Contributor and agent rules for integration are in [docs/architecture/AGENT_OPERATING_MODEL.md](docs/architecture/AGENT_OPERATING_MODEL.md).
 
@@ -10,10 +10,10 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 | Item | Value |
 |---|---|
-| Assessed commit | `bcf404b9742e9afc1bdd1f0ff4f1bb33c1319875` |
-| Commit subject | COORD-CATALOG-2: consolidate coordinator backlog after finance docs (#61) |
-| Integration branch | `develop` at `bcf404b` |
-| Autonomous integration branch | `ai-dev` at `0af252d` (21 commits ahead of `develop`; finance documentation and Phase D land here first) |
+| Assessed commit | `0a0ee7ba85797cbe5bcab1dccf80393ffcf154d2` |
+| Commit subject | COORD-CATALOG-3: mark STATUS-2 merged after PR #71 (#72) |
+| Integration branch | `develop` at `0a0ee7b` |
+| Autonomous integration branch | `ai-dev` at `8577af5` (`git rev-list --left-right --count develop...ai-dev` → `7` then `11` on 2026-11-13) |
 | Production branch | `main` at `881cfc0` (unchanged at assessment) |
 | Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
 
@@ -26,7 +26,8 @@ That relationship was true at `881cfc0`. `develop` later received the Ruff pin (
 | Branch | Tip | Notes |
 |---|---|---|
 | `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
-| `develop` | `881cfc0` | Integration branch at the assessment. Later merges are under Current work. |
+| `develop` | `0a0ee7b` | Wasatch slice and coordinator catalog default. Open [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) (FIN-4). |
+| `ai-dev` | `8577af5` | Autonomous agents, review gate, Alembic head through `0016` until promoted to `develop`. |
 | `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
 
@@ -108,8 +109,26 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | COORD-PR-SLOT-1 PR_OPEN slot accounting | Done. Pull request [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58) merged as `defca15`. `pr_open` catalog rows awaiting human review do not consume `DEVELOPMENT_OPS_MAX_CONCURRENT` slots. |
 | DOC-README-FIN-1 finance routes in service README | Done on `develop`. Pull request [#56](https://github.com/anotherhale/ai-solutions-lab/pull/56) merged as `7df5a56`. |
 | COORD-CATALOG-2 coordinator catalog consolidate | Done. Pull request [#61](https://github.com/anotherhale/ai-solutions-lab/pull/61) merged as `bcf404b`. Catalog marks DOC-DBMAP-1, DOC-README-FIN-1, and COORD-PR-SLOT-1 merged; sets STATUS-2 pending until finance documentation integrates. |
+| STATUS-2 finance documentation refresh | Done. Pull request [#71](https://github.com/anotherhale/ai-solutions-lab/pull/71) merged as `0b8a571`. Documentation only. |
+| COORD-CATALOG-3 coordinator catalog after STATUS-2 | Done. Pull request [#72](https://github.com/anotherhale/ai-solutions-lab/pull/72) merged as `0a0ee7b`. Catalog marks STATUS-2 merged; registers DOC-ENG-AIDEV-1, FIN-4, and STATUS-3. |
+| DOC-ENG-AIDEV-1 `ai-dev` branch documented in backlog | Done in pull request [#72](https://github.com/anotherhale/ai-solutions-lab/pull/72). `ENGINEERING_BACKLOG.md` integration-branch summary. Documentation only. |
 
-No open pull requests target `develop` at this assessment. Autonomous laboratory work continues on `ai-dev`.
+Open pull requests targeting `develop`:
+
+| Pull request | Backlog task | Notes |
+|---|---|---|
+| [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73) | FIN-4 | Optional `invoice_id` filter on `GET /api/v1/work-orders`. Squash auto-merge requested 2026-11-13. |
+
+Autonomous laboratory work also continues on `ai-dev` (open pull requests there do not block `develop` scheduling).
+
+## Integration branches (laboratory)
+
+| Branch | Role |
+|---|---|
+| `develop` | Wasatch API slice, finance read routes, `apps/wasatch-review`, coordinator catalog default |
+| `ai-dev` | Child-agent orchestration, AI review gate, extended Alembic head through `0016` until promoted |
+
+See [ENGINEERING_BACKLOG.md](ENGINEERING_BACKLOG.md) for backlog ordering and dependencies.
 
 Finance documentation merged on `ai-dev` only (not yet on `develop`; application routes on `develop` are unchanged):
 
@@ -522,3 +541,13 @@ From the repository root, same session:
 |---|---|---|
 | `python3 scripts/validate_repo.py` | Repository conventions validated | 0 |
 | `ruff format --check PROJECT_STATUS.md ENGINEERING_BACKLOG.md data/coordinator/backlog.yaml` | Files already formatted | 0 |
+
+## Verification for STATUS-3
+
+Documentation only. Parent branch is `develop` at `0a0ee7b` after pull request [#72](https://github.com/anotherhale/ai-solutions-lab/pull/72) merged DOC-ENG-AIDEV-1. This change updates the baseline, integration-branch summary, open pull request [#73](https://github.com/anotherhale/ai-solutions-lab/pull/73), and `ai-dev` divergence counts. No application code, migrations, or CI workflow files were edited.
+
+From the repository root, coordinator run 2026-11-13:
+
+| Command | Result | Exit |
+|---|---|---|
+| `python3 scripts/validate_repo.py` | Repository conventions validated | 0 |
