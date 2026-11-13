@@ -236,7 +236,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 | Unauthenticated reads of synthetic customer and employee data | Closed by CS-3. `/api/v1` reads require the `X-Laboratory-Actor` header. |
 | No structured logs | Closed by CS-3. `APP_LOG_LEVEL` configures JSON logs of actor, action, subject, and outcome. Message bodies and secrets are omitted. |
 | Thin HTTP contract tests | Closed. `tests/api/test_openapi_contract.py` and `openapi_contract_catalog.py` assert the full slice path/method catalog, write-route methods, decision enums, and runtime error envelopes. `tests/unit/test_contract_alignment.py` still aligns JSON Schema status enums. |
-| Downgrade is untested | Closed for revisions `0001`–`0008`. Matrix in `services/wasatch-api/tests/integration/README.md`. Each revision has an integration upgrade/downgrade test, including `test_initial_migration.py` for revision `0001` and `test_invoice_migration.py` for revision `0008`. |
+| Downgrade is untested | Closed for revisions `0001`–`0012`. Matrix in `services/wasatch-api/tests/integration/README.md`. Each revision has an integration upgrade/downgrade test, including `test_initial_migration.py` for `0001`, `test_invoice_line_migration.py` for `0010`, `test_payment_migration.py` for `0011`, and `test_alembic_migration_graph.py` for `0012`. |
 | Pytest skip when PostgreSQL is absent | `tests/conftest.py` still skips a local run when PostgreSQL is down. CI fails that skip. Pull request [#11](https://github.com/anotherhale/ai-solutions-lab/pull/11) (`d1178e8`) sets `WASATCH_REQUIRE_DATABASE=1`, and `scripts/check_wasatch_api_pytest.py` rejects a run that did not execute the database tests. |
 | String foreign key for invoices | Closed for `work_orders.invoice_id`. Revision `0008` adds `invoices` and a foreign key to `invoices.business_id`. Document `invoice_id` stays a string. Revisions `0010` and `0011` persist `invoice_lines` and `payments` with read-only routes (FIN-2, FIN-3). |
 | `python3 -m ruff` missing on the system interpreter in this environment | RUFF-1's environment install, which is outside the git diff. The pin itself landed in `ec6465f`. |
@@ -508,31 +508,35 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-9 — Mark PORT-CASE-FIN-2 merged after #84
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/85
+- Merge: `00ef109`
 - Depends on: PORT-CASE-FIN-2, COORD-CATALOG-7, and STATUS-6
-- Reconcile `data/coordinator/backlog.yaml` after pull request #84; register `COORD-ENTRY-SYNC-1` as `pending`.
-- Close stale [#81](https://github.com/anotherhale/ai-solutions-lab/pull/81) and [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82) without merging (superseded by #84 and this catalog pass).
-- Acceptance: `python3 scripts/validate_repo.py` passes.
+- Reconciled `data/coordinator/backlog.yaml` after pull request #84; registered `COORD-ENTRY-SYNC-1` and `DOC-DEBT-MIG-2`.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
 
 ### STATUS-7 — Refresh PROJECT_STATUS after PORT-CASE-FIN-2
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/85
+- Merge: `00ef109`
 - Depends on: PORT-CASE-FIN-2
-- Update `PROJECT_STATUS.md` baseline through #84 and open-pull-request notes.
-- Acceptance: `python3 scripts/validate_repo.py` passes.
+- Updated `PROJECT_STATUS.md` baseline through #84 and open-pull-request notes.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
 
 ### COORD-ENTRY-SYNC-1 — Sync coordinator catalog from origin/develop before tick
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/85
+- Merge: `00ef109`
 - Depends on: none
 - `scripts/coordinator_sync_integration_backlog.sh` copies `data/coordinator/backlog.yaml` from `origin/develop` when the remote catalog lists more tasks than the working tree (typical when Cloud Agents boot from `main`).
 - `scripts/coordinator_automation_entrypoint.sh` invokes the sync step before `development-ops-record coordinator tick`.
-- Closes stale pull request [#83](https://github.com/anotherhale/ai-solutions-lab/pull/83) when merged via [#85](https://github.com/anotherhale/ai-solutions-lab/pull/85).
-- Acceptance: `python3 scripts/validate_repo.py` passes; integration test for coordinator continuity still passes.
+- Acceptance met: `python3 scripts/validate_repo.py` passes; coordinator continuity integration test still passes.
 
 ### DOC-DEBT-MIG-2 — Align ENGINEERING_BACKLOG downgrade debt through Alembic 0012
 
-- Status: pending
+- Status: in progress (this change)
 - Depends on: COORD-ENTRY-SYNC-1
 - Update the technical-debt table in this file so downgrade coverage cites revisions `0001`–`0012` and matches `services/wasatch-api/tests/integration/README.md`.
 - Documentation only.

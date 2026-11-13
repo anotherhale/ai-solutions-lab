@@ -240,27 +240,30 @@ tasks:
 
   - id: COORD-CATALOG-9
     title: Mark PORT-CASE-FIN-2 merged after pull request #84
-    status: in_progress
+    status: merged
+    merge_commit: 00ef109
     depends_on: [PORT-CASE-FIN-2, COORD-CATALOG-7, STATUS-6]
     branch: cursor/coord-catalog-reconcile-post-84
     pr_number: 85
 
   - id: STATUS-7
     title: Refresh PROJECT_STATUS after PORT-CASE-FIN-2
-    status: in_progress
+    status: merged
+    merge_commit: 00ef109
     depends_on: [PORT-CASE-FIN-2]
     branch: cursor/coord-catalog-reconcile-post-84
     pr_number: 85
 
   - id: COORD-ENTRY-SYNC-1
     title: Sync coordinator catalog from origin/develop before tick
-    status: in_progress
+    status: merged
+    merge_commit: 00ef109
     depends_on: []
     branch: cursor/coord-catalog-reconcile-post-84
     pr_number: 85
 
   - id: DOC-DEBT-MIG-2
     title: Align ENGINEERING_BACKLOG downgrade debt through Alembic 0012
-    status: pending
+    status: in_progress
     depends_on: [COORD-ENTRY-SYNC-1]
     branch: cursor/doc-debt-mig-2-develop
