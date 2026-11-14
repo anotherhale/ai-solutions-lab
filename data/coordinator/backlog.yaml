@@ -594,6 +594,7 @@ tasks:
     status: in_progress
     depends_on: [COORD-CATALOG-28]
     branch: cursor/status-26-post-116
+    pr_number: 118
 
   - id: COORD-BACKLOG-PR-OPEN-1
     title: Accept lifecycle statuses in the backlog catalog YAML
