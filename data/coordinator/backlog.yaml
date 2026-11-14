@@ -571,6 +571,7 @@ tasks:
     status: in_progress
     depends_on: [COORD-CATALOG-26, STATUS-24]
     branch: cursor/coord-catalog-27-post-111
+    pr_number: 114
 
   - id: STATUS-25
     title: Refresh PROJECT_STATUS after #112
