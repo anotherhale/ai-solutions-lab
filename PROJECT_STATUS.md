@@ -1,6 +1,6 @@
 # Project Status
 
-Snapshot of AI Solutions Lab as verified on 2026-11-14 (post [#116](https://github.com/anotherhale/ai-solutions-lab/pull/116) COORD-CATALOG-28; STATUS-26 in flight). Wasatch Business Systems is a fictional company. All business records in this repository are synthetic.
+Snapshot of AI Solutions Lab as verified on 2026-11-14 (post [#118](https://github.com/anotherhale/ai-solutions-lab/pull/118) STATUS-26; develop catalog reconciliation in COORD-CATALOG-29). Wasatch Business Systems is a fictional company. All business records in this repository are synthetic.
 
 This file records what is in the repository and what was run. Forward work is in [ENGINEERING_BACKLOG.md](ENGINEERING_BACKLOG.md). Phase design is in [docs/architecture/IMPLEMENTATION_PLAN.md](docs/architecture/IMPLEMENTATION_PLAN.md). Contributor and agent rules for integration are in [docs/architecture/AGENT_OPERATING_MODEL.md](docs/architecture/AGENT_OPERATING_MODEL.md).
 
@@ -10,9 +10,9 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 | Item | Value |
 |---|---|
-| Assessed commit | `4137af2c1b6c967f38404f9bb6c48eea697a8aae` |
-| Commit subject | COORD-CATALOG-28: catalog after #115 merge (#116) |
-| Integration branch | `develop` at `4137af2` |
+| Assessed commit | `fb44d9bb83618d871446e065e95d03bbbdcde570` |
+| Commit subject | STATUS-26: refresh PROJECT_STATUS after COORD-CATALOG-28 (#116) (#118) |
+| Integration branch | `develop` at `fb44d9b` |
 | Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `40`/`21` on 2026-11-14) |
 | Production branch | `main` at `881cfc0` (unchanged at assessment) |
 | Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
@@ -166,9 +166,10 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | COORD-CATALOG-27 coordinator catalog after #111 | Done. Pull request [#114](https://github.com/anotherhale/ai-solutions-lab/pull/114) merged as `05da27d`. Catalog marks #111 tasks merged on develop. |
 | STATUS-25 PROJECT_STATUS after #112 | Done. Pull request [#115](https://github.com/anotherhale/ai-solutions-lab/pull/115) merged as `2cf2086`. Baseline and integration table after OPENAPI-FIN-QP-1 ([#112](https://github.com/anotherhale/ai-solutions-lab/pull/112)). Documentation only. |
 | COORD-CATALOG-28 coordinator catalog after #115 | Done. Pull request [#116](https://github.com/anotherhale/ai-solutions-lab/pull/116) merged as `4137af2`. Catalog marks #115 tasks merged on develop; registers STATUS-26. Documentation only. |
-| STATUS-26 PROJECT_STATUS after #115 | In progress. Refresh baseline and open-pull-request notes after COORD-CATALOG-28 ([#116](https://github.com/anotherhale/ai-solutions-lab/pull/116)). Documentation only. |
+| STATUS-26 PROJECT_STATUS after #115 | Done. Pull request [#118](https://github.com/anotherhale/ai-solutions-lab/pull/118) merged as `fb44d9b`. Baseline and open-pull-request notes after COORD-CATALOG-28 ([#116](https://github.com/anotherhale/ai-solutions-lab/pull/116)). Documentation only. |
+| COORD-CATALOG-29 coordinator catalog after #118 | In progress. Marks COORD-CATALOG-28 and STATUS-26 merged in `data/coordinator/backlog.yaml`; registers STATUS-27. Documentation only. |
 
-Open pull requests targeting `develop`: STATUS-26 documentation (closes when merged). Superseded develop pull requests [#88](https://github.com/anotherhale/ai-solutions-lab/pull/88), [#89](https://github.com/anotherhale/ai-solutions-lab/pull/89), [#91](https://github.com/anotherhale/ai-solutions-lab/pull/91), and [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82) were closed without merge when [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95) landed.
+Open pull requests targeting `develop`: none at this assessment. Close superseded duplicate [#117](https://github.com/anotherhale/ai-solutions-lab/pull/117) without merge. Superseded develop pull requests [#88](https://github.com/anotherhale/ai-solutions-lab/pull/88), [#89](https://github.com/anotherhale/ai-solutions-lab/pull/89), [#91](https://github.com/anotherhale/ai-solutions-lab/pull/91), and [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82) were closed without merge when [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95) landed.
 
 Open pull requests targeting `ai-dev` (do not block `develop` scheduling):
 
