@@ -922,9 +922,28 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### STATUS-26 — Refresh PROJECT_STATUS after #115
 
-- Status: in progress
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/118
+- Merge: `fb44d9b`
 - Depends on: COORD-CATALOG-28
-- Update baseline and open-pull-request notes after [#116](https://github.com/anotherhale/ai-solutions-lab/pull/116) merge.
+- Baseline and open-pull-request notes after [#116](https://github.com/anotherhale/ai-solutions-lab/pull/116) merge.
+- Documentation only.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
+
+### COORD-CATALOG-29 — Mark COORD-CATALOG-28 and STATUS-26 merged after #118
+
+- Status: in progress
+- Depends on: COORD-CATALOG-28 and STATUS-26
+- Reconcile `data/coordinator/backlog.yaml` after pull request #118 merge.
+- Register STATUS-27 as the next documentation refresh.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select pending catalog work after merge.
+
+### STATUS-27 — Refresh PROJECT_STATUS after #118
+
+- Status: pending
+- Depends on: COORD-CATALOG-28 and STATUS-26
+- Update baseline and open-pull-request notes after #118 merge.
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
