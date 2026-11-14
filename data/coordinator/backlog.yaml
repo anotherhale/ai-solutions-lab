@@ -602,6 +602,8 @@ tasks:
     title: Mark COORD-CATALOG-28 and STATUS-26 merged after pull request #118
     status: in_progress
     depends_on: [COORD-CATALOG-28, STATUS-26]
+    branch: cursor/coord-catalog-29-post-118
+    pr_number: 119
 
   - id: STATUS-27
     title: Refresh PROJECT_STATUS after #118

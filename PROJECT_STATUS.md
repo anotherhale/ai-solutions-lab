@@ -26,7 +26,7 @@ That relationship was true at `881cfc0`. `develop` later received the Ruff pin (
 | Branch | Tip | Notes |
 |---|---|---|
 | `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
-| `develop` | `4137af2` | Wasatch slice, finance read routes, OpenAPI list-filter contract tests (OPENAPI-FIN-QP-1, [#112](https://github.com/anotherhale/ai-solutions-lab/pull/112)), coordinator catalog after #115 ([#116](https://github.com/anotherhale/ai-solutions-lab/pull/116)). Coordinator lifecycle (ADR 0009, Alembic `0013`). Application database Alembic head `0013` on `development_ops`; Wasatch API head `0012`. |
+| `develop` | `fb44d9b` | Wasatch slice, finance read routes, OpenAPI list-filter contract tests (OPENAPI-FIN-QP-1, [#112](https://github.com/anotherhale/ai-solutions-lab/pull/112)), STATUS-26 baseline ([#118](https://github.com/anotherhale/ai-solutions-lab/pull/118)). Coordinator lifecycle (ADR 0009, Alembic `0013`). Application database Alembic head `0013` on `development_ops`; Wasatch API head `0012`. |
 | `ai-dev` | `0af252d` | Autonomous agents, review gate, Alembic head through `0016` until promoted to `develop`. |
 | `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
