@@ -1,6 +1,6 @@
 # Project Status
 
-Snapshot of AI Solutions Lab as verified on 2026-11-14 (post [#111](https://github.com/anotherhale/ai-solutions-lab/pull/111) and #112 merges; catalog reconciliation for COORD-CATALOG-27 in flight). Wasatch Business Systems is a fictional company. All business records in this repository are synthetic.
+Snapshot of AI Solutions Lab as verified on 2026-11-14 (post [#112](https://github.com/anotherhale/ai-solutions-lab/pull/112) OPENAPI-FIN-QP-1 and [#114](https://github.com/anotherhale/ai-solutions-lab/pull/114) catalog reconciliation; STATUS-25 in [#115](https://github.com/anotherhale/ai-solutions-lab/pull/115)). Wasatch Business Systems is a fictional company. All business records in this repository are synthetic.
 
 This file records what is in the repository and what was run. Forward work is in [ENGINEERING_BACKLOG.md](ENGINEERING_BACKLOG.md). Phase design is in [docs/architecture/IMPLEMENTATION_PLAN.md](docs/architecture/IMPLEMENTATION_PLAN.md). Contributor and agent rules for integration are in [docs/architecture/AGENT_OPERATING_MODEL.md](docs/architecture/AGENT_OPERATING_MODEL.md).
 
@@ -10,9 +10,9 @@ If this snapshot disagrees with the code, the code wins. Update this file in the
 
 | Item | Value |
 |---|---|
-| Assessed commit | `26c08c09b13fee4a911eaf5a73ba6a66018c16ea` |
-| Commit subject | COORD-CATALOG-26: catalog and PROJECT_STATUS after #110 (#111) |
-| Integration branch | `develop` at `26c08c0` |
+| Assessed commit | `05da27dc4fc5ea9000ce35296e3f83724a556b0b` |
+| Commit subject | COORD-CATALOG-27: catalog after #111 merge (#114) |
+| Integration branch | `develop` at `05da27d` |
 | Autonomous integration branch | `ai-dev` at `0af252d` (`git rev-list --left-right --count develop...ai-dev` → `35`/`21` on 2026-11-14) |
 | Production branch | `main` at `881cfc0` (unchanged at assessment) |
 | Relationship | `develop` is ahead of `main`. Laboratory work integrates on `develop` only. |
@@ -26,7 +26,7 @@ That relationship was true at `881cfc0`. `develop` later received the Ruff pin (
 | Branch | Tip | Notes |
 |---|---|---|
 | `main` | `881cfc0` | Production branch. Same commit as `develop` at the assessment. |
-| `develop` | `26c08c0` | Wasatch slice, finance read routes, OpenAPI list-filter contract tests (OPENAPI-FIN-QP-1, #112), coordinator catalog after #110 ([#111](https://github.com/anotherhale/ai-solutions-lab/pull/111)). Coordinator lifecycle (ADR 0009, Alembic `0013`). Application database Alembic head `0013` on `development_ops`; Wasatch API head `0012`. |
+| `develop` | `05da27d` | Wasatch slice, finance read routes, OpenAPI list-filter contract tests (OPENAPI-FIN-QP-1, [#112](https://github.com/anotherhale/ai-solutions-lab/pull/112)), coordinator catalog after #111 ([#114](https://github.com/anotherhale/ai-solutions-lab/pull/114)). Coordinator lifecycle (ADR 0009, Alembic `0013`). Application database Alembic head `0013` on `development_ops`; Wasatch API head `0012`. |
 | `ai-dev` | `0af252d` | Autonomous agents, review gate, Alembic head through `0016` until promoted to `develop`. |
 | `cursor/pin-ruff-0-17-3-6c1a` | `afdd60f` | Merged. Pull request [#2](https://github.com/anotherhale/ai-solutions-lab/pull/2) (`ec6465f`) pins Ruff 0.17.3 on `develop`. |
 | `cursor/wasatch-pytest-db-url-de06` | `9bf8bd5` | Tree matches `develop`. No unique files remain to merge. |
@@ -104,6 +104,7 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | FIN-3 read-only payment routes | Done. Pull request [#35](https://github.com/anotherhale/ai-solutions-lab/pull/35) merged as `b0d9c3c`. Alembic `0011` persists `payments` (20 rows). `GET /api/v1/payments` and `GET /api/v1/payments/{payment_id}` require the laboratory actor. No posting command. |
 | Coordinator continuity (ADR 0009) | Done. Pull request [#37](https://github.com/anotherhale/ai-solutions-lab/pull/37) merged as `c0ed984`. Scheduling tick, `wasatch_development_ops`, and `data/coordinator/backlog.yaml`. See [docs/operations/COORDINATOR_CONTINUITY.md](docs/operations/COORDINATOR_CONTINUITY.md). |
 | CONTRACT-FIN-1 finance enum alignment | Done. Pull request [#39](https://github.com/anotherhale/ai-solutions-lab/pull/39) merged as `3c9a933`. Unit contract tests align finance filter enums with `data/schemas/v1/finance/*.schema.json`. |
+| OPENAPI-FIN-QP-1 finance and work-order list query parameters in OpenAPI | Done. Pull request [#112](https://github.com/anotherhale/ai-solutions-lab/pull/112) merged as `96a2906`. OpenAPI contract catalog asserts optional filters on finance and work-order list routes; no API behavior change. |
 | COORD-SYNC-1 backlog catalog reconcile | Done. Pull request [#48](https://github.com/anotherhale/ai-solutions-lab/pull/48) merged as `a5f46e7`. `data/coordinator/backlog.yaml` and this file record merged finance and coordinator tasks; follow-on catalog entries are `pending` until their pull requests merge. |
 | DOC-DBMAP-1 finance persistence mapping | Done. Pull request [#49](https://github.com/anotherhale/ai-solutions-lab/pull/49) merged as `76e6e3f`. `docs/architecture/DATABASE_MAPPING.md` documents Alembic `0008`, `0010`, and `0011` for `invoices`, `invoice_lines`, and `payments`. Read routes remain reference amounts only. |
 | COORD-PR-SLOT-1 PR_OPEN slot accounting | Done. Pull request [#58](https://github.com/anotherhale/ai-solutions-lab/pull/58) merged as `defca15`. `pr_open` catalog rows awaiting human review do not consume `DEVELOPMENT_OPS_MAX_CONCURRENT` slots. |
@@ -162,10 +163,10 @@ Seeded counts asserted by the integration test: 15 customers, 20 service locatio
 | STATUS-23 PROJECT_STATUS after #109 | Done in pull request [#110](https://github.com/anotherhale/ai-solutions-lab/pull/110). Documentation only. |
 | COORD-CATALOG-26 coordinator catalog after #110 | Done. Pull request [#111](https://github.com/anotherhale/ai-solutions-lab/pull/111) merged as `26c08c0`. Catalog marks #110 tasks merged. |
 | STATUS-24 PROJECT_STATUS after #110 | Done in pull request [#111](https://github.com/anotherhale/ai-solutions-lab/pull/111). Documentation only. |
-| COORD-CATALOG-27 coordinator catalog after #111 | In progress. Marks #111 catalog tasks merged on develop. |
-| STATUS-25 PROJECT_STATUS after #112 | Pending. Baseline refresh after OPENAPI-FIN-QP-1 (#112). |
+| COORD-CATALOG-27 coordinator catalog after #111 | Done. Pull request [#114](https://github.com/anotherhale/ai-solutions-lab/pull/114) merged as `05da27d`. Catalog marks #111 tasks merged on develop. |
+| STATUS-25 PROJECT_STATUS after #112 | Done in pull request [#115](https://github.com/anotherhale/ai-solutions-lab/pull/115). Baseline and integration table after OPENAPI-FIN-QP-1 ([#112](https://github.com/anotherhale/ai-solutions-lab/pull/112)). Documentation only. |
 
-Open pull requests targeting `develop`: catalog follow-up for COORD-CATALOG-27 when opened. Superseded develop pull requests [#88](https://github.com/anotherhale/ai-solutions-lab/pull/88), [#89](https://github.com/anotherhale/ai-solutions-lab/pull/89), [#91](https://github.com/anotherhale/ai-solutions-lab/pull/91), and [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82) were closed without merge when [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95) landed.
+Open pull requests targeting `develop`: [#115](https://github.com/anotherhale/ai-solutions-lab/pull/115) (STATUS-25 documentation; closes when merged). Superseded develop pull requests [#88](https://github.com/anotherhale/ai-solutions-lab/pull/88), [#89](https://github.com/anotherhale/ai-solutions-lab/pull/89), [#91](https://github.com/anotherhale/ai-solutions-lab/pull/91), and [#82](https://github.com/anotherhale/ai-solutions-lab/pull/82) were closed without merge when [#95](https://github.com/anotherhale/ai-solutions-lab/pull/95) landed.
 
 Open pull requests targeting `ai-dev` (do not block `develop` scheduling):
 
