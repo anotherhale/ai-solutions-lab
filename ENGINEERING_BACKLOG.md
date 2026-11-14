@@ -941,10 +941,11 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - Documentation only.
 - Acceptance met: `python3 scripts/validate_repo.py` passes; coordinator tick can select pending catalog work after merge.
 
-### STATUS-27 — Refresh PROJECT_STATUS after #118
+### STATUS-27 — Refresh PROJECT_STATUS after #119
 
 - Status: in progress
-- Depends on: COORD-CATALOG-28 and STATUS-26
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/120
+- Depends on: COORD-CATALOG-29
 - Update baseline and open-pull-request notes after COORD-CATALOG-29 ([#119](https://github.com/anotherhale/ai-solutions-lab/pull/119)).
 - Documentation only.
 - Acceptance: `python3 scripts/validate_repo.py` passes.
