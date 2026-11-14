@@ -867,19 +867,21 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-26 — Mark COORD-CATALOG-25 and STATUS-23 merged after #110
 
-- Status: in progress
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/111
+- Merge: `26c08c0`
 - Depends on: COORD-CATALOG-25 and STATUS-23
 - Reconciled `data/coordinator/backlog.yaml` after pull request #110.
-- Documentation only.
-- Acceptance: `python3 scripts/validate_repo.py` passes; develop catalog has no stale `in_progress` rows for merged #110 work.
+- Acceptance met: `python3 scripts/validate_repo.py` passes; develop catalog has no stale `in_progress` rows for merged #110 work.
 
 ### STATUS-24 — Refresh PROJECT_STATUS after #110
 
-- Status: in progress
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/111
+- Merge: `26c08c0`
 - Depends on: COORD-CATALOG-25 and STATUS-23
 - Updated baseline and open-pull-request notes after #110 merge.
-- Documentation only.
-- Acceptance: `python3 scripts/validate_repo.py` passes.
+- Acceptance met: `python3 scripts/validate_repo.py` passes.
 
 ### OPENAPI-FIN-QP-1 — Finance list query parameters in OpenAPI contract tests
 
@@ -900,7 +902,7 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-27 — Mark COORD-CATALOG-26 and STATUS-24 merged after #111
 
-- Status: pending
+- Status: in progress
 - Depends on: COORD-CATALOG-26 and STATUS-24
 - Reconcile `data/coordinator/backlog.yaml` after pull request #111.
 - Documentation only.
