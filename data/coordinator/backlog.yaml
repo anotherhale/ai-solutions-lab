@@ -544,14 +544,16 @@ tasks:
 
   - id: COORD-CATALOG-26
     title: Mark COORD-CATALOG-25 and STATUS-23 merged after pull request #110
-    status: in_progress
+    status: merged
+    merge_commit: 26c08c0
     depends_on: [COORD-CATALOG-25, STATUS-23]
     branch: cursor/coord-catalog-26-post-110
     pr_number: 111
 
   - id: STATUS-24
     title: Refresh PROJECT_STATUS after #110
-    status: in_progress
+    status: merged
+    merge_commit: 26c08c0
     depends_on: [COORD-CATALOG-25, STATUS-23]
     branch: cursor/coord-catalog-26-post-110
     pr_number: 111
@@ -566,8 +568,9 @@ tasks:
 
   - id: COORD-CATALOG-27
     title: Mark COORD-CATALOG-26 and STATUS-24 merged after pull request #111
-    status: pending
+    status: in_progress
     depends_on: [COORD-CATALOG-26, STATUS-24]
+    branch: cursor/coord-catalog-27-post-111
 
   - id: STATUS-25
     title: Refresh PROJECT_STATUS after #112
