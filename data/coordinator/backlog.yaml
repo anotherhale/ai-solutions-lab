@@ -600,7 +600,8 @@ tasks:
 
   - id: COORD-CATALOG-29
     title: Mark COORD-CATALOG-28 and STATUS-26 merged after pull request #118
-    status: in_progress
+    status: merged
+    merge_commit: 4fd3b99
     depends_on: [COORD-CATALOG-28, STATUS-26]
     branch: cursor/coord-catalog-29-post-118
     pr_number: 119
