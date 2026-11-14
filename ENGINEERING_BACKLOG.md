@@ -296,11 +296,13 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### OPENAPI-FIN-QP-1 — Finance list query parameters in OpenAPI contract tests
 
-- Status: in progress (this change)
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/112
+- Merge: `96a2906`
 - Depends on: CONTRACT-FIN-1 (merged)
 - Assert OpenAPI documents optional list filters on finance and work-order read routes in `tests/api/test_openapi_contract.py`.
 - No route or migration changes.
-- Acceptance: contract tests pass; `python3 scripts/validate_repo.py` passes; CI green.
+- Acceptance met: contract tests pass; `python3 scripts/validate_repo.py` passes; CI green.
 
 ### COORD-SYNC-1 — Reconcile coordinator backlog catalog after finance slice
 
@@ -881,11 +883,28 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### OPENAPI-FIN-QP-1 — Finance list query parameters in OpenAPI contract tests
 
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/112
+- Merge: `96a2906`
+- Depends on: CONTRACT-FIN-1 (merged)
+- OpenAPI contract catalog and tests document finance and work-order list query parameters.
+- Acceptance met: contract tests pass; CI green.
+
+### STATUS-25 — Refresh PROJECT_STATUS after #112
+
 - Status: pending
-- Depends on: STATUS-24
-- Extend `tests/api/test_openapi_contract.py` (or a focused companion) so OpenAPI documents optional list filters already implemented in the API: `invoice_id` on `GET /api/v1/work-orders` and `GET /api/v1/payments`, and status or type filters on finance read routes where they exist in the published schema.
-- No route or migration changes.
-- Acceptance: contract tests pass; `python3 scripts/validate_repo.py` passes; CI green.
+- Depends on: COORD-CATALOG-26, STATUS-24, and OPENAPI-FIN-QP-1
+- Update baseline and integration table after #112 merge.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes.
+
+### COORD-CATALOG-27 — Mark COORD-CATALOG-26 and STATUS-24 merged after #111
+
+- Status: pending
+- Depends on: COORD-CATALOG-26 and STATUS-24
+- Reconcile `data/coordinator/backlog.yaml` after pull request #111.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select work after merge.
 
 ### COORD-BACKLOG-PR-OPEN-1 — Catalog lifecycle statuses
 
