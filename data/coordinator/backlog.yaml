@@ -607,11 +607,16 @@ tasks:
     pr_number: 119
 
   - id: STATUS-27
-    title: Refresh PROJECT_STATUS after #118
+    title: Refresh PROJECT_STATUS after #119
     status: in_progress
-    depends_on: [COORD-CATALOG-28, STATUS-26]
+    depends_on: [COORD-CATALOG-29]
     branch: cursor/status-27-post-118
     pr_number: 120
+
+  - id: COORD-CATALOG-30
+    title: Mark STATUS-27 merged after pull request #120
+    status: pending
+    depends_on: [STATUS-27]
 
   - id: COORD-BACKLOG-PR-OPEN-1
     title: Accept lifecycle statuses in the backlog catalog YAML
