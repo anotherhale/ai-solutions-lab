@@ -534,14 +534,15 @@ tasks:
 
   - id: OPENAPI-FIN-QP-1
     title: OpenAPI documents finance and work-order list query parameters
-    status: pending
+    status: in_progress
     depends_on: [CONTRACT-FIN-1]
     branch: cursor/openapi-fin-qp-1-1104
     pr_number: 112
 
   - id: COORD-RECONCILE-INPROG-1
     title: Mark in_progress tasks merged when their PR is no longer open
-    status: in_progress
+    status: merged
+    merge_commit: 6ca3424
     depends_on: []
     branch: cursor/coord-reconcile-inprogress-1104
     pr_number: 113

@@ -294,6 +294,14 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 - No API or migration changes.
 - Acceptance: unit test passes; repository validators unchanged; CI green.
 
+### OPENAPI-FIN-QP-1 — Finance list query parameters in OpenAPI contract tests
+
+- Status: in progress (this change)
+- Depends on: CONTRACT-FIN-1 (merged)
+- Assert OpenAPI documents optional list filters on finance and work-order read routes in `tests/api/test_openapi_contract.py`.
+- No route or migration changes.
+- Acceptance: contract tests pass; `python3 scripts/validate_repo.py` passes; CI green.
+
 ### COORD-SYNC-1 — Reconcile coordinator backlog catalog after finance slice
 
 - Status: done
