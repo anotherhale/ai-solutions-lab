@@ -951,10 +951,10 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### STATUS-27 — Refresh PROJECT_STATUS after #118
 
-- Status: pending
+- Status: in progress (this change)
 - Depends on: COORD-CATALOG-28 and STATUS-26
-- Update baseline and open-pull-request notes after #118 merge.
-- Documentation only.
+- Update baseline and open-pull-request notes after [#118](https://github.com/anotherhale/ai-solutions-lab/pull/118) and [#119](https://github.com/anotherhale/ai-solutions-lab/pull/119) merges.
+- Documentation only. Does not edit `data/coordinator/backlog.yaml` (catalog reconciliation remains on [#121](https://github.com/anotherhale/ai-solutions-lab/pull/121)).
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
 ### COORD-BACKLOG-PR-OPEN-1 — Catalog lifecycle statuses
