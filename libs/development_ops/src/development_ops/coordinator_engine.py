@@ -287,6 +287,8 @@ class CoordinatorEngine:
             row = self._tasks.get(task.id)
             if state is None:
                 if row and row.status in {
+                    RuntimeTaskStatus.ASSIGNED.value,
+                    RuntimeTaskStatus.IN_PROGRESS.value,
                     RuntimeTaskStatus.PR_OPEN.value,
                     RuntimeTaskStatus.MERGE_READY.value,
                 }:
