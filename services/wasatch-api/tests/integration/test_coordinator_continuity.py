@@ -294,6 +294,53 @@ def test_many_pr_open_tasks_do_not_exhaust_concurrency_slots(
         session.close()
 
 
+def test_closed_pr_marks_in_progress_task_merged(
+    ops_engine: Engine, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regression: merged PR must clear runtime in_progress, not only pr_open."""
+    monkeypatch.setenv("DEVELOPMENT_OPS_ATTEMPT_AUTO_MERGE", "0")
+    backlog = tmp_path / "backlog.yaml"
+    backlog.write_text(
+        textwrap.dedent(
+            """
+            repository: example/test
+            integration_branch: develop
+            tasks:
+              - id: TASK-MERGED
+                title: Shipped on develop
+                status: in_progress
+                merge_commit: abcdef1
+                pr_number: 110
+                branch: cursor/shipped
+                depends_on: []
+              - id: TASK-NEXT
+                title: Next work
+                status: pending
+                depends_on: []
+            """
+        ).strip(),
+        encoding="utf-8",
+    )
+    run_id = uuid.uuid4()
+    session = sessionmaker(bind=ops_engine, autoflush=False)()
+    github = FakeGitHub({})
+    try:
+        engine = CoordinatorEngine(
+            session,
+            github=github,
+            recorder=ActivityRecorder(session, notify_slack=False),
+            run_id=run_id,
+            repository="example/test",
+            backlog_path=backlog,
+        )
+        result = engine.tick()
+        assert result.active_tasks == 0
+        assert "pr #110 closed or merged externally" in result.notes
+        assert result.selected_task_id == "TASK-NEXT"
+    finally:
+        session.close()
+
+
 def test_recovery_reclaims_stale_assignment(
     ops_engine: Engine, backlog_file: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
