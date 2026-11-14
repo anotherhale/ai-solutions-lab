@@ -534,13 +534,6 @@ tasks:
     branch: cursor/coord-catalog-25-post-109
     pr_number: 110
 
-  - id: OPENAPI-FIN-QP-1
-    title: OpenAPI documents finance and work-order list query parameters
-    status: in_progress
-    depends_on: [CONTRACT-FIN-1]
-    branch: cursor/openapi-fin-qp-1-1104
-    pr_number: 112
-
   - id: COORD-RECONCILE-INPROG-1
     title: Mark in_progress tasks merged when their PR is no longer open
     status: merged
@@ -565,9 +558,21 @@ tasks:
 
   - id: OPENAPI-FIN-QP-1
     title: OpenAPI documents finance and work-order list query parameters
+    status: merged
+    merge_commit: 96a2906
+    depends_on: [CONTRACT-FIN-1]
+    branch: cursor/openapi-fin-qp-1-1104
+    pr_number: 112
+
+  - id: COORD-CATALOG-27
+    title: Mark COORD-CATALOG-26 and STATUS-24 merged after pull request #111
     status: pending
-    depends_on: [STATUS-24]
-    branch: cursor/openapi-fin-query-params
+    depends_on: [COORD-CATALOG-26, STATUS-24]
+
+  - id: STATUS-25
+    title: Refresh PROJECT_STATUS after #112
+    status: pending
+    depends_on: [COORD-CATALOG-26, STATUS-24, OPENAPI-FIN-QP-1]
 
   - id: COORD-BACKLOG-PR-OPEN-1
     title: Accept lifecycle statuses in the backlog catalog YAML
