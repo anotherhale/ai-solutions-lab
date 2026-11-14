@@ -520,24 +520,19 @@ tasks:
 
   - id: COORD-CATALOG-25
     title: Mark COORD-CATALOG-24 and STATUS-22 merged after pull request #109
-    status: in_progress
+    status: merged
+    merge_commit: a759dcd
     depends_on: [COORD-CATALOG-24, STATUS-22]
     branch: cursor/coord-catalog-25-post-109
     pr_number: 110
 
   - id: STATUS-23
     title: Refresh PROJECT_STATUS after #109
-    status: in_progress
+    status: merged
+    merge_commit: a759dcd
     depends_on: [COORD-CATALOG-24, STATUS-22]
     branch: cursor/coord-catalog-25-post-109
     pr_number: 110
-
-  - id: OPENAPI-FIN-QP-1
-    title: OpenAPI documents finance and work-order list query parameters
-    status: in_progress
-    depends_on: [CONTRACT-FIN-1]
-    branch: cursor/openapi-fin-qp-1-1104
-    pr_number: 112
 
   - id: COORD-RECONCILE-INPROG-1
     title: Mark in_progress tasks merged when their PR is no longer open
@@ -546,6 +541,38 @@ tasks:
     depends_on: []
     branch: cursor/coord-reconcile-inprogress-1104
     pr_number: 113
+
+  - id: COORD-CATALOG-26
+    title: Mark COORD-CATALOG-25 and STATUS-23 merged after pull request #110
+    status: in_progress
+    depends_on: [COORD-CATALOG-25, STATUS-23]
+    branch: cursor/coord-catalog-26-post-110
+    pr_number: 111
+
+  - id: STATUS-24
+    title: Refresh PROJECT_STATUS after #110
+    status: in_progress
+    depends_on: [COORD-CATALOG-25, STATUS-23]
+    branch: cursor/coord-catalog-26-post-110
+    pr_number: 111
+
+  - id: OPENAPI-FIN-QP-1
+    title: OpenAPI documents finance and work-order list query parameters
+    status: merged
+    merge_commit: 96a2906
+    depends_on: [CONTRACT-FIN-1]
+    branch: cursor/openapi-fin-qp-1-1104
+    pr_number: 112
+
+  - id: COORD-CATALOG-27
+    title: Mark COORD-CATALOG-26 and STATUS-24 merged after pull request #111
+    status: pending
+    depends_on: [COORD-CATALOG-26, STATUS-24]
+
+  - id: STATUS-25
+    title: Refresh PROJECT_STATUS after #112
+    status: pending
+    depends_on: [COORD-CATALOG-26, STATUS-24, OPENAPI-FIN-QP-1]
 
   - id: COORD-BACKLOG-PR-OPEN-1
     title: Accept lifecycle statuses in the backlog catalog YAML
