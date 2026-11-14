@@ -541,9 +541,10 @@ tasks:
 
   - id: COORD-RECONCILE-INPROG-1
     title: Mark in_progress tasks merged when their PR is no longer open
-    status: pending
+    status: in_progress
     depends_on: []
     branch: cursor/coord-reconcile-inprogress-1104
+    pr_number: 113
 
   - id: COORD-BACKLOG-PR-OPEN-1
     title: Accept lifecycle statuses in the backlog catalog YAML
