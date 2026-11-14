@@ -57,6 +57,27 @@ READ_PATHS = frozenset(
     if methods <= frozenset({"get", "head"}) and path.startswith("/api/v1/")
 )
 
+LIST_GET_QUERY_PARAM_NAMES: dict[str, frozenset[str]] = {
+    "/api/v1/work-orders": frozenset(
+        {
+            "customer_id",
+            "status",
+            "assigned_employee_id",
+            "service_location_id",
+            "invoice_id",
+            "page",
+            "page_size",
+        }
+    ),
+    "/api/v1/invoices": frozenset({"customer_id", "status", "page", "page_size"}),
+    "/api/v1/invoices/{invoice_id}/lines": frozenset(
+        {"line_type", "page", "page_size"}
+    ),
+    "/api/v1/payments": frozenset(
+        {"invoice_id", "status", "method", "page", "page_size"}
+    ),
+}
+
 POST_BODY_DECISION_ENUMS: dict[str, frozenset[str]] = {
     "/api/v1/approval-requests/{approval_id}/decisions": frozenset(
         {"approved", "rejected"}

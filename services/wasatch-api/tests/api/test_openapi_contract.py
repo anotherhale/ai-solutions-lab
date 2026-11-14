@@ -12,6 +12,7 @@ from wasatch_api.governance.application.decisions import CUSTOMER_MESSAGE_DECISI
 from wasatch_api.workflows.domain.follow_up import FOLLOW_UP_DECISIONS
 
 from .openapi_contract_catalog import (
+    LIST_GET_QUERY_PARAM_NAMES,
     POST_BODY_DECISION_ENUMS,
     READ_PATHS,
     SLICE_PATH_METHODS,
@@ -27,6 +28,14 @@ def _openapi(client: TestClient) -> dict[str, Any]:
 
 def _methods(path_item: dict[str, Any]) -> set[str]:
     return {method.lower() for method in path_item if method.lower() != "parameters"}
+
+
+def _query_param_names(operation: dict[str, Any]) -> frozenset[str]:
+    names: set[str] = set()
+    for parameter in operation.get("parameters", []):
+        if parameter.get("in") == "query" and "name" in parameter:
+            names.add(parameter["name"])
+    return frozenset(names)
 
 
 def _request_schema(spec: dict[str, Any], path: str, method: str) -> dict[str, Any]:
@@ -48,6 +57,17 @@ def test_openapi_paths_match_the_slice_catalog(client: TestClient) -> None:
         for path, path_item in spec["paths"].items()
     }
     assert published == SLICE_PATH_METHODS
+
+
+def test_finance_and_work_order_list_filters_are_documented_in_openapi(
+    client: TestClient,
+) -> None:
+    spec = _openapi(client)
+    paths = spec["paths"]
+    for path, expected in LIST_GET_QUERY_PARAM_NAMES.items():
+        operation = paths[path]["get"]
+        published = _query_param_names(operation)
+        assert published == expected, f"{path} query parameters"
 
 
 def test_write_routes_are_post_only_and_reads_stay_get(client: TestClient) -> None:
