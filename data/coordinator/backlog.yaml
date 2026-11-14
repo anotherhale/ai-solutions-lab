@@ -575,8 +575,10 @@ tasks:
 
   - id: STATUS-25
     title: Refresh PROJECT_STATUS after #112
-    status: pending
+    status: in_progress
     depends_on: [COORD-CATALOG-26, STATUS-24, OPENAPI-FIN-QP-1]
+    branch: cursor/status-25-post-112
+    pr_number: 115
 
   - id: COORD-BACKLOG-PR-OPEN-1
     title: Accept lifecycle statuses in the backlog catalog YAML

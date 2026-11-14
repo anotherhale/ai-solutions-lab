@@ -894,7 +894,8 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### STATUS-25 — Refresh PROJECT_STATUS after #112
 
-- Status: pending
+- Status: in progress
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/115
 - Depends on: COORD-CATALOG-26, STATUS-24, and OPENAPI-FIN-QP-1
 - Update baseline and integration table after #112 merge.
 - Documentation only.
@@ -902,11 +903,12 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-27 — Mark COORD-CATALOG-26 and STATUS-24 merged after #111
 
-- Status: in progress
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/114
+- Merge: `05da27d`
 - Depends on: COORD-CATALOG-26 and STATUS-24
-- Reconcile `data/coordinator/backlog.yaml` after pull request #111.
-- Documentation only.
-- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select work after merge.
+- Reconciled `data/coordinator/backlog.yaml` after pull request #111.
+- Acceptance met: `python3 scripts/validate_repo.py` passes; coordinator tick can select work after merge.
 
 ### COORD-BACKLOG-PR-OPEN-1 — Catalog lifecycle statuses
 
