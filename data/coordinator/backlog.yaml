@@ -608,9 +608,10 @@ tasks:
 
   - id: COORD-CATALOG-30
     title: Mark COORD-CATALOG-29 merged after pull request #119
-    status: in_progress
+    status: pr_open
     depends_on: [COORD-CATALOG-29]
     branch: cursor/coord-catalog-30-post-119
+    pr_number: 121
 
   - id: STATUS-27
     title: Refresh PROJECT_STATUS after #118
