@@ -932,19 +932,29 @@ Carry these until a task above closes them. Do not weaken the checks that alread
 
 ### COORD-CATALOG-29 — Mark COORD-CATALOG-28 and STATUS-26 merged after #118
 
-- Status: in progress
+- Status: done
+- Pull request: https://github.com/anotherhale/ai-solutions-lab/pull/119
+- Merge: `4fd3b99`
 - Depends on: COORD-CATALOG-28 and STATUS-26
-- Reconcile `data/coordinator/backlog.yaml` after pull request #118 merge.
-- Register STATUS-27 as the next documentation refresh.
+- Reconciled `data/coordinator/backlog.yaml` after pull request #118 merge.
+- Registered STATUS-27 as the next documentation refresh.
 - Documentation only.
-- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select pending catalog work after merge.
+- Acceptance met: `python3 scripts/validate_repo.py` passes; coordinator tick can select pending catalog work after merge.
+
+### COORD-CATALOG-30 — Mark COORD-CATALOG-29 merged after #119
+
+- Status: in progress (this change)
+- Depends on: COORD-CATALOG-29
+- Reconcile `data/coordinator/backlog.yaml` after pull request #119 merge.
+- Documentation only.
+- Acceptance: `python3 scripts/validate_repo.py` passes; coordinator tick can select STATUS-27 after merge.
 
 ### STATUS-27 — Refresh PROJECT_STATUS after #118
 
-- Status: pending
+- Status: in progress (this change)
 - Depends on: COORD-CATALOG-28 and STATUS-26
-- Update baseline and open-pull-request notes after #118 merge.
-- Documentation only.
+- Update baseline and open-pull-request notes after [#118](https://github.com/anotherhale/ai-solutions-lab/pull/118) and [#119](https://github.com/anotherhale/ai-solutions-lab/pull/119) merges.
+- Documentation only. Does not edit `data/coordinator/backlog.yaml` (catalog reconciliation remains on [#121](https://github.com/anotherhale/ai-solutions-lab/pull/121)).
 - Acceptance: `python3 scripts/validate_repo.py` passes.
 
 ### COORD-BACKLOG-PR-OPEN-1 — Catalog lifecycle statuses
