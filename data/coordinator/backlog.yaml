@@ -615,8 +615,10 @@ tasks:
 
   - id: STATUS-27
     title: Refresh PROJECT_STATUS after #118
-    status: pending
+    status: pr_open
     depends_on: [COORD-CATALOG-28, STATUS-26]
+    branch: cursor/status-27-post-119
+    pr_number: 122
 
   - id: COORD-BACKLOG-PR-OPEN-1
     title: Accept lifecycle statuses in the backlog catalog YAML
