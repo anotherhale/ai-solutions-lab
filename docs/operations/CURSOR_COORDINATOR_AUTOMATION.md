@@ -12,7 +12,7 @@ scripts/coordinator_automation_entrypoint.sh
 
 That script:
 
-1. Syncs `data/coordinator/backlog.yaml` from `origin/${DEVELOPMENT_OPS_INTEGRATION_BRANCH}` (default `develop`) when the remote catalog has more tasks than the working tree (so agents that boot from `main` do not truncate coordinator state). Set `DEVELOPMENT_OPS_INTEGRATION_BRANCH` to the branch the automation actually integrates on so a run never pulls catalog state from the wrong branch.
+1. Fetches `origin/${DEVELOPMENT_OPS_INTEGRATION_BRANCH:-develop}` and passes that ref’s `data/coordinator/backlog.yaml` to the tick (so agents that boot from `main` still schedule against the integration catalog). Set `DEVELOPMENT_OPS_BACKLOG_FROM_INTEGRATION=0` to use the working-tree file instead.
 2. Migrates/prepares `wasatch_development_ops` (never `wasatch_test`).
 3. Runs `development-ops-record coordinator tick` (GitHub reconcile, optional auto-merge).
 4. Emits JSON including `selected_task_id` when a new assignment is made.

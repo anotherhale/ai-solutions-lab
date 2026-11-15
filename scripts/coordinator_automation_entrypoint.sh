@@ -29,8 +29,27 @@ export DEVELOPMENT_OPS_INTEGRATION_BRANCH="${DEVELOPMENT_OPS_INTEGRATION_BRANCH:
 
 "${PYTHON}" "${ROOT}/scripts/prepare_development_ops_database.py" >/dev/null
 
+# Automation VMs may check out `main` while the catalog on `develop` is authoritative.
+# Load backlog from the integration branch ref when available (override with
+# DEVELOPMENT_OPS_BACKLOG_FROM_INTEGRATION=0 to use the working tree file).
+BACKLOG_ARGS=()
+INTEGRATION_BACKLOG=""
+if [[ "${DEVELOPMENT_OPS_BACKLOG_FROM_INTEGRATION:-1}" != "0" ]]; then
+  INTEGRATION_BRANCH="${DEVELOPMENT_OPS_INTEGRATION_BRANCH:-develop}"
+  git -C "${ROOT}" fetch -q origin "${INTEGRATION_BRANCH}" 2>/dev/null || true
+  if git -C "${ROOT}" rev-parse --verify "origin/${INTEGRATION_BRANCH}" >/dev/null 2>&1; then
+    CATALOG_REF="origin/${INTEGRATION_BRANCH}:data/coordinator/backlog.yaml"
+    if git -C "${ROOT}" cat-file -e "${CATALOG_REF}" 2>/dev/null; then
+      INTEGRATION_BACKLOG="$(mktemp)"
+      git -C "${ROOT}" show "${CATALOG_REF}" >"${INTEGRATION_BACKLOG}"
+      BACKLOG_ARGS=(--backlog "${INTEGRATION_BACKLOG}")
+    fi
+  fi
+fi
+trap '[[ -n "${INTEGRATION_BACKLOG}" ]] && rm -f "${INTEGRATION_BACKLOG}"' EXIT
+
 TICK_JSON="$(mktemp)"
-development-ops-record coordinator tick --notify-slack >"${TICK_JSON}"
+development-ops-record coordinator tick --notify-slack "${BACKLOG_ARGS[@]}" >"${TICK_JSON}"
 cat "${TICK_JSON}"
 
 SELECTED="$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d.get('selected_task_id') or '')" "${TICK_JSON}")"
